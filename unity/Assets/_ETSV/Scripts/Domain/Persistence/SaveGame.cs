@@ -18,16 +18,27 @@ namespace Etsv.Domain
         public MaterialWarehouse Mwh;
     }
 
-    /// <summary>DTO de guardado (versionado). Equivalente al objeto JSON del prototipo.</summary>
+    /// <summary>DTO de guardado (versionado). Equivalente al objeto JSON del prototipo.
+    /// Instrucción 08: los campos v4 (SaveId, Yard, PiecePoses, Counters, Progress)
+    /// se agregan al MISMO DTO — un único formato, sin sistema paralelo. En un
+    /// archivo v3 llegan null y la migración explícita los completa.</summary>
     public class SaveGame
     {
         public int Version;
         public int Money;
         public List<StoredPart> Pieces;
         public WarehouseSnapshot Warehouses;
+
+        // ---- v4 (formato completo de producción, Instrucción 08) ----
+        public string SaveId;                 // identificador único de partida
+        public string SavedAtUtc;             // ISO-8601 del momento del guardado
+        public List<YardObject> Yard;         // objetos del patio (desmontaje persistido)
+        public List<PiecePose> PiecePoses;    // posición/orientación de piezas físicas
+        public SaveCounters Counters;         // contadores de identidad (anti-colisión)
+        public ProgressData Progress;         // herramientas/mejoras + estructuras reservadas
     }
 
-    public static class SaveSerializer
+    public static partial class SaveSerializer
     {
         public static GameStateData CreateGameState()
         {
@@ -73,12 +84,13 @@ namespace Etsv.Domain
     /// invariantes del GDD 5.0 §8.3 antes de restaurar. Devuelve la lista de
     /// problemas encontrados (vacía = íntegro).
     /// </summary>
-    public static class SaveValidator
+    public static partial class SaveValidator
     {
         public static readonly string[] ReservationPurposes = { "contrato", "fabricacion", "mantenimiento", "construccion" };
 
         public static List<string> Validate(SaveGame s)
         {
+            if (s != null && s.Version == GameInfo.SaveVersionFull) return ValidateFull(s);
             var problems = new List<string>();
             if (s == null) { problems.Add("save nulo"); return problems; }
             if (s.Version != GameInfo.SaveVersion) problems.Add("version_incompatible:" + s.Version);

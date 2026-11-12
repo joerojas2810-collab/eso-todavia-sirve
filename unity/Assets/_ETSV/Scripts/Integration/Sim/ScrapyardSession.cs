@@ -91,6 +91,7 @@ namespace Etsv.Integration
             "no_disponible_en_suelo", "distancia_invalida", "jugador_desconocido",
             "estacion_inexistente", "no_disponible_para_procesar", "no_vendible_desde",
             "ocupado_por_otro", "no_liberado", "estado", "ya", "herramienta",
+            "guardado_fallido", "partida_invalida", // Instrucción 08: feedback de persistencia
         };
 
         public static byte Encode(string reason)

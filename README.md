@@ -49,6 +49,7 @@ python3 -m http.server 8080
 | `unity/docs/MATRIZ_PARIDAD_TESTS.md` | Instrucción 05: equivalencia de los 73 tests JS → NUnit y resultados de ejecución |
 | `unity/docs/INTEGRACION_DESARMADO.md` | Instrucción 06: sistemas de U6-FPM reutilizados, arquitectura host-autoritativa, adaptaciones y checklist de editor |
 | `unity/docs/INTEGRACION_ECONOMIA.md` | Instrucción 07: transporte ↔ dominio, balanza/trituradora/residuos/almacenes/contenedores (14 estaciones), economía compartida con trazabilidad, networking y checklist de editor |
+| `unity/docs/PERSISTENCIA.md` | Instrucción 08: guardado/restauración definitivos (formato v4, guardado seguro con respaldo, migración v3→v4, políticas deterministas, autoridad del host) y checklist de editor |
 | `INFORME_tecnico.md` | Investigación: reverse-engineering del estilo de Moon Sweepers, stack recomendado (Unity 6 + URP + NGO/Relay), bases de assets y código usables, plan de vertical slice |
 | `refs/` | Moodboards objetivo de estilo (imagen generada como referencia de dirección de arte, no es arte final) |
 
@@ -63,6 +64,7 @@ python3 -m http.server 8080
 - [x] **Instrucción 05: dominio migrado a C# puro (catálogo, desarmado, piezas, almacenes, economía, persistencia) + 73 tests JS portados a NUnit y ejecutados bajo Mono (33/33 PASS — ver `unity/docs/MATRIZ_PARIDAD_TESTS.md`)**
 - [x] **Instrucción 06: desmontaje físico integrado a Unity (microondas por blueprint, host-autoritativo con NGO 2.12, herramientas, HUD, piezas PickupItem, late-join) + 13 verificaciones §10 (46/46 PASS bajo Mono — ver `unity/docs/INTEGRACION_DESARMADO.md`)**
 - [x] **Instrucción 07: recuperación, almacenamiento y economía cooperativa integrados (transporte PickupItem ↔ dominio, balanza/trituradora/residuos especiales/almacenes/contenedores = 14 estaciones host-autoritativas, economía compartida "chatarrería" con trazabilidad, late-join económico) + 16 tests E01–E16 (62/62 PASS bajo Mono; capa Unity compilada contra stubs — ver `unity/docs/INTEGRACION_ECONOMIA.md`)**
+- [x] **Instrucción 08: persistencia integral del mundo y progreso cooperativo (formato v4 con id de partida/patio/poses/fracciones/progreso extensible, guardado seguro temp+verificación+reemplazo+respaldo, migración explícita v3→v4, huella de catálogo GDD §16.5, política determinista de transporte, host-autoritario con F5/autoguardado/checkpoints) + 14 tests S01–S14 (76/76 PASS bajo Mono; capa Unity compilada contra stubs — ver `unity/docs/PERSISTENCIA.md`)**
 - [ ] Port de las reglas JS → C# puro (paridad 1:1 de los 73 tests) + datos como ScriptableObjects
 - [ ] Chatarrería con arte CC0 (estaciones reemplazables ya previstas) y verificación en Unity Editor de Instrucciones 06–07
 - [ ] Contratos, progresión y objetos 02–30 · Vertical slice co-op 1–7 jugadores

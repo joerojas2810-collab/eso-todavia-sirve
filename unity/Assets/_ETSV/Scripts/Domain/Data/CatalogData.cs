@@ -108,6 +108,12 @@ namespace Etsv.Domain
             return null;
         }
 
+        public static FastenerTypeDef FastenerTypeById(string id)
+        {
+            FastenerTypeDef f;
+            return id != null && FastenerTypes.TryGetValue(id, out f) ? f : null;
+        }
+
         // Objeto 01 · Microondas (GDD 3.0: E · M · D1 · Capítulo 1 · 6 componentes).
         // Cantidades B_i de receta PROVISORIAS (PROV-07). VBase carcasa/puerta/panel/plato
         // conservados del catálogo v0.2 (PROV-08). El motor rinde el subensamble

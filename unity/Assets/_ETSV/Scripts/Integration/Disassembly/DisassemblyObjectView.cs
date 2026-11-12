@@ -16,6 +16,11 @@ namespace Etsv.Integration
 {
     public class DisassemblyObjectView : NetworkBehaviour
     {
+        /// <summary>netId → view viva (registro del host para persistencia: captura
+        /// de poses físicas al guardar). Instrucción 08.</summary>
+        public static readonly System.Collections.Generic.Dictionary<int, DisassemblyObjectView> Registry =
+            new System.Collections.Generic.Dictionary<int, DisassemblyObjectView>();
+
         // Id de instancia del host (DisassemblySessionHost.SpawnInstance) e índice
         // de blueprint en CatalogIndex. Los fija el host ANTES de Spawn() ⇒ viajan
         // como estado inicial a todos los clientes.
@@ -45,6 +50,8 @@ namespace Etsv.Integration
             }
             _vis = BlueprintBuilder.Build(_bp, transform);
 
+            Registry[NetInstanceId.Value] = this;
+
             if (IsServer)
             {
                 // El host llena la lista ANTES/de/spawn (bootstrap ya creó la instancia
@@ -63,6 +70,7 @@ namespace Etsv.Integration
 
         public override void OnNetworkDespawn()
         {
+            Registry.Remove(NetInstanceId.Value);
             Comps.OnListChanged -= OnCompsChanged;
         }
 

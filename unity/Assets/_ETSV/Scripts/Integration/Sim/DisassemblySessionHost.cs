@@ -277,6 +277,68 @@ namespace Etsv.Integration
             return si == null ? null : DisassemblySync.EncodeInstance(si.Inst);
         }
 
+        // ---------------------------------------------------------------- persistencia (Instrucción 08)
+        /// <summary>Todas las instancias vivas, ordenadas por NetId (determinista
+        /// para la captura del save).</summary>
+        public List<SessionInstance> AllInstances()
+        {
+            var list = new List<SessionInstance>(_byNet.Values);
+            list.Sort((a, b) => a.NetId.CompareTo(b.NetId));
+            return list;
+        }
+
+        /// <summary>Punto lógico de consistencia (GDD §16.3): cancela las sesiones de
+        /// trabajo activas SIN penalización — el progreso de las fijaciones ya vive
+        /// en el dominio y se conserva (GDD §16.4: "las interacciones manuales
+        /// incompletas pueden cancelarse sin penalización").</summary>
+        public int StopAllWork()
+        {
+            int n = _workers.Count;
+            _workers.Clear();
+            return n;
+        }
+
+        /// <summary>Vacía el registro de instancias (carga de partida). Los
+        /// contadores de identidad NO se reinician: netId/instanceId jamás se
+        /// reutilizan dentro del proceso (anti-colisión con NetworkObjects vivos).</summary>
+        public void ClearInstances()
+        {
+            _byNet.Clear();
+        }
+
+        /// <summary>Restaura una instancia del patio desde el save (reconstrucción
+        /// lógica). Asigna NetId nuevo y actualiza los contadores de identidad.</summary>
+        public SessionInstance RestoreInstance(string domainId, ObjectBlueprint bp, DisassemblyInstance inst)
+        {
+            var si = new SessionInstance { NetId = _nextNetId++, DomainId = domainId, Bp = bp, Inst = inst };
+            _byNet[si.NetId] = si;
+            int n;
+            int sep = domainId.LastIndexOf('_');
+            if (sep > 0 && int.TryParse(domainId.Substring(sep + 1), out n) && n >= _nextInstance)
+                _nextInstance = n + 1;
+            return si;
+        }
+
+        /// <summary>Reemplaza el estado de juego completo (carga de partida) y
+        /// reconstruye el contexto económico. El titular cooperativo se mantiene
+        /// (ScrapyardSession.OwnerTag); las manos arrancan vacías: la política de
+        /// transporte del save v4 ya convirtió carried → world.</summary>
+        public void ApplyState(GameStateData gs)
+        {
+            State = gs;
+            Ctx = new EconomyContext
+            {
+                Reg = State.Reg,
+                Cwh = State.Cwh,
+                Mwh = State.Mwh,
+                Carry = null,
+                SessionOwner = ScrapyardSession.OwnerTag,
+                GetMoney = () => State.Money,
+                AddMoney = n => { State.Money += n; },
+                OnChanged = () => { },
+            };
+        }
+
         // ---------------------------------------------------------------- identidad de piezas
         /// <summary>"p_42" → 42 (uid del dominio ↔ int de red). -1 si no tiene el formato.</summary>
         public static int PieceUidToNet(string uid)

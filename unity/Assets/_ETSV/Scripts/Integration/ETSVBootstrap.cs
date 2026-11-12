@@ -5,8 +5,9 @@
 //     contra el fuente de NGO 2.12).
 //  2. OnServerStarted (host): crea DisassemblySessionHost (cerebro puro) y
 //     ScrapyardSession (economía cooperativa, Instrucción 07), spawnea el objeto
-//     de sesión, una mesa de trabajo, el microondas del blueprint y las 14
-//     estaciones de la chatarrería; engancha la desconexión de clientes.
+//     de sesión, una mesa de trabajo y las 14 estaciones de la chatarrería;
+//     RESTAURA la partida guardada (Instrucción 08, PersistenceHub) o, si no
+//     existe, spawnea el microondas de partida nueva; engancha la desconexión.
 //  3. Cada peer: cuando aparece su avatar local, le agrega el controlador de
 //     desmontaje y crea el HUD (UI Toolkit en código).
 // Todo lo construido es genérico: otros blueprints se spawnean igual (30 objetos
@@ -82,7 +83,11 @@ namespace Etsv.Integration
 
         private void OnDestroy()
         {
-            if (_nm != null) _nm.OnServerStarted -= OnServerStarted;
+            if (_nm != null)
+            {
+                _nm.OnServerStarted -= OnServerStarted;
+                _nm.OnClientDisconnectCallback -= OnClientDisconnected;
+            }
             ETSVSession.Host = null;
         }
 
@@ -106,17 +111,52 @@ namespace Etsv.Integration
             var sessionGo = Instantiate(ETSVBootstrap.SessionPrefab);
             sessionGo.GetComponent<NetworkObject>().Spawn();
 
-            SpawnWorkbenchAndMicrowave(host);
-            ScrapyardLayout.BuildStations(); // decorativas: mismas coordenadas en cada peer
+            // Persistencia (Instrucción 08): SOLO el host guarda/restaura.
+            var hubGo = new GameObject("ETSV Persistence");
+            Object.DontDestroyOnLoad(hubGo);
+            var hub = hubGo.AddComponent<PersistenceHub>();
+            hub.InitHost(System.IO.Path.Combine(Application.persistentDataPath, "etsv_save.json"));
+
+            // Geometría de referencia (idéntica en cada peer: no se replica).
+            BuildWorkbench(ScrapyardLayout.TableAnchor());
+            ScrapyardLayout.BuildStations();
+
+            if (hub.TryRestore(host))
+            {
+                // Partida restaurada: el mundo físico ya lo re-materializó el hub;
+                // la sync económica viaja por las NVs/NetworkLists existentes.
+                var sv = ETSVSessionView.Instance;
+                if (sv != null) { sv.SyncEconomy(); sv.FeedRestored(); }
+            }
+            else
+            {
+                SpawnMicrowave(host); // partida nueva: el microondas del GDD sobre la mesa
+            }
         }
 
         private void OnClientDisconnected(ulong clientId)
         {
             var sc = ETSVSession.Scrapyard;
-            if (sc == null) return;
-            // Pieza transportada vuelve al suelo lógico; el NetworkObject físico
-            // persiste (PickupItem auto-drop) ⇒ sin duplicación ni pérdida.
-            sc.OnPlayerDisconnected(clientId);
+            if (sc != null)
+            {
+                // Pieza transportada vuelve al suelo lógico; el NetworkObject físico
+                // persiste (PickupItem auto-drop) ⇒ sin duplicación ni pérdida.
+                sc.OnPlayerDisconnected(clientId);
+
+                // Físico: soltar lo que el cliente que se fue tuviera agarrado
+                // (HeldBy server-write; el watcher de la pieza lo refleja idempotente).
+                foreach (var kv in DisassemblyPieceView.Registry)
+                {
+                    if (kv.Value == null) continue;
+                    var pickup = kv.Value.GetComponent<PickupItem>();
+                    if (pickup != null && pickup.HeldBy.Value == clientId)
+                        pickup.HeldBy.Value = ulong.MaxValue;
+                }
+            }
+
+            // GDD §16.2: checkpoint al cerrarse la sesión de un jugador.
+            if (_nm != null && _nm.IsServer && PersistenceHub.Instance != null)
+                PersistenceHub.Instance.SaveNow(clientId, false);
         }
 
         private bool TryGetPlayerPos(ulong clientId, out P3 pos)
@@ -130,11 +170,9 @@ namespace Etsv.Integration
             return true;
         }
 
-        private void SpawnWorkbenchAndMicrowave(DisassemblySessionHost host)
+        private void SpawnMicrowave(DisassemblySessionHost host)
         {
             Vector3 tablePos = ScrapyardLayout.TableAnchor(); // misma referencia que las estaciones
-
-            BuildWorkbench(tablePos);
 
             int netId = host.SpawnInstance("microondas");
             if (netId < 0)

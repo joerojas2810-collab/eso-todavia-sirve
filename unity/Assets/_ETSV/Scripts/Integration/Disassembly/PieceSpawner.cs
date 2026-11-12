@@ -13,8 +13,14 @@ namespace Etsv.Integration
     {
         public static DisassemblyPieceView Spawn(StoredPart piece, Vector3 at)
         {
+            return Spawn(piece, at, 0f);
+        }
+
+        /// <summary>yawDegrees: orientación persistida en el save v4 (Instrucción 08).</summary>
+        public static DisassemblyPieceView Spawn(StoredPart piece, Vector3 at, float yawDegrees)
+        {
             if (piece == null || ETSVBootstrap.PiecePrefab == null) return null;
-            var go = Object.Instantiate(ETSVBootstrap.PiecePrefab, at, Quaternion.identity);
+            var go = Object.Instantiate(ETSVBootstrap.PiecePrefab, at, Quaternion.Euler(0f, yawDegrees, 0f));
             var pv = go.GetComponent<DisassemblyPieceView>();
             if (pv != null)
             {

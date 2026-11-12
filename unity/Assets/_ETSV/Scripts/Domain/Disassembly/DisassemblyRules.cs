@@ -84,7 +84,9 @@ namespace Etsv.Domain
 
     public enum WorkOutcome { Done, Progress }
 
-    public static class DisassemblyRules
+    // partial: la serialización de instancias para el save v4 vive en
+    // Persistence/SaveFull.cs (Instrucción 08), junto al resto del formato.
+    public static partial class DisassemblyRules
     {
         public static DisassemblyInstance CreateInstance(ObjectBlueprint bp, string id)
         {

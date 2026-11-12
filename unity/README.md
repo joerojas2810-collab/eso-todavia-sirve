@@ -64,18 +64,21 @@ Host (Relay + join code) / Join / Start — comportamiento upstream intacto.
 ## 5. Tests
 
 Window → General → **Test Runner** → EditMode → Run All.
-Hoy: 62 tests EditMode — smoke del dominio, **paridad 1:1 con los 73 tests JS del
-prototipo**, 13 de sesión de desmontaje host-autoritativa y 16 de economía
-cooperativa (venta simultánea, procesado duplicado, desconexión durante
-transporte, residuos especiales, late-join…). En este entorno se ejecutan bajo
-Mono (62/62 PASS); en el editor corren con NUnit real.
+Hoy: 76 tests EditMode — smoke del dominio, **paridad 1:1 con los 73 tests JS del
+prototipo**, 13 de sesión de desmontaje host-autoritativa, 16 de economía
+cooperativa y 14 de persistencia integral (round-trip, desmontaje parcial,
+anti-duplicación, fracciones, respaldo, corrupción, migración v3→v4, late-join).
+En este entorno se ejecutan bajo Mono (76/76 PASS); en el editor corren con
+NUnit real.
 
 ## 6. Estado
 
-Instrucciones 04–07 completas en código: base integrada, dominio portado,
-desmontaje físico y economía cooperativa conectados con autoridad del host
-(`docs/INTEGRACION.md` §7–§8, `INTEGRACION_DESARMADO.md`,
-`INTEGRACION_ECONOMIA.md`). Pendientes que **requieren el editor Unity** y no
-pudieron verificarse en este entorno: compilación real (aquí se compiló contra
-stubs), físicas, replicación entre clientes, 7 jugadores en runtime, spawns
-visuales 5–7 y las checklists de editor de ambas instrucciones.
+Instrucciones 04–08 completas en código: base integrada, dominio portado,
+desmontaje físico y economía cooperativa conectados con autoridad del host, y
+persistencia definitiva del mundo (guardado seguro con respaldo, migraciones y
+restauración física) (`docs/INTEGRACION.md` §7–§9, `INTEGRACION_DESARMADO.md`,
+`INTEGRACION_ECONOMIA.md`, `PERSISTENCIA.md`). Pendientes que **requieren el
+editor Unity** y no pudieron verificarse en este entorno: compilación real (aquí
+se compiló contra stubs), físicas, replicación entre clientes, 7 jugadores en
+runtime, spawns visuales 5–7, escritura real del save y las checklists de editor
+de las Instrucciones 06–08.

@@ -121,3 +121,18 @@ verdad; la red replica dinero (NV), ocupación de zonas y unidades de material
 (NetworkLists) y eventos discretos de transacción (RPC). Detalles, prohibiciones
 de transporte cumplidas una por una, tests E01–E16 y checklist de editor:
 [`INTEGRACION_ECONOMIA.md`](INTEGRACION_ECONOMIA.md).
+
+## 9. Instrucción 08 — persistencia integral del mundo y progreso cooperativo
+
+Guardado/restauración definitivos de la chatarrería cooperativa sobre el GDD 5.0
+§16: formato v4 (id de partida, saldo, piezas con poses, almacenes con
+fracciones, patio con desmontaje completo, contadores y progreso extensible),
+guardado seguro (temporal + verificación + reemplazo + respaldo `.bak`),
+migración explícita v3→v4, huella de catálogo por instancia (GDD §16.5) y
+política determinista de transporte (pieza llevada al guardar → aparece en el
+suelo al cargar, sin penalización ni duplicación). El host guarda/restaura
+(autoguardado 60 s, desconexión, cierre, F5 manual por RPC); los clientes
+reciben el mundo restaurado por la sync existente. Cinco capas separadas
+(serialización, validación, migración, reconstrucción lógica, reconstrucción
+física/red) y un único estado: el dominio. Detalles, formato, tests S01–S14 y
+checklist de editor: [`PERSISTENCIA.md`](PERSISTENCIA.md).

@@ -47,6 +47,7 @@ namespace Etsv.Integration
         private PlayerMovement _movement;
         private InputAction _interact;
         private InputAction _tool1, _tool2, _tool3;
+        private InputAction _saveKey; // F5: solicitud de guardado manual (Instrucción 08)
 
         private DisassemblyObjectView _view;
         private int _targetComp = -1, _targetFastener = -1; // -1 = cuerpo del componente
@@ -65,6 +66,9 @@ namespace Etsv.Integration
             _tool1 = NewKeyAction("Tool1", GameCatalog.Tools.Length > 0 ? GameCatalog.Tools[0].Key : "1");
             _tool2 = NewKeyAction("Tool2", GameCatalog.Tools.Length > 1 ? GameCatalog.Tools[1].Key : "2");
             _tool3 = NewKeyAction("Tool3", GameCatalog.Tools.Length > 2 ? GameCatalog.Tools[2].Key : "3");
+            _saveKey = new InputAction("SaveRequest", InputActionType.Button);
+            _saveKey.AddBinding("<Keyboard>/f5");
+            _saveKey.Enable();
             ToolIdx = GameCatalog.Tools.Length - 1; // arranca con "manos"
         }
 
@@ -98,12 +102,13 @@ namespace Etsv.Integration
         private void OnDestroy()
         {
             if (Current == this) Current = null;
-            _tool1?.Dispose(); _tool2?.Dispose(); _tool3?.Dispose();
+            _tool1?.Dispose(); _tool2?.Dispose(); _tool3?.Dispose(); _saveKey?.Dispose();
         }
 
         private void Update()
         {
             HandleToolKeys();
+            HandleSaveKey();
             RefreshCarried();
             RefreshTarget();
 
@@ -131,6 +136,15 @@ namespace Etsv.Integration
             StopWorking();
             if (ETSVSessionView.Instance != null)
                 ETSVSessionView.Instance.SelectToolRpc((byte)idx);
+        }
+
+        /// <summary>F5: SOLICITUD de guardado al host (Instrucción 08 §5 — el cliente
+        /// pide, el host decide y ejecuta; nunca reemplaza estado del anfitrión).</summary>
+        private void HandleSaveKey()
+        {
+            if (_saveKey == null || !_saveKey.WasPressedThisFrame()) return;
+            if (ETSVSessionView.Instance != null)
+                ETSVSessionView.Instance.RequestSaveRpc();
         }
 
         /// <summary>Pieza en manos del jugador LOCAL (HeldBy es legible por todos).</summary>

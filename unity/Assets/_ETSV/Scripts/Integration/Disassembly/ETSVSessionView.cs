@@ -39,7 +39,8 @@ namespace Etsv.Integration
         public static class TxKind
         {
             public const byte Venta = 0, Procesado = 1, Entrega = 2, Almacenado = 3,
-                              Retirado = 4, VentaMaterial = 5, Rechazo = 6;
+                              Retirado = 4, VentaMaterial = 5, Rechazo = 6,
+                              Guardado = 7, Restaurado = 8; // Instrucción 08
         }
 
         /// <summary>Saldo compartido de la chatarrería (GDD: economía cooperativa).</summary>
@@ -212,6 +213,30 @@ namespace Etsv.Integration
                     ReasonCode = reasonCode,
                     StationId = stationId,
                 });
+        }
+
+        // ------------------------------------------------------------------ persistencia (Instrucción 08)
+        /// <summary>Un cliente SOLICITA guardar; el host decide y ejecuta (§5: un
+        /// cliente jamás reemplaza estado del anfitrión, solo pide la captura).</summary>
+        [Rpc(SendTo.Server)]
+        public void RequestSaveRpc(RpcParams rpcParams = default)
+        {
+            if (PersistenceHub.Instance == null) return;
+            PersistenceHub.Instance.SaveNow(rpcParams.Receive.SenderClientId, true);
+        }
+
+        /// <summary>Feedback de guardado/restauración para todos los clientes.</summary>
+        public void FeedSaveResult(ulong playerId, bool ok)
+        {
+            TransactionFeedRpc(playerId, TxKind.Guardado, 0, (byte)(ok ? 1 : 0),
+                ok ? (byte)0 : ReasonCodes.Encode("guardado_fallido"), 0);
+        }
+
+        public void FeedRestored()
+        {
+            TransactionFeedRpc(NetworkManager.Singleton != null && NetworkManager.Singleton.LocalClient != null
+                    ? NetworkManager.Singleton.LocalClient.ClientId : 0UL,
+                TxKind.Restaurado, 0, 1, 0, 0);
         }
     }
 }

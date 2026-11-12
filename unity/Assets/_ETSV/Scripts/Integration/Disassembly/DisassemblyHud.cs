@@ -143,6 +143,8 @@ namespace Etsv.Integration
                     case ETSVSessionView.TxKind.Almacenado: text = "✔ " + who + " almacenó una pieza"; break;
                     case ETSVSessionView.TxKind.Retirado: text = "✔ " + who + " retiró una pieza"; break;
                     case ETSVSessionView.TxKind.VentaMaterial: text = "✔ " + who + " vendió material +$" + f.Value; break;
+                    case ETSVSessionView.TxKind.Guardado: text = "✔ " + who + " guardó la partida"; break;
+                    case ETSVSessionView.TxKind.Restaurado: text = "✔ Partida restaurada"; break;
                     default: text = who + " operó una estación"; break;
                 }
             }
@@ -173,6 +175,8 @@ namespace Etsv.Integration
                 case "requiere_carro_o_grua": return "requiere carro o grúa (P3+)";
                 case "distancia_invalida": return "demasiado lejos";
                 case "jugador_desconocido": return "jugador no reconocido";
+                case "guardado_fallido": return "no se pudo guardar (la última copia válida quedó intacta)";
+                case "partida_invalida": return "partida inválida";
                 default: return reason ?? "rechazado";
             }
         }
@@ -255,6 +259,7 @@ namespace Etsv.Integration
                 sb.Append(sel ? "]" : "");
                 if (i < GameCatalog.Tools.Length - 1) sb.Append("   ");
             }
+            sb.Append("    F5 guardar");
             if (c != null && c.CarriedPiece != null)
                 sb.Append("    Llevando: ").Append(c.CarriedPiece.DefId)
                   .Append(" (Q").Append(c.CarriedPiece.Quality.Value).Append(")");

@@ -19,6 +19,11 @@ namespace Etsv.Domain
         /// el save nativo lo reemplace.</summary>
         public const int SaveVersion = 3;
 
+        /// <summary>Versión del formato COMPLETO de producción (Instrucción 08):
+        /// id de partida, patio físico, poses de piezas, contadores y progreso.
+        /// La migración 3 → 4 es explícita (SaveMigrations.Migrate3To4).</summary>
+        public const int SaveVersionFull = 4;
+
         /// <summary>Jugadores por sesión: 1–7 (GDD 1.0/2.0, cooperativo).
         /// Fuente única: de acá lee SessionConfig (capa de integración).</summary>
         public const int MaxPlayers = 7;
