@@ -1,22 +1,26 @@
-# Prototipo v0.1 — ¡ESO TODAVÍA SIRVE!
+# Prototipo v0.2 — ¡ESO TODAVÍA SIRVE!
 
-Graybox jugable en el navegador para **validar el principio 1 del pitch**:
-que *golpear → romper → recuperar → pesar → vender* sea satisfactorio por sí mismo,
-y para fijar el **objetivo de estilo visual** (low-poly plano, paleta corta, 1 luz,
-emisivos, UI redonda con números gigantes — lenguaje de Moon Sweepers).
+Graybox jugable en el navegador. v0.1 validó el loop *golpear → romper → pesar → vender*
+y el estilo visual. **v0.2 (Instrucción 01) agrega el sistema de desmontaje modular
+data-driven**, con el objeto 01 del GDD (microondas) totalmente jugable:
+inspeccionar → retirar fijaciones con la herramienta correcta → extraer componentes
+respetando dependencias → clasificar (balanza / trituradora / residuo especial) → vender.
 
 > ⚠️ Esto NO es el juego final. El juego final va en **Unity 6 + URP** (ver `../INFORME_tecnico.md`).
-> Este prototipo es un instrumento de diseño: se itera acá en minutos, no en builds de Unity.
+> Este prototipo es un instrumento de diseño y el banco de pruebas del sistema de desmontaje.
 
 ## Cómo correrlo
 
 ```bash
-# desde la raíz del workspace
-python3 -m http.server 8080 --bind 0.0.0.0 --directory eso-todavia-sirve/prototype
-# abrir http://localhost:8080 (o el live preview del sandbox)
+python3 -m http.server 8080 --bind 0.0.0.0 --directory prototype
+# abrir http://localhost:8080
 ```
 
-(Servir por HTTP y no abrir el .html directo: usa ES modules.)
+Test de reglas (sin navegador):
+
+```bash
+cd prototype && node tests/disassembly.test.mjs   # 22 aserciones del sistema de desmontaje
+```
 
 ## Controles
 
@@ -24,28 +28,47 @@ python3 -m http.server 8080 --bind 0.0.0.0 --directory eso-todavia-sirve/prototy
 |---|---|
 | WASD / Shift | moverse / correr |
 | Mouse (clic para capturar) | mirar · fallback: clic derecho mantenido |
-| Clic izq. | golpear con la llave · si tenés algo, lo **lanza** |
-| F | agarrar / soltar / depositar en la balanza |
-| R | vender todo lo que haya en la balanza |
-| B | oficina de mejoras (progresión, principio 2) |
+| 1 / 2 / 3 | llave inglesa / destornillador manual / manos |
+| CLIC mantenido | trabajar la fijación apuntada (progreso se conserva al soltar) |
+| CLIC izq. | golpear (daña calidad de componentes y piezas) / lanzar lo sostenido |
+| F | agarrar / soltar / depositar en balanza / procesar en trituradora / residuo especial |
+| E | inspeccionar el objeto en la mesada (estados, fijaciones, calidad) |
+| R | vender lo depositado en la balanza |
+| B | oficina de mejoras |
 | Espacio | saltar |
 
-## Qué valida cada sistema
+## Arquitectura en capas (Instrucción 01 §5)
 
-- **Golpe → rotura**: hp por pieza, pre-"fractura" en 2–3 chunks que valen **+30%/kg** (incentivo de desarmar).
-- **Peso y capacidad**: límite de kg en mano → presión de progresión (Espalda reforzada).
-- **Balanza + venta**: números grandes que "popan" = juice de recompensa.
-- **Mejoras**: 3 upgrades que cambian el loop (imán, capacidad, daño), no solo números.
-- **Estilo**: paleta `PAL` en `js/main.js` es la paleta candidata del juego; 1 direccional + hemisférica,
-  flat shading, emisivos en visores/carteles, fog limpio.
+| Capa | Archivo | Responsabilidad |
+|---|---|---|
+| 1 · Datos | `js/data/catalog.js` | Materiales, tipos de fijación, herramientas y blueprints de objetos (componentes, fijaciones, dependencias, materiales, geometría). Agregar objeto = agregar datos. |
+| 2 · Reglas | `js/systems/disassembly.js` | Máquina de estados (bloqueado→accesible→liberado→extraido→procesado/vendido), dependencias, trabajo con progreso persistente, calidad/daño, valor por calidad, cierre terminal único. Puro, testeable sin navegador. |
+| 3 · Vista | `js/world/disassemblyView.js` | Construcción de meshes desde el blueprint, visibilidad por estado, pulso de fijaciones accesibles, highlight de mira, entrega del mesh al mundo físico al extraer. |
+| 4 · Integración | `js/main.js` | Input, herramientas, raycast de trabajo, recuperación (balanza/trituradora/contenedor), economía, HUD, inspección, respawn. Conserva todos los sistemas v0.1. |
+
+### Flujo de un componente
+
+```
+bloqueado ──(dependencias retiradas)──> accesible ──(todas sus fijaciones)──> liberado
+   liberado ──(manos + CLIC)──> extraido ──> vendido (balanza)
+                                        └─> procesado (trituradora → materiales)
+                                        └─> procesado (contenedor rojo, si es sellado)
+```
+
+## Sistemas v0.1 conservados
+
+Escenario y movimiento · física de chatarra y lanzamiento · economía/inventario/materiales ·
+balanza/venta/tienda de mejoras · UI y HUD · audio sintetizado · partículas · journe de cámara.
+Cambios v0.1→v0.2 sobre sistemas existentes: la balanza ahora valora piezas intactas por
+calidad (`partValueOf`), el hotbar pasó a ser selector de herramientas (las mejoras quedaron
+como mini-slots) y los golpes además de empujar **dañan calidad**.
 
 ## Mapa de port a Unity (cuando el loop esté aprobado)
 
-| Prototipo (three.js) | Unity 6 |
+| Prototipo | Unity 6 |
 |---|---|
-| `bodies[]` + colisiones esfera | Rigidbodies + colliders convexos, pool de NetworkObjects |
-| `held` + resorte a cámara | `PickupItem.cs` del sample U6-First-Person-Multiplayer (ownership al agarrar) |
-| `hp` + chunks | pre-fractura Blender (Cell Fracture) + joints con break force |
-| `state.money/scaleKg` | ScriptableObjects `ItemSO`/`MachineSO` + save JSON del host |
-| `UPGRADES` | `UpgradeSO` + tienda UI (misma regla: cambios de loop, no stats) |
-| `PAL` + flat shading | URP Lit simplificado + atlas + LUT de color grading |
+| `catalog.js` | ScriptableObjects `ObjectBlueprintSO` / `ComponentSO` / `MaterialSO` |
+| `disassembly.js` | `DisassemblyInstance.cs` (misma máquina de estados, sin Unity API) |
+| `disassemblyView.js` | Prefabs generados por blueprint + `DisassemblyView.cs` |
+| trabajo sostenido + progreso | `WorkInteraction.cs` con `hold` y `NetworkVariable` de progreso |
+| balanza/trituradora/contenedor | zonas con `IInteractable` + economía del host |

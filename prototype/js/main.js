@@ -1,11 +1,20 @@
 /* ============================================================================
-   ¡ESO TODAVÍA SIRVE! — prototipo v0.1 (graybox de diseño)
-   Loop: golpear → romper → recuperar → pesar → vender → mejorar
-   Look objetivo: low-poly plano estilo Moon Sweepers (paleta corta, 1 luz,
-   emisivos, UI redonda con números gigantes).
-   Esto NO es el juego final: valida feel + estilo. El final va en Unity 6.
+   ¡ESO TODAVÍA SIRVE! — v0.2 (sobre la base v0.1, sin reescribir el proyecto)
+   Loop original: golpear → romper → recuperar → pesar → vender → mejorar
+   NUEVO (Instrucción 01): sistema de desmontaje modular data-driven.
+     Capa 1 datos ....... js/data/catalog.js      (objetos, componentes, fijaciones)
+     Capa 2 reglas ...... js/systems/disassembly.js (estados, dependencias, calidad)
+     Capa 3 vista ....... js/world/disassemblyView.js (meshes, highlights, raycast)
+     Capa 4 integración . este archivo (input, herramientas, recuperación, economía)
+   Sistemas v0.1 conservados: escenario, movimiento, física de chatarra,
+   economía/inventario/materiales, balanza/venta/tienda, UI, audio, partículas.
    ============================================================================ */
 import * as THREE from '../vendor/three.module.js';
+import { MATERIALS, FASTENER_TYPES, TOOLS, OBJECT_CATALOG, compById } from './data/catalog.js';
+import * as DIS from './systems/disassembly.js';
+import { DisassemblyView } from './world/disassemblyView.js';
+
+const BP = OBJECT_CATALOG[0]; // objeto 01 del GDD: microondas
 
 // ---------------------------------------------------------------- paleta
 const PAL = {
@@ -20,6 +29,7 @@ const state = {
   money: 0, carryCap: 60, grabRange: 3.0, dmg: 1,
   owned: { magnet: false, back: false, mace: false },
   scaleKg: 0, scaleVal: 0, shopOpen: false, started: false,
+  tool: 'llave',
 };
 const UPGRADES = [
   { id: 'magnet', ico: '🧲', slot: 'slot-magnet', name: 'Guante imán', desc: 'Alcance de agarre +50% y resorte más firme', cost: 150, apply: () => { state.grabRange = 4.5; } },
@@ -61,6 +71,15 @@ const box = (w, h, d, color, x = 0, y = 0, z = 0) => {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color));
   m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; scene.add(m); return m;
 };
+const makeSign = (text, w, h, bg, fg, fontPx) => {
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = Math.round(512 * h / w);
+  const cx = cv.getContext('2d');
+  cx.fillStyle = bg; cx.fillRect(0, 0, cv.width, cv.height);
+  cx.fillStyle = fg; cx.font = `900 ${fontPx}px system-ui, sans-serif`;
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText(text, cv.width / 2, cv.height / 2);
+  return signMat(cv);
+};
 
 // ---------------------------------------------------------------- mundo estático
 const ground = new THREE.Mesh(new THREE.CircleGeometry(90, 48), mat(PAL.dirt));
@@ -90,7 +109,6 @@ box(0.5, 1.3, BOUND * 2 + 1, PAL.steel, BOUND, 0.65, 0);
 
 // colisionadores estáticos (esferas aproximadas)
 const statics = [];
-const addStatic = (x, y, z, r) => statics.push(new THREE.Vector3(x, y, z), r);
 
 // galpón / oficina
 {
@@ -106,19 +124,15 @@ const addStatic = (x, y, z, r) => statics.push(new THREE.Vector3(x, y, z), r);
   win.position.set(-1.6, 2.0, 3.3); g.add(win);
   g.position.set(-20, 0, -22); scene.add(g);
   statics.push(new THREE.Vector3(-20, 1.5, -22), 5.2);
-  // cartel con textura canvas (tipografía redonda, como la UI del referente)
-  const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 256;
-  const cx = cv.getContext('2d');
-  cx.fillStyle = '#b4552d'; cx.fillRect(0, 0, 1024, 256);
-  cx.fillStyle = '#f2e8d5'; cx.font = '900 108px system-ui, sans-serif';
-  cx.textAlign = 'center'; cx.textBaseline = 'middle';
-  cx.fillText('¡ESO TODAVÍA SIRVE!', 512, 136);
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(8.4, 2.1, 0.2), signMat(cv));
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(8.4, 2.1, 0.2), makeSign('¡ESO TODAVÍA SIRVE!', 8.4, 2.1, '#b4552d', '#f2e8d5', 108));
   sign.position.set(-20, 5.1, -18.6); scene.add(sign);
-  const pole = box(0.25, 5, 0.25, PAL.dark, -20, 2.5, -18.6); pole.castShadow = true;
+  box(0.25, 5, 0.25, PAL.dark, -20, 2.5, -18.6);
 }
 
-// trituradora (shredder) + cinta
+// trituradora (shredder) + cinta — ahora también PROCESA componentes en materiales
+const SHRED_CENTER = new THREE.Vector3(20, 0, -20);
+const BELT_EXIT = new THREE.Vector3(23.4, 0.6, -18.2);
+let shredderDrum = null;
 {
   const g = new THREE.Group();
   const base = new THREE.Mesh(new THREE.BoxGeometry(6.5, 3.2, 4.5), mat(PAL.olive));
@@ -129,14 +143,13 @@ const addStatic = (x, y, z, r) => statics.push(new THREE.Vector3(x, y, z), r);
   mouth.position.y = 5.3; g.add(mouth);
   const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 3.4, 10), mat(PAL.steel));
   drum.rotation.z = Math.PI / 2; drum.position.set(0, 5.05, 0); g.add(drum);
-  g.userData.drum = drum;
+  shredderDrum = drum;
   const belt = new THREE.Mesh(new THREE.BoxGeometry(9, 0.4, 1.8), mat(PAL.dark));
   belt.position.set(6.5, 2.2, 0); belt.rotation.z = 0.42; belt.castShadow = true; g.add(belt);
   const rail = new THREE.Mesh(new THREE.BoxGeometry(9, 0.5, 0.15), mat(PAL.hazard));
   rail.position.set(6.5, 2.6, 0.9); rail.rotation.z = 0.42; g.add(rail);
-  g.position.set(20, 0, -20); scene.add(g);
+  g.position.copy(SHRED_CENTER); scene.add(g);
   statics.push(new THREE.Vector3(20, 2, -20), 4.4);
-  window.__drum = drum;
 }
 
 // grúa de garra (silueta)
@@ -151,9 +164,8 @@ const addStatic = (x, y, z, r) => statics.push(new THREE.Vector3(x, y, z), r);
   const claw = new THREE.Group();
   for (let i = 0; i < 4; i++) {
     const f = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.6, 0.5), mat(PAL.steel));
-    f.position.y = -0.8; f.rotation.x = 0.5; f.rotation.y = i * Math.PI / 2;
     const pivot = new THREE.Group(); pivot.rotation.y = i * Math.PI / 2;
-    f.position.set(0, -0.8, 0.35); pivot.add(f); claw.add(pivot);
+    f.position.set(0, -0.8, 0.35); f.rotation.x = 0.5; pivot.add(f); claw.add(pivot);
   }
   claw.position.set(8, 6.4, 0); g.add(claw);
   g.position.set(-22, 0, 14); scene.add(g);
@@ -175,9 +187,9 @@ carStack(-26, -6, 0.3); carStack(-25, 2, -0.2); carStack(24, 8, 1.2); carStack(1
 
 // contenedores
 {
-  const a = box(6, 2.6, 2.5, PAL.olive, 4, 1.3, -30); a.castShadow = true;
-  const b = box(6, 2.6, 2.5, PAL.blue, 4.4, 3.9, -30.2); b.rotation.y = 0.12; b.castShadow = true;
-  const c = box(6, 2.6, 2.5, PAL.rust, -3.4, 1.3, -30.4); c.castShadow = true;
+  box(6, 2.6, 2.5, PAL.olive, 4, 1.3, -30);
+  const b = box(6, 2.6, 2.5, PAL.blue, 4.4, 3.9, -30.2); b.rotation.y = 0.12;
+  box(6, 2.6, 2.5, PAL.rust, -3.4, 1.3, -30.4);
   statics.push(new THREE.Vector3(4, 1.5, -30), 3.6, new THREE.Vector3(-3.4, 1.5, -30.4), 3.6);
 }
 
@@ -188,16 +200,40 @@ scalePad.position.copy(SCALE_POS).setY(0.12); scalePad.receiveShadow = true; sce
 const scaleRing = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.09, 8, 32), mat(PAL.hazard, { emissive: 0xe8871f, emissiveIntensity: 0.5 }));
 scaleRing.rotation.x = -Math.PI / 2; scaleRing.position.copy(SCALE_POS).setY(0.3); scene.add(scaleRing);
 {
-  const pole = box(0.22, 3.2, 0.22, PAL.dark, SCALE_POS.x + 2.9, 1.6, SCALE_POS.z - 1.4);
-  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
-  const cx = cv.getContext('2d');
-  cx.fillStyle = '#e8871f'; cx.fillRect(0, 0, 512, 256);
-  cx.fillStyle = '#241d16'; cx.font = '900 120px system-ui, sans-serif';
-  cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('BALANZA', 256, 100);
-  cx.font = '800 64px system-ui, sans-serif'; cx.fillText('$ / KG', 256, 190);
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.3, 0.15), signMat(cv));
+  box(0.22, 3.2, 0.22, PAL.dark, SCALE_POS.x + 2.9, 1.6, SCALE_POS.z - 1.4);
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.3, 0.15), makeSign('BALANZA', 2.6, 1.3, '#e8871f', '#241d16', 120));
   sign.position.set(SCALE_POS.x + 2.9, 3.4, SCALE_POS.z - 1.4); sign.rotation.y = -0.5; scene.add(sign);
   statics.push(new THREE.Vector3(SCALE_POS.x + 2.9, 1.5, SCALE_POS.z - 1.4), 0.6);
+}
+
+// NUEVO: puesto de desmontaje (mesada de trabajo del objeto 01)
+const BENCH_POS = new THREE.Vector3(-2, 0, 0);
+const MW_CENTER = new THREE.Vector3(BENCH_POS.x, 1.12, BENCH_POS.z);
+{
+  box(1.7, 0.1, 1.1, PAL.rust, BENCH_POS.x, 0.92, BENCH_POS.z);
+  for (const [dx, dz] of [[0.75, 0.45], [-0.75, 0.45], [0.75, -0.45], [-0.75, -0.45]])
+    box(0.1, 0.92, 0.1, PAL.dark, BENCH_POS.x + dx, 0.46, BENCH_POS.z + dz);
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 0.06), makeSign('PUESTO DE DESMONTAJE', 1.6, 0.4, '#241d16', '#e8871f', 64));
+  sign.position.set(BENCH_POS.x, 0.62, BENCH_POS.z + 0.56); scene.add(sign);
+  statics.push(new THREE.Vector3(BENCH_POS.x, 0.9, BENCH_POS.z), 1.0);
+}
+
+// NUEVO: contenedor de residuos especiales (módulos sellados)
+const BIN_POS = new THREE.Vector3(17, 0, -11);
+{
+  const g = new THREE.Group();
+  const wm = mat(PAL.red);
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 1.3), wm); floor.position.y = 0.05; floor.receiveShadow = true; g.add(floor);
+  const walls = [[0, 0.5, 0.62, 1.3, 0.9, 0.08], [0, 0.5, -0.62, 1.3, 0.9, 0.08], [0.62, 0.5, 0, 0.08, 0.9, 1.3], [-0.62, 0.5, 0, 0.08, 0.9, 1.3]];
+  for (const [x, y, z, w, h, d] of walls) {
+    const w1 = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wm); w1.position.set(x, y, z); w1.castShadow = true; g.add(w1);
+  }
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.12, 0.1), mat(PAL.hazard)); stripe.position.set(0, 0.95, 0.62); g.add(stripe);
+  box(0.15, 2.2, 0.15, PAL.dark, BIN_POS.x + 0.9, 1.1, BIN_POS.z - 0.7);
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.75, 0.08), makeSign('RESIDUOS ESPECIALES', 1.5, 0.75, '#a8433a', '#f2e8d5', 74));
+  sign.position.set(BIN_POS.x + 0.9, 2.35, BIN_POS.z - 0.7); sign.rotation.y = -0.4; scene.add(sign);
+  g.position.copy(BIN_POS); scene.add(g);
+  statics.push(new THREE.Vector3(BIN_POS.x, 0.6, BIN_POS.z), 0.9);
 }
 
 // compañero chibi (ojos emisivos = marca del estilo)
@@ -235,7 +271,7 @@ for (let i = 0; i < 5; i++) {
   scene.add(g); clouds.push(g);
 }
 
-// ---------------------------------------------------------------- viewmodel: llave inglesa
+// ---------------------------------------------------------------- viewmodels de herramientas
 const wrench = new THREE.Group();
 {
   const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.62, 8), mat(PAL.steel));
@@ -245,8 +281,25 @@ const wrench = new THREE.Group();
   const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.16, 8), mat(PAL.hazard));
   grip.rotation.x = 0.5; grip.position.set(0, -0.3, 0.15); wrench.add(grip);
 }
-camera.add(wrench); wrench.position.set(0.42, -0.36, -0.75); wrench.rotation.z = -0.25;
+const screwdriver = new THREE.Group();
+{
+  const grip2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.055, 0.26, 10), mat(PAL.hazard));
+  grip2.position.y = -0.16; screwdriver.add(grip2);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.4, 8), mat(PAL.steel));
+  shaft.position.y = 0.16; screwdriver.add(shaft);
+  const tip = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.06, 0.012), mat(PAL.steel));
+  tip.position.y = 0.38; screwdriver.add(tip);
+  screwdriver.rotation.x = 0.5;
+}
+camera.add(wrench); camera.add(screwdriver);
+wrench.position.set(0.42, -0.36, -0.75); wrench.rotation.z = -0.25;
+screwdriver.position.set(0.42, -0.36, -0.75); screwdriver.rotation.z = -0.25;
+screwdriver.visible = false;
 scene.add(camera);
+function showToolVM() {
+  wrench.visible = state.tool === 'llave';
+  screwdriver.visible = state.tool === 'destornillador';
+}
 
 // ---------------------------------------------------------------- partículas (chispas)
 const P_MAX = 160;
@@ -268,7 +321,7 @@ function sparks(at, n = 14, hot = true) {
     const v = new THREE.Vector3(Math.random() - .5, Math.random() * 0.9, Math.random() - .5).normalize().multiplyScalar(2.5 + Math.random() * 4);
     pVel[k * 3] = v.x; pVel[k * 3 + 1] = v.y; pVel[k * 3 + 2] = v.z;
     pLife[k] = 0.45 + Math.random() * 0.3;
-    const c = hot ? (Math.random() < 0.5 ? 0xffb347 : 0xffe08a) : 0xc9c9c9;
+    const c = hot ? (Math.random() < 5 ? 0xffb347 : 0xffe08a) : 0xc9c9c9;
     pCol[k * 3] = ((c >> 16) & 255) / 255; pCol[k * 3 + 1] = ((c >> 8) & 255) / 255; pCol[k * 3 + 2] = (c & 255) / 255;
   }
 }
@@ -303,6 +356,10 @@ const sfx = {
   coin() { blip(880, 0.08, 'square', 0.2); blip(1320, 0.14, 'square', 0.2, 0, 0.08); blip(1760, 0.18, 'square', 0.15, 0, 0.16); },
   deny() { blip(120, 0.22, 'sawtooth', 0.28, -30); },
   upgrade() { [523, 659, 784, 1046].forEach((f, i) => blip(f, 0.12, 'square', 0.2, 0, i * 0.07)); },
+  // nuevos: desmontaje
+  tick() { blip(240 + Math.random() * 60, 0.045, 'square', 0.1); },
+  ding() { blip(1150, 0.08, 'triangle', 0.3); blip(1550, 0.1, 'triangle', 0.25, 0, 0.07); },
+  rumble() { noiseBurst(0.7, 300, 0.5); blip(70, 0.7, 'sine', 0.35, -20); },
 };
 
 // ---------------------------------------------------------------- física de chatarra
@@ -317,19 +374,25 @@ const KINDS = {
   toaster: { name: 'tostadora', kg: 3,  vpk: 4.0, hp: 1, make: c => new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.26, 0.4), mat(PAL.cream)), r: 0.28 },
   pipe:    { name: 'caño',      kg: 15, vpk: 1.1, hp: 2, make: c => new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 1.5, 8), mat(c)), r: 0.5 },
   chunk:   { name: 'chatarra',  kg: 0,  vpk: 0,   hp: 999, make: c => new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.24, 0.4), mat(c)), r: 0.3 },
+  part:    { name: 'pieza',     kg: 0,  vpk: 0,   hp: 999, make: c => new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat(c)), r: 0.34 },
 };
 function spawnProp(kind, pos, opts = {}) {
   const K = KINDS[kind];
   const color = opts.color ?? SCRAP_COLORS[(Math.random() * SCRAP_COLORS.length) | 0];
-  const mesh = K.make(color);
+  const mesh = opts.mesh ?? K.make(color);
   mesh.castShadow = mesh.receiveShadow = true;
-  mesh.position.copy(pos);
-  mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
-  scene.add(mesh);
+  if (opts.mesh) {
+    if (mesh.parent !== scene) scene.attach(mesh); // conserva transform de mundo
+  } else {
+    mesh.position.copy(pos);
+    mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+    scene.add(mesh);
+  }
   const kg = opts.kg ?? K.kg;
   const b = {
-    id: bodyId++, kind, mesh, r: K.r, kg,
+    id: bodyId++, kind, mesh, r: opts.r ?? K.r, kg,
     vpk: opts.vpk ?? K.vpk, hp: opts.hp ?? K.hp,
+    name: opts.name ?? K.name, meta: opts.meta ?? null,
     vel: new THREE.Vector3(), av: new THREE.Vector3((Math.random() - .5) * 2, (Math.random() - .5) * 2, (Math.random() - .5) * 2),
     held: false, frozen: false, pop: 0, shrinking: 0, color,
   };
@@ -361,6 +424,7 @@ const player = {
 };
 const keys = new Set();
 let locked = false, dragLook = false, rightDown = false;
+let mouseHeld = false, working = null, workSfxT = 0;
 
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; });
@@ -383,9 +447,21 @@ document.addEventListener('mousemove', e => {
 document.addEventListener('mousedown', e => {
   if (!state.started || state.shopOpen) return;
   if (e.button === 2) { rightDown = true; return; }
-  if (e.button === 0) { if (!locked && dragLook) { /* mirar */ } swing(); }
+  if (e.button !== 0) return;
+  mouseHeld = true;
+  if (held.length) { swing(); return; }                       // lanzar lo sostenido (v0.1)
+  const tgt = aimTarget();                                    // ¿trabajo de desmontaje?
+  if (tgt && tgt.kind === 'fast') {
+    const cw = DIS.canWork(inst, tgt.comp, tgt.fIdx, state.tool, FASTENER_TYPES);
+    if (cw.ok) { working = { comp: tgt.comp, fIdx: tgt.fIdx }; workSfxT = 0.3; return; }
+  }
+  if (tgt && tgt.kind === 'comp' && state.tool === 'manos') { tryExtract(tgt.comp); return; }
+  swing();                                                    // golpe destructivo (v0.1 + daño)
 });
-document.addEventListener('mouseup', e => { if (e.button === 2) rightDown = false; });
+document.addEventListener('mouseup', e => {
+  if (e.button === 2) rightDown = false;
+  if (e.button === 0) { mouseHeld = false; working = null; }  // progreso queda guardado
+});
 canvas.addEventListener('click', () => { if (state.started && !state.shopOpen && !locked) tryLock(); });
 
 document.addEventListener('keydown', e => {
@@ -394,9 +470,23 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyF') interact();
   if (e.code === 'KeyR') sell();
   if (e.code === 'KeyB') toggleShop();
+  if (e.code === 'KeyE' && inst && nearBench()) {
+    inspectOpen = !inspectOpen;
+    document.getElementById('inspect').classList.toggle('hidden', !inspectOpen);
+    if (inspectOpen) renderInspect();
+  }
+  if (e.code === 'Digit1') selectTool('llave');
+  if (e.code === 'Digit2') selectTool('destornillador');
+  if (e.code === 'Digit3') selectTool('manos');
   if (e.code === 'Space' && player.onGround && !state.shopOpen) { player.vy = 7.2; player.onGround = false; sfx.whoosh(); }
 });
 document.addEventListener('keyup', e => keys.delete(e.code));
+
+function selectTool(id) {
+  state.tool = id;
+  for (const t of TOOLS) document.getElementById('tool-' + t.id).classList.toggle('on', t.id === id);
+  showToolVM();
+}
 
 // ---------------------------------------------------------------- interacción
 const fwd = new THREE.Vector3(), right = new THREE.Vector3(), tmp = new THREE.Vector3();
@@ -420,42 +510,98 @@ function findGrabbable() {
 }
 function heldKg() { return held.reduce((s, b) => s + b.kg, 0); }
 function nearScale() { return player.pos.distanceTo(tmp.copy(SCALE_POS).setY(player.pos.y)) < 4.2; }
+function nearBench() { return player.pos.distanceTo(tmp.copy(BENCH_POS).setY(player.pos.y)) < 2.6; }
+function nearShredder() { return player.pos.distanceTo(tmp.copy(SHRED_CENTER).setY(player.pos.y)) < 5.5; }
+function nearBin() { return player.pos.distanceTo(tmp.copy(BIN_POS).setY(player.pos.y)) < 3.0; }
+
+// valor de venta real de un prop: pieza intacta (por calidad) o kg × vpk
+function partValueOf(b) {
+  if (b.meta && b.meta.part) return DIS.effPartValue(compById(BP, b.meta.compId), b.meta.quality);
+  return b.kg * b.vpk;
+}
 
 function interact() {
   if (state.shopOpen) return;
-  if (nearScale() && held.length) {           // depositar en balanza
+  // 1) contenedor de residuos especiales: módulos sellados
+  if (nearBin() && held.some(b => b.meta && b.meta.sealed)) {
+    for (const b of [...held]) {
+      if (!(b.meta && b.meta.sealed)) continue;
+      DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'residuo especial');
+      state.money += 35; moneyPop();
+      removeBody(b);
+      sfx.thud(); sfx.coin();
+      toast('☣️ Módulo sellado gestionado como residuo especial (+$35)');
+    }
+    refreshInspect();
+    return;
+  }
+  // 2) trituradora: procesar piezas extraídas en sus materiales
+  if (nearShredder() && held.length) {
+    const proc = held.filter(b => b.meta && b.meta.part && !b.meta.sealed && Object.keys(b.meta.materials || {}).length);
+    const sealedHeld = held.filter(b => b.meta && b.meta.sealed);
+    if (proc.length) {
+      const jobs = proc.map(b => ({ mats: b.meta.materials }));
+      for (const b of proc) {
+        DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'triturado');
+        removeBody(b);
+      }
+      sfx.rumble(); toast('🏭 Triturando… los materiales salen por la cinta');
+      setTimeout(() => {
+        for (const j of jobs) for (const [mId, kg] of Object.entries(j.mats)) {
+          const M2 = MATERIALS[mId];
+          const c = spawnProp('chunk', BELT_EXIT.clone().add(new THREE.Vector3((Math.random() - .5) * .8, 0.2, (Math.random() - .5) * .8)), {
+            kg: Math.max(1, Math.round(kg)), vpk: M2.vpk, color: M2.color, name: M2.name, meta: { material: mId },
+          });
+          c.vel.set(2 + Math.random() * 2, 2.5 + Math.random() * 2, 1 + Math.random() * 2); c.pop = 1;
+        }
+        sfx.bigclank(); toast('⚙️ Materiales recuperados: recogelos y vendelos');
+      }, 1100);
+      refreshInspect();
+      return;
+    }
+    if (sealedHeld.length) { sfx.deny(); toast('☣️ El módulo sellado no se tritura: contenedor rojo de residuos especiales'); return; }
+  }
+  // 3) balanza (sistema v0.1, ahora con valor por calidad de piezas)
+  if (nearScale() && held.length) {
     for (const b of [...held]) {
       b.held = false; b.frozen = true; b.vel.set(0, 0, 0);
       const i = bodies.filter(x => x.frozen && !x.shrinking).length;
       b.mesh.position.set(SCALE_POS.x + (Math.random() - .5) * 2.4, 0.45 + (i % 4) * 0.34, SCALE_POS.z + (Math.random() - .5) * 2.4);
       b.mesh.rotation.set(0, Math.random() * 3, 0);
       b.pop = 1;
-      state.scaleKg += b.kg; state.scaleVal += b.kg * b.vpk;
+      state.scaleKg += b.kg; state.scaleVal += partValueOf(b);
       held.splice(held.indexOf(b), 1);
     }
     sfx.thud(); toast('Chatarra depositada en la balanza ⚖️');
     return;
   }
-  if (held.length) {                          // soltar
+  // 4) soltar (v0.1)
+  if (held.length) {
     for (const b of [...held]) { b.held = false; b.vel.copy(camDir()).multiplyScalar(3); held.splice(held.indexOf(b), 1); }
     sfx.thud();
     return;
   }
-  const b = findGrabbable();                  // agarrar
+  // 5) agarrar (v0.1)
+  const b = findGrabbable();
   if (!b) return;
   if (heldKg() + b.kg > state.carryCap) { sfx.deny(); toast(`⚠ ${b.kg} kg — te queda grande (B: mejoras)`); return; }
   b.held = true; b.frozen = false; held.push(b); sfx.grab();
 }
+
 function sell() {
   if (!nearScale() || state.scaleKg <= 0) { if (nearScale()) sfx.deny(); return; }
   const gain = Math.round(state.scaleVal);
   state.money += gain;
-  for (const b of bodies.filter(x => x.frozen && !x.shrinking)) b.shrinking = 1;
+  for (const b of bodies.filter(x => x.frozen && !x.shrinking)) {
+    b.shrinking = 1;
+    if (b.meta && b.meta.part) DIS.setTerminal(inst, b.meta.compId, DIS.ST.VENDIDO, 'balanza');
+  }
   state.scaleKg = 0; state.scaleVal = 0;
   sfx.coin(); moneyPop(); toast(`💰 +$ ${gain.toLocaleString('es-AR')} — ¡eso todavía servía!`);
+  refreshInspect();
 }
 
-// golpe / lanzamiento
+// golpe / lanzamiento (v0.1) + daño de calidad a componentes y piezas
 let swingT = -1;
 function swing() {
   if (swingT >= 0) return;
@@ -472,6 +618,18 @@ function swing() {
   }
   sfx.whoosh();
   camDir();
+  // golpe sobre un componente del objeto en desmontaje = daño de calidad
+  const tgt = aimTarget();
+  if (tgt && inst && (tgt.kind === 'comp' || tgt.kind === 'fast')) {
+    const applied = DIS.damage(inst, tgt.comp, 12);
+    if (applied > 0) {
+      sparks(tgt.point, 10); sfx.clank();
+      shake = Math.min(shake + 0.12, 0.4);
+      toast(`⚠ Golpeaste ${compById(BP, tgt.comp).name}: calidad ${inst.comps[tgt.comp].quality}%`);
+      refreshInspect();
+      return;
+    }
+  }
   let hit = null, hd = 1e9;
   for (const b of bodies) {
     if (b.frozen || b.shrinking) continue;
@@ -485,6 +643,11 @@ function swing() {
   hit.vel.addScaledVector(fwd, power).add(new THREE.Vector3(0, 3.2, 0));
   hit.av.set((Math.random() - .5) * 12, (Math.random() - .5) * 12, (Math.random() - .5) * 12);
   hit.hp -= state.dmg;
+  if (hit.meta && hit.meta.part) {           // golpear una pieza extraída baja su calidad
+    hit.meta.quality = Math.max(0, hit.meta.quality - 12);
+    toast(`⚠ ${hit.name}: calidad ${hit.meta.quality}%`);
+    refreshInspect();
+  }
   sparks(hit.mesh.position, state.owned.mace ? 20 : 12);
   shake = Math.min(shake + 0.16, 0.4);
   if (hit.hp <= 0) breakProp(hit); else sfx.clank();
@@ -505,6 +668,76 @@ function breakProp(b) {
   removeBody(b);
   toast('💥 ¡se desarmó! los pedazos valen +30% por kg');
 }
+
+// ---------------------------------------------------------------- desmontaje: instancia + vista + mira
+let inst = null, view = null, instCount = 0, respawnT = 0, inspectOpen = false;
+const raycaster = new THREE.Raycaster();
+const CENTER2 = new THREE.Vector2(0, 0);
+const compName = id => compById(BP, id).name;
+
+function spawnAppliance() {
+  instCount++;
+  inst = DIS.createInstance(BP, BP.id + '_' + instCount);
+  view = new DisassemblyView(BP, inst);
+  view.attach(scene, MW_CENTER.clone(), 0);
+  toast(`📦 Llegó un ${BP.name} al puesto de desmontaje · E: inspeccionar`);
+}
+spawnAppliance();
+
+function aimTarget() {
+  if (!inst || !view || !nearBench()) return null;
+  raycaster.setFromCamera(CENTER2, camera);
+  const hits = raycaster.intersectObjects(view.activeTargets(), false);
+  if (!hits.length || hits[0].distance > 3.0) return null;
+  return { ...hits[0].object.userData.t, point: hits[0].point };
+}
+
+function tryExtract(compId) {
+  const c = compById(BP, compId);
+  const s = inst.comps[compId];
+  if (!DIS.canExtract(inst, compId)) {
+    const st = DIS.fastenerStats(inst, compId);
+    sfx.deny();
+    toast(s.state === DIS.ST.BLOQUEADO
+      ? `🔒 ${c.name}: bloqueada, retirá antes lo que la cubre`
+      : `🔩 ${c.name} aún sujeta: faltan ${st.total - st.done} fijaciones`);
+    return;
+  }
+  if (heldKg() + c.kg > state.carryCap) { sfx.deny(); toast(`⚠ ${c.kg} kg — te queda grande (B: mejoras)`); return; }
+  DIS.extract(inst, compId);
+  const mesh = view.detachCompMesh(compId, scene);
+  const b = spawnProp('part', mesh.position.clone(), {
+    mesh, kg: c.kg, r: 0.34, name: c.name, vpk: 0, hp: 999,
+    meta: { part: true, compId, objId: inst.id, quality: s.quality, sealed: !!c.sealed, materials: c.materials || {} },
+  });
+  b.vel.set(0, 1.2, 0); b.pop = 1;
+  sfx.grab();
+  toast(`🧰 ${c.name} extraída — calidad ${s.quality}% · ${c.kg} kg`);
+  refreshInspect();
+}
+
+// ---------------------------------------------------------------- panel de inspección
+function renderInspect() {
+  if (!inst) return;
+  const list = document.getElementById('insp-list');
+  list.innerHTML = '';
+  for (const c of BP.components) {
+    const s = inst.comps[c.id];
+    const st = DIS.fastenerStats(inst, c.id);
+    const ftIcon = c.fasteners.length ? FASTENER_TYPES[c.fasteners[0].type].icon : '✋';
+    const fast = c.fasteners.length ? `${ftIcon} ${st.done}/${st.total}` : 'extracción directa';
+    const note = c.sealed ? ' · ☣️ residuo especial' : '';
+    const q = s.quality;
+    const qcls = q >= 80 ? 'q-ok' : q >= 50 ? 'q-mid' : 'q-bad';
+    const row = document.createElement('div');
+    row.className = 'irow';
+    row.innerHTML = `<div class="inm">${c.name}<span class="inote">${fast}${note}</span></div>` +
+      `<div class="ichip st-${s.state}">${s.state.toUpperCase()}</div>` +
+      `<div class="iq ${qcls}">${q}%</div>`;
+    list.appendChild(row);
+  }
+}
+function refreshInspect() { if (inspectOpen) renderInspect(); }
 
 // ---------------------------------------------------------------- shop UI
 const shopEl = document.getElementById('shop');
@@ -538,10 +771,11 @@ const el = id => document.getElementById(id);
 const handKgEl = el('hand-kg'), handItemsEl = el('hand-items'), moneyEl = el('money');
 const scaleBadge = el('scale-badge'), scaleKgEl = el('scale-kg'), scaleValEl = el('scale-val');
 const promptEl = el('prompt'), toastEl = el('toast');
+const workbarEl = el('workbar'), workfillEl = el('workfill'), worklabelEl = el('worklabel');
 let toastTimer = 0;
 function toast(t) {
   toastEl.textContent = t; toastEl.classList.remove('hidden');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 2200);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.add('hidden'), 2600);
 }
 function moneyPop() { moneyEl.classList.remove('pop'); void moneyEl.offsetWidth; moneyEl.classList.add('pop'); }
 const fmt = n => '$ ' + Math.round(n).toLocaleString('es-AR');
@@ -549,6 +783,7 @@ const fmt = n => '$ ' + Math.round(n).toLocaleString('es-AR');
 // ---------------------------------------------------------------- loop
 let shake = 0, prevHand = -1, prevMoney = -1, prevScale = -1;
 const clock = new THREE.Clock();
+const wpTmp = new THREE.Vector3();
 function tick() {
   requestAnimationFrame(tick);
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -570,7 +805,6 @@ function tick() {
     player.pos.addScaledVector(player.vel, dt);
     player.vy -= 22 * dt; player.pos.y += player.vy * dt;
     if (player.pos.y <= 1.7) { player.pos.y = 1.7; player.vy = 0; if (!player.onGround) sfx.thud(); player.onGround = true; }
-    // límites + estáticos
     player.pos.x = THREE.MathUtils.clamp(player.pos.x, -BOUND + 1, BOUND - 1);
     player.pos.z = THREE.MathUtils.clamp(player.pos.z, -BOUND + 1, BOUND - 1);
     for (let i = 0; i < statics.length; i += 2) {
@@ -592,17 +826,59 @@ function tick() {
     camera.rotation.z = Math.sin(player.bob * 3) * 0.008 + (Math.random() - .5) * shake * 0.05;
     shake = Math.max(0, shake - dt * 1.6);
 
-    // ---- swing anim del viewmodel
+    // ---- anim de herramientas (swing v0.1 aplicado al viewmodel activo)
     if (swingT >= 0) {
       swingT += dt / 0.26;
       const s = Math.sin(Math.min(swingT, 1) * Math.PI);
-      wrench.rotation.x = -1.9 * s; wrench.position.z = -0.75 + 0.22 * s; wrench.position.y = -0.36 + 0.1 * s;
-      if (swingT >= 1) { swingT = -1; wrench.rotation.x = 0; wrench.position.set(0.42, -0.36, -0.75); }
+      for (const vm of [wrench, screwdriver]) {
+        vm.rotation.x = (vm === screwdriver ? 0.5 : 0) - 1.9 * s;
+        vm.position.z = -0.75 + 0.22 * s; vm.position.y = -0.36 + 0.1 * s;
+      }
+      if (swingT >= 1) {
+        swingT = -1;
+        wrench.rotation.x = 0; wrench.position.set(0.42, -0.36, -0.75);
+        screwdriver.rotation.x = 0.5; screwdriver.position.set(0.42, -0.36, -0.75);
+      }
     } else {
-      wrench.position.y = -0.36 + Math.sin(player.bob * 6 + 1) * 0.012;
+      const idle = Math.sin(player.bob * 6 + 1) * 0.012;
+      wrench.position.y = -0.36 + idle; screwdriver.position.y = -0.36 + idle;
     }
 
-    // ---- física de props
+    // ---- DESMONTAJE: mira, vista, trabajo sostenido, eventos, respawn
+    const aim = aimTarget();
+    if (view) { view.setAim(aim); view.update(t); }
+    if (working && mouseHeld && !held.length && aim && aim.kind === 'fast' &&
+        aim.comp === working.comp && aim.fIdx === working.fIdx) {
+      const cw = DIS.canWork(inst, working.comp, working.fIdx, state.tool, FASTENER_TYPES);
+      if (cw.ok) {
+        workSfxT += dt;
+        if (workSfxT > 0.3) { workSfxT = 0; sfx.tick(); }
+        const res = DIS.work(inst, working.comp, working.fIdx, dt, cw.time);
+        if (res === 'done') {
+          view.fastWorldPos(working.comp, working.fIdx, wpTmp);
+          sparks(wpTmp, 10); sfx.ding();
+          working = null;
+          refreshInspect();
+        }
+      } else working = null;
+    } else if (!mouseHeld || !working) {
+      working = working && mouseHeld ? working : null;
+    }
+    if (inst) {
+      for (const ev of DIS.drainEvents(inst)) {
+        if (ev.t === 'liberado') { toast(`✅ ${compName(ev.comp)} liberada: extraela con ✋ (tecla 3)`); sfx.grab(); }
+        else if (ev.t === 'accessible') toast(`🔓 ${compName(ev.comp)}: accesible`);
+        else if (ev.t === 'damage') refreshInspect();
+      }
+      // respawn: cuando todo el objeto fue vendido/procesado y no queda nada suyo en el mundo
+      if (DIS.allSettled(inst) && !bodies.some(b => b.meta && b.meta.objId === inst.id)) {
+        respawnT += dt;
+        if (respawnT > 8) { respawnT = 0; view.detach(scene); inst = null; view = null; inspectOpen = false; el('inspect').classList.add('hidden'); spawnAppliance(); }
+      } else respawnT = 0;
+    }
+    if (inspectOpen && !nearBench()) { inspectOpen = false; el('inspect').classList.add('hidden'); }
+
+    // ---- física de props (v0.1 intacta)
     for (const b of bodies) {
       if (b.shrinking) {
         b.shrinking += dt * 3;
@@ -619,7 +895,6 @@ function tick() {
           .addScaledVector(right, (i - (held.length - 1) / 2) * 0.55).add(new THREE.Vector3(0, -0.28, 0));
         b.vel.copy(target.sub(b.mesh.position).multiplyScalar(state.owned.magnet ? 16 : 11));
         b.mesh.position.addScaledVector(b.vel, dt);
-        b.mesh.rotation.x += (0 - b.mesh.rotation.x % (Math.PI * 2)) * 0; // mantiene pose
         b.av.multiplyScalar(1 - 6 * dt);
         b.mesh.rotation.x += b.av.x * dt; b.mesh.rotation.z += b.av.z * dt;
         continue;
@@ -634,23 +909,19 @@ function tick() {
       }
       if (onG || b.mesh.position.y <= b.r + 0.05) {
         b.vel.x *= 1 - Math.min(1, 5 * dt); b.vel.z *= 1 - Math.min(1, 5 * dt);
-        // rueda como si rodara
         b.av.x = THREE.MathUtils.lerp(b.av.x, b.vel.z / b.r, 0.2);
         b.av.z = THREE.MathUtils.lerp(b.av.z, -b.vel.x / b.r, 0.2);
       }
       b.av.multiplyScalar(1 - Math.min(1, 1.6 * dt));
       b.mesh.rotation.x += b.av.x * dt; b.mesh.rotation.y += b.av.y * dt; b.mesh.rotation.z += b.av.z * dt;
-      // cerco
       b.mesh.position.x = THREE.MathUtils.clamp(b.mesh.position.x, -BOUND + b.r, BOUND - b.r);
       b.mesh.position.z = THREE.MathUtils.clamp(b.mesh.position.z, -BOUND + b.r, BOUND - b.r);
-      // estáticos
       for (let i = 0; i < statics.length; i += 2) {
         const c = statics[i], r = statics[i + 1] + b.r;
         tmp.copy(b.mesh.position).sub(c);
         const d = tmp.length();
         if (d < r && d > 0.001) { tmp.normalize(); b.mesh.position.copy(c).addScaledVector(tmp, r); b.vel.addScaledVector(tmp, Math.max(0, -b.vel.dot(tmp)) * 1.3); }
       }
-      // jugador empuja (comedia de tropezar)
       tmp.set(b.mesh.position.x - player.pos.x, 0, b.mesh.position.z - player.pos.z);
       const pd = tmp.length();
       if (pd < b.r + 0.55 && pd > 0.001) {
@@ -661,7 +932,6 @@ function tick() {
       }
       if (b.vel.lengthSq() < 0.02 && onG) b.vel.set(0, 0, 0);
     }
-    // pares prop-prop (apilamiento torpe)
     for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
       const a = bodies[i], b = bodies[j];
       if (a.frozen || b.frozen || a.held || b.held || a.shrinking || b.shrinking) continue;
@@ -683,22 +953,19 @@ function tick() {
       pVel[k * 3 + 1] -= 12 * dt;
       pPos[k * 3] += pVel[k * 3] * dt; pPos[k * 3 + 1] += pVel[k * 3 + 1] * dt; pPos[k * 3 + 2] += pVel[k * 3 + 2] * dt;
       if (pPos[k * 3 + 1] < 0.05) { pPos[k * 3 + 1] = 0.05; pVel[k * 3 + 1] *= -0.4; }
-      const f = Math.max(0, pLife[k] * 2);
-      pCol[k * 3] *= 1; // color fijo, el fade va por vida en tamaño aparente
-      void f;
     }
     pGeo.attributes.position.needsUpdate = true;
     pGeo.attributes.color.needsUpdate = true;
 
     // ---- vida de escena
-    if (window.__drum) window.__drum.rotation.x += dt * 2.2;
+    if (shredderDrum) shredderDrum.rotation.x += dt * 2.2;
     for (const c of clouds) { c.position.x += dt * 0.6; if (c.position.x > 90) c.position.x = -90; }
     buddy.position.y = Math.sin(t * 2.2) * 0.05; buddy.rotation.y = -0.7 + Math.sin(t * 0.7) * 0.25;
     const ns = nearScale();
     scaleRing.scale.setScalar(ns ? 1 + Math.sin(t * 6) * 0.05 : 1);
     scaleRing.material.emissiveIntensity = ns ? 1.1 : 0.5;
 
-    // ---- HUD
+    // ---- HUD (v0.1)
     const hkg = heldKg();
     if (hkg !== prevHand) { handKgEl.textContent = hkg; handItemsEl.textContent = held.length ? `· ${held.length} obj` : ''; prevHand = hkg; }
     if (state.money !== prevMoney) { moneyEl.textContent = fmt(state.money); prevMoney = state.money; if (state.shopOpen) renderShop(); }
@@ -707,17 +974,65 @@ function tick() {
       scaleBadge.classList.toggle('hidden', state.scaleKg === 0);
       prevScale = state.scaleKg;
     }
-    // prompt contextual
+
+    // ---- barra de trabajo (progreso guardado por fijación)
+    let wbShow = false, wbFill = 0, wbLabel = '';
+    if (working && mouseHeld && aim && aim.kind === 'fast' && aim.comp === working.comp && aim.fIdx === working.fIdx) {
+      const f = inst.comps[working.comp].fasteners[working.fIdx];
+      const cw = DIS.canWork(inst, working.comp, working.fIdx, state.tool, FASTENER_TYPES);
+      wbShow = true; wbFill = f.progress * 100;
+      wbLabel = `${cw.verb} · ${Math.round(f.progress * 100)}%`;
+    } else if (aim && aim.kind === 'fast') {
+      const f = inst.comps[aim.comp].fasteners[aim.fIdx];
+      if (!f.removed && f.progress > 0) {
+        wbShow = true; wbFill = f.progress * 100;
+        wbLabel = `progreso guardado ${Math.round(f.progress * 100)}% — mantené CLIC para retomar`;
+      }
+    }
+    workbarEl.classList.toggle('hidden', !wbShow);
+    if (wbShow) { workfillEl.style.width = wbFill + '%'; worklabelEl.textContent = wbLabel; }
+
+    // ---- prompt contextual (desmontaje primero, luego v0.1)
     let p = '';
     if (!state.shopOpen) {
-      if (ns && held.length) p = `<kbd>F</kbd>Depositar ${hkg} kg en la balanza`;
+      if (aim && aim.kind === 'fast') {
+        const s = inst.comps[aim.comp];
+        const f = s.fasteners[aim.fIdx];
+        const ft = FASTENER_TYPES[f.type];
+        const st = DIS.fastenerStats(inst, aim.comp);
+        const cw = DIS.canWork(inst, aim.comp, aim.fIdx, state.tool, FASTENER_TYPES);
+        if (held.length) p = '⚠ Manos ocupadas: depositá o soltá para trabajar';
+        else if (cw.ok) p = `<kbd>CLIC mantenido</kbd>${cw.verb} ${st.done + 1}/${st.total} · ${compName(aim.comp)}`;
+        else p = `${ft.icon} ${ft.name}: cambiá a ${TOOLS.find(x => x.id === ft.tool).name} (tecla ${TOOLS.find(x => x.id === ft.tool).key})`;
+      }
+      else if (aim && aim.kind === 'comp') {
+        const s = inst.comps[aim.comp];
+        const c = compById(BP, aim.comp);
+        if (s.state === DIS.ST.LIBERADO)
+          p = state.tool === 'manos'
+            ? `<kbd>CLIC</kbd>Extraer ${c.name} · calidad ${s.quality}% · ${c.kg} kg${c.sealed ? ' · ☣️' : ''}`
+            : `✋ Manos (tecla 3) para extraer ${c.name}`;
+        else if (s.state === DIS.ST.ACCESIBLE) {
+          const st = DIS.fastenerStats(inst, aim.comp);
+          p = `🔩 ${c.name} aún sujeta: faltan ${st.total - st.done} fijaciones · E: inspeccionar`;
+        }
+        else p = `${c.name}: ${s.state}`;
+      }
+      else if (nearBin() && held.some(b => b.meta && b.meta.sealed)) p = '<kbd>F</kbd>Gestionar residuo especial (+$35)';
+      else if (nearShredder() && held.length) {
+        if (held.some(b => b.meta && b.meta.part && !b.meta.sealed && Object.keys(b.meta.materials || {}).length))
+          p = '<kbd>F</kbd>Procesar en trituradora → materiales';
+        else if (held.some(b => b.meta && b.meta.sealed)) p = '☣️ Sellado: llevalo al contenedor rojo';
+      }
+      else if (nearBench() && inst && !held.length) p = `<kbd>E</kbd>Inspeccionar ${BP.name} · 1/2/3 herramientas`;
+      else if (ns && held.length) p = `<kbd>F</kbd>Depositar ${hkg} kg en la balanza`;
       else if (ns && state.scaleKg > 0) p = `<kbd>R</kbd>Vender ${state.scaleKg} kg por ${fmt(state.scaleVal)}`;
-      else if (held.length) p = `<kbd>F</kbd>Soltar · <kbd>CLIC</kbd>lanzar`;
+      else if (held.length) p = '<kbd>F</kbd>Soltar · <kbd>CLIC</kbd>lanzar';
       else {
         const g = findGrabbable();
         if (g) p = heldKg() + g.kg > state.carryCap
           ? `⚠ ${g.name} de ${g.kg} kg — te queda grande (B: mejoras)`
-          : `<kbd>F</kbd>Agarrar ${g.name} (${g.kg} kg · ${fmt(g.kg * g.vpk)})`;
+          : `<kbd>F</kbd>Agarrar ${g.name} (${g.kg} kg · ${fmt(partValueOf(g))})`;
       }
     }
     if (p) { promptEl.innerHTML = p; promptEl.classList.remove('hidden'); }
@@ -734,10 +1049,11 @@ addEventListener('resize', () => {
 });
 
 // ---------------------------------------------------------------- arranque
+selectTool('llave');
 document.getElementById('enter').addEventListener('click', () => {
   document.getElementById('intro').classList.add('hidden');
   state.started = true;
   audio().resume?.();
   tryLock();
-  toast('🔧 Rompé chatarra y vendela en la balanza naranja');
+  toast('🔧 Nuevo: desmontá el microondas del puesto de trabajo · E: inspeccionar');
 });

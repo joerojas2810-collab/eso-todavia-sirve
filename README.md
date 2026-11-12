@@ -40,7 +40,8 @@ python3 -m http.server 8080
 
 | Ruta | Qué es |
 |---|---|
-| `prototype/` | Prototipo jugable v0.1 (three.js, sin build). Incluye `README.md` con el mapa de port a Unity 6 |
+| `prototype/` | Prototipo jugable (three.js, sin build). v0.2: loop vender/romper + **desmontaje modular data-driven** (objeto 01: microondas). Incluye tests de reglas y mapa de port a Unity 6 |
+| `docs/GDD_catalogo.md` | Catálogo de objetos desmontables: reglas globales, objeto 01 completo y plantilla de los 30 |
 | `INFORME_tecnico.md` | Investigación: reverse-engineering del estilo de Moon Sweepers, stack recomendado (Unity 6 + URP + NGO/Relay), bases de assets y código usables, plan de vertical slice |
 | `refs/` | Moodboards objetivo de estilo (imagen generada como referencia de dirección de arte, no es arte final) |
 
@@ -48,7 +49,8 @@ python3 -m http.server 8080
 
 - [x] Investigación de estilo y stack (`INFORME_tecnico.md`)
 - [x] Prototipo v0.1: loop romper→vender + mejoras + estilo visual
-- [ ] v0.2: feedback de feel (peso del golpe, etapas de rotura, audio)
+- [x] **v0.2 (Instrucción 01): sistema de desmontaje modular + microondas jugable + tests de reglas**
+- [ ] v0.3: objetos 02–05 del catálogo (lavadora, heladera, PC, cocina) sobre la misma arquitectura
 - [ ] Port del loop validado a Unity 6 (scripts C#, ScriptableObjects, netcode NGO + Relay)
 - [ ] Vertical slice co-op 4–7 jugadores
 

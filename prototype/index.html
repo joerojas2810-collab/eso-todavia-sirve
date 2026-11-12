@@ -82,6 +82,36 @@
   #intro .ver{margin-top:18px;font-size:11px;opacity:.5;font-weight:600}
   #lookhint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:11px;
     color:var(--cream);opacity:.55;font-weight:600}
+  /* -------- herramientas / trabajo / inspección (v0.2) -------- */
+  .slot{position:relative}
+  .slot .key{position:absolute;top:-6px;right:-4px;background:var(--ink);color:var(--cream);
+    font-size:10px;font-weight:900;border-radius:6px;padding:1px 5px;border:2px solid rgba(242,232,213,.4)}
+  .slot.mini{width:42px;height:42px;font-size:20px;cursor:default}
+  #hotbar .sep{width:3px;background:rgba(242,232,213,.35);margin:10px 4px;border-radius:2px}
+  #workbar{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);width:280px;height:16px;
+    background:rgba(36,29,22,.8);border:3px solid var(--cream);border-radius:999px;overflow:hidden}
+  #workfill{height:100%;width:0%;background:linear-gradient(90deg,var(--hazard),#ffd977);transition:width .08s linear}
+  #worklabel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:900;color:var(--cream);text-shadow:0 1px 0 rgba(0,0,0,.6);letter-spacing:.04em}
+  #inspect{position:absolute;top:120px;right:18px;pointer-events:none}
+  #inspect .ipanel{background:var(--cream);color:var(--ink);border:4px solid var(--ink);border-radius:18px;
+    padding:14px 16px;width:320px;box-shadow:0 8px 0 rgba(36,29,22,.35)}
+  #inspect h3{font-size:17px;letter-spacing:-.01em}
+  #inspect .itag{font-size:10px;opacity:.6;letter-spacing:.08em;margin:2px 0 10px}
+  .irow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;
+    background:#fff7e6;border:2px solid var(--ink);border-radius:12px;padding:7px 10px;margin-bottom:7px}
+  .inm{font-size:13px;line-height:1.15}
+  .inote{display:block;font-size:10.5px;font-weight:700;opacity:.6}
+  .ichip{font-size:9.5px;font-weight:900;letter-spacing:.06em;color:var(--ink);
+    border-radius:8px;padding:3px 8px;border:2px solid var(--ink)}
+  .st-bloqueado{background:#b9bec6}
+  .st-accesible{background:var(--hazard)}
+  .st-liberado{background:var(--green);color:var(--cream)}
+  .st-extraido{background:var(--blue);color:var(--cream)}
+  .st-procesado,.st-vendido{background:#8a8f98;color:var(--cream);opacity:.8}
+  .iq{font-size:12px;font-weight:900}
+  .q-ok{color:#4c7a2f}.q-mid{color:#b07d18}.q-bad{color:#b3392e}
+  #inspect .iclose{font-size:10.5px;opacity:.55;text-align:center;margin-top:2px}
 </style>
 </head>
 <body>
@@ -91,10 +121,22 @@
   <div class="badge hidden" id="scale-badge"><span class="lbl">BALANZA</span><span class="big" id="scale-kg">0</span><span class="unit">kg</span><span class="sub" id="scale-val"></span></div>
   <div id="prompt" class="hidden"></div>
   <div id="hotbar">
-    <div class="slot on" id="slot-wrench" title="Llave inglesa">🔧</div>
-    <div class="slot" id="slot-magnet" title="Guante imán">🧲</div>
-    <div class="slot" id="slot-back" title="Espalda reforzada">🎒</div>
-    <div class="slot" id="slot-mace" title="Mazo hidráulico">🔨</div>
+    <div class="slot tool on" id="tool-llave" title="Llave inglesa (bisagras, fijaciones y golpes)">🔧<span class="key">1</span></div>
+    <div class="slot tool" id="tool-destornillador" title="Destornillador manual (tornillos, 3 s c/u)">🪛<span class="key">2</span></div>
+    <div class="slot tool" id="tool-manos" title="Manos (extraer componentes liberados)">✋<span class="key">3</span></div>
+    <div class="sep"></div>
+    <div class="slot mini" id="slot-magnet" title="Mejora: Guante imán">🧲</div>
+    <div class="slot mini" id="slot-back" title="Mejora: Espalda reforzada">🎒</div>
+    <div class="slot mini" id="slot-mace" title="Mejora: Mazo hidráulico">🔨</div>
+  </div>
+  <div id="workbar" class="hidden"><div id="workfill"></div><span id="worklabel"></span></div>
+  <div id="inspect" class="hidden">
+    <div class="ipanel">
+      <h3 id="insp-title">🔍 INSPECCIÓN</h3>
+      <div class="itag">PUESTO DE DESMONTAJE · ESTADO DE COMPONENTES</div>
+      <div id="insp-list"></div>
+      <div class="iclose">[ E ] cerrar</div>
+    </div>
   </div>
   <div id="crosshair"></div>
   <div id="toast" class="hidden"></div>
@@ -113,15 +155,16 @@
 <div id="intro">
   <div class="card">
     <h1>¡ESO TODAVÍA<br>SIRVE!</h1>
-    <div class="sub">prototipo jugable v0.1 · golpeá, rompé, pesá y vendé · validación del loop y del estilo visual</div>
+    <div class="sub">prototipo jugable v0.2 · golpeá, rompé, pesá y vendé · NUEVO: desmontaje modular del microondas</div>
     <div class="keys">
       <span><b>W A S D</b> moverse</span><span><b>MOUSE</b> mirar (clic para capturar)</span>
-      <span><b>CLIC IZQ.</b> golpear / lanzar lo que tenés</span><span><b>F</b> agarrar / soltar / depositar</span>
-      <span><b>R</b> vender en la balanza</span><span><b>B</b> oficina de mejoras</span>
-      <span><b>ESPACIO</b> saltar</span><span><b>SHIFT</b> correr</span>
+      <span><b>1 / 2 / 3</b> llave · destornillador · manos</span><span><b>CLIC mantenido</b> trabajar una fijación</span>
+      <span><b>CLIC izq.</b> golpear / lanzar lo que tenés</span><span><b>F</b> agarrar / soltar / depositar / procesar</span>
+      <span><b>E</b> inspeccionar el objeto en la mesada</span><span><b>R</b> vender en la balanza</span>
+      <span><b>B</b> oficina de mejoras</span><span><b>ESPACIO / SHIFT</b> saltar / correr</span>
     </div>
     <button id="enter">ENTRAR AL PATIO 🔧</button>
-    <div class="ver">graybox de diseño — el juego final va en Unity 6 · este prototipo valida el principio 1: que romper y vender sea satisfactorio solo</div>
+    <div class="ver">graybox de diseño — el juego final va en Unity 6 · v0.2: sistema de desmontaje data-driven (objeto 01: microondas)</div>
   </div>
 </div>
 
