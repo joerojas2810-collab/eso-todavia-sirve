@@ -12,7 +12,7 @@ en el lenguaje de *Moon Sweepers* / sims cooperativos modernos).
 ## ▶️ Jugar el prototipo
 
 ```bash
-git clone https://github.com/TU_USUARIO/eso-todavia-sirve
+git clone https://github.com/joerojas2810-collab/eso-todavia-sirve
 cd eso-todavia-sirve/prototype
 python3 -m http.server 8080
 # abrir http://localhost:8080
