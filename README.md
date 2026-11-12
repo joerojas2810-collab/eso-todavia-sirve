@@ -46,6 +46,7 @@ python3 -m http.server 8080
 | `docs/GDD_catalogo.md` | Catálogo de objetos desmontables: reglas globales, objeto 01 completo y plantilla de los 30 |
 | `docs/sistemas_recuperacion_economia.md` | Sistemas de recuperación, inventario, almacenamiento y economía (capas, contratos, registro PROVISORIO) |
 | `docs/INFORME_auditoria_reutilizacion.md` | Auditoría Instrucción 03: qué reutilizar (bases Unity, packs de arte), licencias verificadas y matriz de decisión |
+| `unity/docs/MATRIZ_PARIDAD_TESTS.md` | Instrucción 05: equivalencia de los 73 tests JS → NUnit y resultados de ejecución |
 | `INFORME_tecnico.md` | Investigación: reverse-engineering del estilo de Moon Sweepers, stack recomendado (Unity 6 + URP + NGO/Relay), bases de assets y código usables, plan de vertical slice |
 | `refs/` | Moodboards objetivo de estilo (imagen generada como referencia de dirección de arte, no es arte final) |
 
@@ -57,6 +58,7 @@ python3 -m http.server 8080
 - [x] v0.3 (Instrucción 02): recuperación, inventario, almacenamiento y economía sobre los GDD 3.0/4.0/5.0
 - [x] Instrucción 03: auditoría de reutilización (`docs/INFORME_auditoria_reutilizacion.md`)
 - [x] **Instrucción 04: proyecto Unity 6 sobre la base U6-FPM (1–7 jugadores adaptado, Vivox desactivado, dominio puro `_ETSV`)**
+- [x] **Instrucción 05: dominio migrado a C# puro (catálogo, desarmado, piezas, almacenes, economía, persistencia) + 73 tests JS portados a NUnit y ejecutados bajo Mono (33/33 PASS — ver `unity/docs/MATRIZ_PARIDAD_TESTS.md`)**
 - [ ] Port de las reglas JS → C# puro (paridad 1:1 de los 73 tests) + datos como ScriptableObjects
 - [ ] Integración de economía/desmontaje con NGO (operaciones autorizadas por el host) + chatarrería con arte CC0
 - [ ] Contratos, progresión y objetos 02–30 · Vertical slice co-op 1–7 jugadores

@@ -11,21 +11,27 @@ comentarios `// [ETSV]` para poder actualizar la base sin perder los cambios.
 Assets/_ETSV/
 ├── Scripts/
 │   ├── Domain/            ← assembly ETSV.Domain (C# PURO: noEngineReferences = true)
-│   │   ├── GameInfo.cs      identidad y constantes de diseño (existe hoy)
-│   │   └── (próxima instrucción: port 1:1 desde prototype/js)
-│   │       ├── Catalog/       ObjectBlueprint, Component, Fastener   ← catalog.js
-│   │       ├── Disassembly/   DisassemblyInstance (estados, fijaciones, calidad) ← disassembly.js
-│   │       ├── Pieces/        StoredPart + PieceRegistry (identidad, invariantes) ← pieces.js
-│   │       ├── Warehouse/     zonas de componentes + acumulador de materiales ← warehouse.js
-│   │       ├── Economy/       operaciones atómicas (extraer/procesar/vender/reservar) ← economy.js
-│   │       ├── EconomyData/   materiales MAT-01..08, PART_DEFS, P1–P5, PROV ← economyData.js
-│   │       └── Persistence/   esquema de save versionado ← gameState.js
+│   │   ├── GameInfo.cs        identidad y constantes de diseño
+│   │   ├── Support/           JsMath (rounding estilo JS), OpResult {Ok, Reason}
+│   │   ├── Data/              CatalogData (blueprints, fijaciones, herramientas, recetas)
+│   │   │                      EconomyData (MAT-01..08, PART_DEFS, P1–P5, zonas, PROV-01..11)
+│   │   ├── Disassembly/       DisassemblyRules (estados, accesibilidad, fijaciones, calidad)
+│   │   ├── Pieces/            StoredPart + PieceRegistry (identidad única, reservas)
+│   │   ├── Warehouse/         ComponentWarehouse (zonas) + MaterialWarehouse (fracciones)
+│   │   ├── Economy/           EconomyOps (operaciones atómicas con validación de propiedad)
+│   │   └── Persistence/       SaveGame v3 (DTO) + SaveSerializer + SaveValidator
 │   └── Integration/       ← capa que CONECTA el dominio con Unity/NGO (Assembly-CSharp)
-│       ├── SessionConfig.cs   parámetros de sesión (existe hoy; lo leen los scripts upstream)
+│       ├── SessionConfig.cs   parámetros de sesión (la leen los scripts upstream)
+│       ├── DomainHost.cs      estado agregado + EconomyContext + event Changed (costura NGO)
+│       ├── SaveJsonAdapter.cs DTO ↔ JSON con Newtonsoft (paquete ya presente en el proyecto)
 │       └── (futuro) EconomyServerRpc, IInteractable de balanza/trituradora/contenedor/almacén,
 │           DisassemblyView, generación de prefabs por blueprint
 └── Tests/
-    └── EditMode/          ← ETSV.Domain.Tests (NUnit; paridad con prototype/tests/*.mjs)
+    └── EditMode/          ← ETSV.Domain.Tests (NUnit)
+        ├── DomainSmokeTests.cs          3 smoke (Instrucción 04)
+        ├── DisassemblyParityTests.cs    20 asserts JS → 20 [Test] con [Order]
+        └── EconomyParityTests.cs        53 asserts JS → 10 [Test] por bloque
+        Matriz completa: unity/docs/MATRIZ_PARIDAD_TESTS.md
 ```
 
 ## Reglas de la capa Domain (innegociables)
@@ -36,8 +42,9 @@ Assets/_ETSV/
    (ServerRpc del host) decide qué hacer con el resultado; el dominio solo valida y muta.
 4. Los datos (materiales, precios, catálogos) entran como DTOs/structs; su versión
    ScriptableObject vive en Integration y se convierte al formato del dominio.
-5. Los 73 tests JS (20 desmontaje + 53 economía) se portan a NUnit **1:1**: mismo
-   nombre, misma aserción. Paridad verde = port terminado.
+5. Los 73 tests JS (20 desmontaje + 53 economía) están portados a NUnit **1:1** y
+   verificados: 33 tests / 76 aserciones PASS bajo Mono (ver MATRIZ_PARIDAD_TESTS.md).
+   Pendiente: ejecutarlos en el Test Runner del Unity Editor.
 
 ## Por qué Domain es una assembly separada
 
