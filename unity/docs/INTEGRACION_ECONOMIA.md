@@ -163,7 +163,7 @@ tarde recibe la pieza ya en manos del jugador correcto.
 - `Assets/_ETSV/Scripts/Integration/Sim/ScrapyardSession.cs` — catálogo de
   estaciones, `ReasonCodes`, log de transacciones, `EconomySnapshot`, sesión de
   chatarrería (transporte ↔ dominio, `UseStation`, operaciones, snapshot).
-- `Assets/_ETSV/Scripts/Integration/Disassembly/ScrapyardLayout.cs` — layout
+- `Assets/_ETSV/Scripts/Presentation/ScrapyardLayout.cs` — layout
   determinista + `BuildStations()` (primitivos reemplazables) + `StationRef`.
 - `Assets/_ETSV/Scripts/Integration/Disassembly/PieceSpawner.cs` — helper del
   host: pieza del dominio → NetworkObject con identidad antes de `Spawn()`.

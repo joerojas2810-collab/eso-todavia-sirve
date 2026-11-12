@@ -14,7 +14,7 @@ Registro de qué funciona, qué se modificó, qué se verificó sin editor y qu�
 | Aprobación de conexiones + spawn | U6-FPM `PlayerSpawnManager.cs` | **Modificado** (cap 7 + fallback) |
 | Identificación visual de jugador | U6-FPM `PlayerColour.cs` | **Modificado** (ciclo de paleta) |
 | Voz posicional Vivox | U6-FPM `ProximityVoice.cs` | **Desactivada** (dependencia presente) |
-| Parámetros de sesión (7 jugadores, voz off) | **Nuestro** `_ETSV/Scripts/Integration/SessionConfig.cs` | Nuevo |
+| Parámetros de sesión (7 jugadores, voz off) | **Nuestro** `_ETSV/Scripts/Presentation/SessionConfig.cs` | Nuevo |
 | Dominio puro (assembly sin UnityEngine) | **Nuestro** `_ETSV/Scripts/Domain/` | Nuevo (esqueleto) |
 | Tests EditMode | **Nuestro** `_ETSV/Tests/EditMode/` | Nuevo (3 smoke tests) |
 | Reglas de juego (desmontaje, piezas, economía, almacenes, save) | Prototipo JS (`../prototype/js`) | **Pendiente de port** (próxima instrucción) |

@@ -164,7 +164,11 @@ namespace Etsv.Integration
         {
             pos = default(P3);
             if (_nm == null) return false;
-            if (!_nm.ConnectedClients.TryGetValue(clientId, out var client)) return false;
+            // NGO real (2.12): ConnectedClients es IReadOnlyDictionary<ulong, NetworkClient>
+            // (NetworkManager.cs:599) — no tiene TryGetValue; ContainsKey + indexador sí.
+            var clients = _nm.ConnectedClients;
+            if (!clients.ContainsKey(clientId)) return false;
+            var client = clients[clientId];
             if (client.PlayerObject == null) return false;
             var p = client.PlayerObject.transform.position;
             pos = new P3(p.x, p.y, p.z);
@@ -257,8 +261,11 @@ namespace Etsv.Integration
                 ETSVSession.Host.PruneStaleWorkers(Time.deltaTime);
 
             // HUD + controlador locales cuando existe el avatar del jugador local.
-            var local = _nm.LocalClient != null ? _nm.LocalClient.PlayerObject : null;
-            if (local == null) return;
+            // NGO real (2.12): NetworkClient.PlayerObject es NetworkObject (Component),
+            // no GameObject — la referencia GameObject se toma vía .gameObject.
+            var localNo = _nm.LocalClient != null ? _nm.LocalClient.PlayerObject : null;
+            if (localNo == null) return;
+            var local = localNo.gameObject;
 
             if (!_hudCreated)
             {

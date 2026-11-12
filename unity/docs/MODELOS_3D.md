@@ -37,7 +37,7 @@ Estado base: commit `8ae6bfa`. Editor Unity del proyecto: **6000.3.5f2
 
 ## 2. API nueva
 
-`Assets/_ETSV/Scripts/Integration/Disassembly/ETSVModels.cs` (namespace
+`Assets/_ETSV/Scripts/Presentation/ETSVModels.cs` (namespace
 `Etsv.Integration`):
 
 | Miembro | Función |

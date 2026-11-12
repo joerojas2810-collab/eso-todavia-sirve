@@ -71,7 +71,7 @@ namespace Etsv.Integration
             _panel.style.position = Position.Absolute;
             _panel.style.left = Length.Percent(50);
             _panel.style.bottom = 72;
-            _panel.style.translate = new Translate(Length.Percent(-50), Length.Pixel(0));
+            _panel.style.translate = new Translate(Length.Percent(-50), 0f); // float→Length implícito (px); Length.Pixel no existe en la API real
             _panel.style.width = 430;
             _panel.style.backgroundColor = new Color(0.05f, 0.06f, 0.09f, 0.82f);
             _panel.style.borderTopLeftRadius = 12; _panel.style.borderTopRightRadius = 12;

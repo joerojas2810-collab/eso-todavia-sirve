@@ -6,7 +6,6 @@ namespace UnityEngine.UIElements
     public struct Length
     {
         public static Length Percent(float v) => default(Length);
-        public static Length Pixel(float v) => default(Length);
         public static implicit operator Length(float v) => default(Length);
         public static implicit operator Length(int v) => default(Length);
     }

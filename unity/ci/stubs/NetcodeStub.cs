@@ -101,7 +101,8 @@ namespace Unity.Netcode
 
     public class NetworkClient
     {
-        public GameObject PlayerObject;
+        // Firma real NGO 2.12 (Runtime/Connection/NetworkClient.cs:60): NetworkObject.
+        public NetworkObject PlayerObject;
         public ulong ClientId;
     }
 
@@ -113,7 +114,8 @@ namespace Unity.Netcode
         public bool IsClient => true;
         public bool IsListening => false;
         public NetworkConfig NetworkConfig => null;
-        public Dictionary<ulong, NetworkClient> ConnectedClients => null;
+        // Firma real NGO 2.12 (NetworkManager.cs:599).
+        public System.Collections.Generic.IReadOnlyDictionary<ulong, NetworkClient> ConnectedClients => null;
         public NetworkClient LocalClient => null;
         public event Action OnServerStarted;
         public event Action<ulong> OnClientConnectedCallback;

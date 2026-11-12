@@ -72,9 +72,9 @@ echo "-- 3/5 ETSV.Sim (C# puro + Newtonsoft + tag NGO)"
 echo "-- 4/5 Capa de integración Unity (contra stubs)"
 "$MCS" -target:library $CFLAGS -out:"$BUILD/ETSV.UnitySide.dll" \
   -r:"$BUILD/ETSV.Domain.dll" -r:"$BUILD/ETSV.Sim.dll" -r:"$BUILD/stubs.dll" \
+  $(find "$ETSV/Scripts/Presentation" -name '*.cs') \
   $(find "$ETSV/Scripts/Integration/Disassembly" -name '*.cs') \
-  "$ETSV/Scripts/Integration/ETSVBootstrap.cs" \
-  "$ETSV/Scripts/Integration/SessionConfig.cs"
+  "$ETSV/Scripts/Integration/ETSVBootstrap.cs"
 
 echo "-- 5/5 Tests EditMode (shim NUnit + runner propio)"
 "$MCS" -target:exe $CFLAGS -out:"$BUILD/tests.exe" \

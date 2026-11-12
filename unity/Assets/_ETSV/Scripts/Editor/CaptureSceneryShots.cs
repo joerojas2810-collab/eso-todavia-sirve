@@ -30,8 +30,7 @@ namespace Etsv.EditorTools
         public static void CaptureAll()
         {
             // 1) Escena real del juego (sol/niebla/Volume de la Instrucción 10).
-            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Multiplayer.unity",
-                OpenSceneMode.Single);
+            EditorSceneManager.OpenScene("Assets/Scenes/Multiplayer.unity", OpenSceneMode.Single);
 
             // 2) Construcción determinista del patio y las estaciones (misma vía
             //    que el bootstrap del juego; idempotente).

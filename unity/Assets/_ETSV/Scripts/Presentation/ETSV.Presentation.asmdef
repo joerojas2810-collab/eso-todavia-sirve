@@ -1,0 +1,17 @@
+{
+    "name": "ETSV.Presentation",
+    "rootNamespace": "Etsv.Integration",
+    "references": [
+        "ETSV.Domain",
+        "ETSV.Sim"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
