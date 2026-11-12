@@ -107,3 +107,17 @@ prefabs de `Assets/_ETSV/Resources/ETSV/` y el host spawnea mesa + microondas
 junto al spawn point al iniciar. Detalles, sistemas reutilizados de la base,
 adaptaciones y checklist de verificación en el editor:
 [`INTEGRACION_DESARMADO.md`](INTEGRACION_DESARMADO.md).
+
+## 8. Instrucción 07 — recuperación, almacenamiento y economía cooperativa
+
+El circuito completo ya está conectado: desmontaje físico → transporte
+(`PickupItem` ↔ dominio) → balanza / trituradora / residuos especiales /
+almacenes / contenedores de materiales, con economía compartida de la
+chatarrería (titular `"chatarrera"`), trazabilidad por operación, autoridad del
+host y late-join del estado económico. 14 estaciones físicas con ids estables,
+construidas en runtime y reemplazables por modelos de terceros sin tocar reglas.
+**Un solo estado**: el dominio (`EconomyOps` + `WarehouseRules`) es la fuente de
+verdad; la red replica dinero (NV), ocupación de zonas y unidades de material
+(NetworkLists) y eventos discretos de transacción (RPC). Detalles, prohibiciones
+de transporte cumplidas una por una, tests E01–E16 y checklist de editor:
+[`INTEGRACION_ECONOMIA.md`](INTEGRACION_ECONOMIA.md).

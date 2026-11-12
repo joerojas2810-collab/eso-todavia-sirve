@@ -1,10 +1,14 @@
-// [ETSV] Integración — HUD mínimo de desmontaje (Instrucción 06 §8).
+// [ETSV] Integración — HUD mínimo de desmontaje + economía (Instrucciones 06 §8, 07 §9).
 // UI Toolkit construida en código (sin assets nuevos que cablear en el editor):
-// reutiliza el PanelSettings del HUD de la base cuando existe. Muestra objeto,
-// componente, fijación, herramienta requerida, progreso, calidad, estado y pistas
-// contextuales — todo derivado del estado SINCRONIZADO (NetworkList<CompSync>),
-// nunca de decisiones locales.
+// reutiliza el PanelSettings del HUD de la base cuando existe.
+//  - Panel inferior: objeto/estación, componente, fijación, herramienta requerida,
+//    progreso, calidad, estado y pistas contextuales — todo derivado del estado
+//    SINCRONIZADO (NetworkList<CompSync>, NVs de economía), nunca de decisiones locales.
+//  - Saldo compartido arriba a la derecha (NetworkVariable Money del host).
+//  - Feed de transacciones (toasts): resultado de cada operación y motivos de
+//    rechazo decodificados (ReasonCodes), por RPC discreto del host.
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Etsv.Domain;
@@ -19,34 +23,56 @@ namespace Etsv.Integration
         private Label _objectName, _compName, _stateLabel, _qualityLabel;
         private Label _toolLabel, _hintLabel, _toolbarLabel;
         private VisualElement _progressFill;
+        private Label _moneyLabel;
+        private readonly List<Toast> _toasts = new List<Toast>();
+        private VisualElement _toastBox;
+
+        private class Toast { public Label Label; public float Expires; }
 
         private void Start()
         {
             var doc = GetComponent<UIDocument>();
-            // Reutilizar el PanelSettings de la base (Player UI) si está cargado.
             if (doc.panelSettings == null)
             {
                 var existing = FindFirstObjectByType<UIDocument>();
                 if (existing != null && existing != doc) doc.panelSettings = existing.panelSettings;
             }
-            if (doc.panelSettings == null)
-            {
-                doc.panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
-            }
+            if (doc.panelSettings == null) doc.panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
             doc.sortingOrder = 10; // por encima del HUD base (crosshair)
 
             _root = doc.rootVisualElement;
             Build();
+            ETSVSessionView.OnFeed += OnFeed;
+        }
+
+        private void OnDestroy()
+        {
+            ETSVSessionView.OnFeed -= OnFeed;
         }
 
         private void Build()
         {
+            // ---- saldo compartido (arriba a la derecha) ----
+            _moneyLabel = MakeLabel(20, FontStyle.Bold, new Color(0.55f, 0.95f, 0.6f));
+            _moneyLabel.style.position = Position.Absolute;
+            _moneyLabel.style.right = 18;
+            _moneyLabel.style.top = 14;
+            _root.Add(_moneyLabel);
+
+            // ---- toasts (izquierda, arriba) ----
+            _toastBox = new VisualElement();
+            _toastBox.style.position = Position.Absolute;
+            _toastBox.style.left = 18;
+            _toastBox.style.top = 14;
+            _root.Add(_toastBox);
+
+            // ---- panel inferior de objetivo ----
             _panel = new VisualElement();
             _panel.style.position = Position.Absolute;
             _panel.style.left = Length.Percent(50);
             _panel.style.bottom = 72;
             _panel.style.translate = new Translate(Length.Percent(-50), Length.Pixel(0));
-            _panel.style.width = 420;
+            _panel.style.width = 430;
             _panel.style.backgroundColor = new Color(0.05f, 0.06f, 0.09f, 0.82f);
             _panel.style.borderTopLeftRadius = 12; _panel.style.borderTopRightRadius = 12;
             _panel.style.borderBottomLeftRadius = 12; _panel.style.borderBottomRightRadius = 12;
@@ -71,7 +97,6 @@ namespace Etsv.Integration
             _panel.Add(row1);
             _panel.Add(_toolLabel);
 
-            // barra de progreso
             var bar = new VisualElement();
             bar.style.height = 10;
             bar.style.marginTop = 6; bar.style.marginBottom = 6;
@@ -99,10 +124,94 @@ namespace Etsv.Integration
             return l;
         }
 
+        // ---------------------------------------------------------------- feed de transacciones
+        private void OnFeed(ETSVSessionView.FeedEntry f)
+        {
+            string who = "J" + f.PlayerId;
+            string text;
+            if (!f.Ok)
+            {
+                text = "✖ " + who + ": " + ReasonText(ReasonCodes.Decode(f.ReasonCode));
+            }
+            else
+            {
+                switch (f.Kind)
+                {
+                    case ETSVSessionView.TxKind.Venta: text = "✔ " + who + " vendió +$" + f.Value; break;
+                    case ETSVSessionView.TxKind.Procesado: text = "✔ " + who + " procesó un componente"; break;
+                    case ETSVSessionView.TxKind.Entrega: text = "✔ " + who + " entregó residuo especial $" + f.Value; break;
+                    case ETSVSessionView.TxKind.Almacenado: text = "✔ " + who + " almacenó una pieza"; break;
+                    case ETSVSessionView.TxKind.Retirado: text = "✔ " + who + " retiró una pieza"; break;
+                    case ETSVSessionView.TxKind.VentaMaterial: text = "✔ " + who + " vendió material +$" + f.Value; break;
+                    default: text = who + " operó una estación"; break;
+                }
+            }
+            AddToast(text, f.Ok);
+        }
+
+        private static string ReasonText(string reason)
+        {
+            switch (reason)
+            {
+                case "sin_pieza_en_manos": return "no lleva ninguna pieza";
+                case "pieza_terminal": return "la pieza ya fue recuperada";
+                case "propiedad_ajena": return "la pieza no es de la chatarrería";
+                case "pieza_reservada": return "pieza reservada";
+                case "no_transportada": return "la pieza no está en sus manos";
+                case "pieza_protegida_no_vendible": return "residuo especial: no se vende";
+                case "zona_llena": return "zona llena";
+                case "categoria_incompatible": return "categoría incompatible con la zona";
+                case "fondos_insuficientes": return "fondos insuficientes";
+                case "maquina_incompatible_sellado": return "sellado: incompatible con la máquina";
+                case "residuo_especial_no_procesable": return "residuo especial no procesable";
+                case "contenedor_lleno": return "contenedor de material lleno";
+                case "sin_receta": return "la pieza no tiene receta";
+                case "no_es_residuo_especial": return "no es un residuo especial";
+                case "insuficiente": return "contenedor vacío";
+                case "zona_vacia": return "la zona está vacía";
+                case "manos_ocupadas": return "manos ocupadas";
+                case "requiere_carro_o_grua": return "requiere carro o grúa (P3+)";
+                case "distancia_invalida": return "demasiado lejos";
+                case "jugador_desconocido": return "jugador no reconocido";
+                default: return reason ?? "rechazado";
+            }
+        }
+
+        private void AddToast(string text, bool ok)
+        {
+            var l = MakeLabel(14, FontStyle.Bold,
+                ok ? new Color(0.6f, 0.95f, 0.65f) : new Color(1f, 0.6f, 0.55f));
+            l.text = text;
+            l.style.backgroundColor = new Color(0.05f, 0.06f, 0.09f, 0.75f);
+            l.style.paddingLeft = 8; l.style.paddingRight = 8;
+            l.style.paddingTop = 3; l.style.paddingBottom = 3;
+            l.style.borderTopLeftRadius = 6; l.style.borderTopRightRadius = 6;
+            l.style.borderBottomLeftRadius = 6; l.style.borderBottomRightRadius = 6;
+            l.style.marginBottom = 4;
+            _toastBox.Add(l);
+            _toasts.Add(new Toast { Label = l, Expires = Time.time + 4.5f });
+            while (_toasts.Count > 5) RemoveToast(0);
+        }
+
+        private void RemoveToast(int i)
+        {
+            _toastBox.Remove(_toasts[i].Label);
+            _toasts.RemoveAt(i);
+        }
+
+        // ---------------------------------------------------------------- update
         private void Update()
         {
+            // saldo compartido
+            var session = ETSVSessionView.Instance;
+            string money = session != null ? "$ " + session.Money.Value : "$ —";
+            if (_moneyLabel.text != money) _moneyLabel.text = money;
+
+            // toasts vencidos
+            for (int i = _toasts.Count - 1; i >= 0; i--)
+                if (Time.time >= _toasts[i].Expires) RemoveToast(i);
+
             var c = DisassemblyPlayerController.Current;
-            // barra de herramientas siempre visible durante el juego
             string toolbar = ToolbarText(c);
             if (_toolbarLabel.text != toolbar) _toolbarLabel.text = toolbar;
 
@@ -114,11 +223,11 @@ namespace Etsv.Integration
 
             if (_panel.style.display != DisplayStyle.Flex) _panel.style.display = DisplayStyle.Flex;
 
-            // Cabecera: nombre del objeto arriba del panel (reutiliza labels existentes).
             SetText(_objectName, c.ObjectName);
             SetText(_compName, c.CompName + (c.FastenerLabel != null ? " · " + c.FastenerLabel : ""));
             SetText(_stateLabel, c.StateLabel);
-            SetText(_qualityLabel, "Calidad " + c.Quality + "%");
+            SetText(_qualityLabel, c.CarriedPiece != null || c.FastenerLabel != null
+                ? "Calidad " + c.Quality + "%" : null);
             SetText(_toolLabel, c.RequiredToolLabel);
             SetText(_hintLabel, c.Hint);
 
@@ -146,6 +255,9 @@ namespace Etsv.Integration
                 sb.Append(sel ? "]" : "");
                 if (i < GameCatalog.Tools.Length - 1) sb.Append("   ");
             }
+            if (c != null && c.CarriedPiece != null)
+                sb.Append("    Llevando: ").Append(c.CarriedPiece.DefId)
+                  .Append(" (Q").Append(c.CarriedPiece.Quality.Value).Append(")");
             return sb.ToString();
         }
     }

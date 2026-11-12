@@ -1,20 +1,20 @@
-// [ETSV] Integración — interacción FPS con objetos desmontables (solo jugador local).
-// Se agrega en runtime al avatar local (ETSVBootstrap); NO modifica PlayerInteraction
-// ni PlayerMovement de la base: REUTILIZA su raycast (InteractRay/InteractRange) y
-// su acción de input "Interact" (E / gamepad buttonNorth, Hold ~0.4 s — el mismo
-// gesto que el pickup upstream).
+// [ETSV] Integración — interacción FPS con objetos desmontables Y estaciones
+// (solo jugador local). Se agrega en runtime al avatar local (ETSVBootstrap);
+// NO modifica PlayerInteraction ni PlayerMovement de la base: REUTILIZA su
+// raycast (InteractRay/InteractRange) y su acción "Interact" (E, Hold ~0.4 s).
 //
 // El cliente SOLO solicita (RPCs al host); nunca decide resultados:
 //   - mantener E sobre una fijación accesible  → StartWork + ticks de progreso
-//   - soltar E                                 → StopWork (el progreso queda guardado)
+//   - soltar E                                 → StopWork (progreso guardado)
 //   - mantener E sobre componente Liberado     → ExtractRpc
-//   - mantener E sobre componente con herramienta incorrecta → DamageRpc (golpe,
-//     paridad con el prototipo JS: el daño viene de acciones destructivas)
+//   - mantener E sobre componente con herramienta incorrecta → DamageRpc (golpe)
+//   - mantener E sobre una ESTACIÓN            → StationUseRpc (balanza/trituradora/
+//     residuos/almacenes/contenedores: el host valida y ejecuta la economía)
 //   - piezas sueltas (PickupItem)              → las maneja PlayerInteraction upstream
-// Herramientas: teclas 1/2/3 (llave/destornillador/manos, GameCatalog.Tools[i].Key),
-// la selección viaja al host (registro autoritativo de DisassemblySessionHost).
+// Herramientas: teclas 1/2/3 (GameCatalog.Tools[i].Key), selección viaja al host.
 
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Etsv.Domain;
@@ -38,6 +38,9 @@ namespace Etsv.Integration
         public int ToolIdx { get; private set; }
         public bool IsWorking { get; private set; }
 
+        /// <summary>Pieza que este jugador transporta (físico HeldBy = cliente local).</summary>
+        public DisassemblyPieceView CarriedPiece { get; private set; }
+
         private const float TickInterval = 0.1f;  // 10 Hz de solicitudes de trabajo
         private const byte StrikeDamage = 12;     // paridad con prototype/tests/disassembly.test.mjs
 
@@ -47,6 +50,7 @@ namespace Etsv.Integration
 
         private DisassemblyObjectView _view;
         private int _targetComp = -1, _targetFastener = -1; // -1 = cuerpo del componente
+        private StationRef _station;                        // estación apuntada
         private float _tickAccum;
         private RaycastHit[] _hitsBuf = new RaycastHit[16];
 
@@ -58,8 +62,6 @@ namespace Etsv.Integration
             var pi = GetComponent<PlayerInput>();
             if (pi != null && pi.actions != null) _interact = pi.actions["Interact"];
 
-            // Selección de herramienta: bindings inline (mismo patrón que la rotación
-            // de items upstream, que no toca el asset compartido).
             _tool1 = NewKeyAction("Tool1", GameCatalog.Tools.Length > 0 ? GameCatalog.Tools[0].Key : "1");
             _tool2 = NewKeyAction("Tool2", GameCatalog.Tools.Length > 1 ? GameCatalog.Tools[1].Key : "2");
             _tool3 = NewKeyAction("Tool3", GameCatalog.Tools.Length > 2 ? GameCatalog.Tools[2].Key : "3");
@@ -102,11 +104,11 @@ namespace Etsv.Integration
         private void Update()
         {
             HandleToolKeys();
+            RefreshCarried();
             RefreshTarget();
 
             if (IsWorking)
             {
-                // Sin target (el jugador apartó la mira o el estado cambió) ⇒ interrumpir.
                 if (_view == null || _targetFastener < 0) { StopWorking(); return; }
                 _tickAccum += Time.deltaTime;
                 while (_tickAccum >= TickInterval)
@@ -126,9 +128,25 @@ namespace Etsv.Integration
             if (idx < 0 || idx == ToolIdx || idx >= GameCatalog.Tools.Length) return;
 
             ToolIdx = idx;
-            StopWorking(); // cambiar de herramienta interrumpe el trabajo en curso
+            StopWorking();
             if (ETSVSessionView.Instance != null)
                 ETSVSessionView.Instance.SelectToolRpc((byte)idx);
+        }
+
+        /// <summary>Pieza en manos del jugador LOCAL (HeldBy es legible por todos).</summary>
+        private void RefreshCarried()
+        {
+            CarriedPiece = null;
+            var nm = NetworkManager.Singleton;
+            if (nm == null || nm.LocalClient == null) return;
+            ulong me = nm.LocalClient.ClientId;
+            foreach (var kv in DisassemblyPieceView.Registry)
+            {
+                var pv = kv.Value;
+                if (pv == null) continue;
+                var pickup = pv.GetComponent<PickupItem>();
+                if (pickup != null && pickup.HeldBy.Value == me) { CarriedPiece = pv; return; }
+            }
         }
 
         // ------------------------------------------------------------------ targeting
@@ -138,6 +156,7 @@ namespace Etsv.Integration
             _view = null;
             _targetComp = -1;
             _targetFastener = -1;
+            _station = null;
             ObjectName = CompName = StateLabel = Hint = FastenerLabel = RequiredToolLabel = null;
             Progress01 = 0; Quality = 100;
 
@@ -146,10 +165,11 @@ namespace Etsv.Integration
             if (n == 0) return;
             System.Array.Sort(_hitsBuf, 0, n, HitDistanceComparer.Instance);
 
-            // Prioridad: fijación más cercana; si no, componente; PickupItem se ignora
-            // (lo maneja el sistema upstream, sin doble manejo).
             DisassemblyObjectView view = null;
             int comp = -1, fast = -1;
+            float compDist = float.MaxValue, stationDist = float.MaxValue;
+            StationRef station = null;
+
             for (int i = 0; i < n; i++)
             {
                 var col = _hitsBuf[i].collider;
@@ -159,16 +179,26 @@ namespace Etsv.Integration
                 var fr = col.GetComponent<FastenerRef>();
                 if (fr != null && fast < 0)
                 {
-                    view = fr.GetComponentInParent<DisassemblyObjectView>();
-                    comp = fr.CompIdx; fast = fr.FastenerIdx;
-                    if (view != null) break; // la fijación manda
+                    var v = fr.GetComponentInParent<DisassemblyObjectView>();
+                    if (v != null) { view = v; comp = fr.CompIdx; fast = fr.FastenerIdx; break; } // la fijación manda
                 }
+                var sr = col.GetComponent<StationRef>();
+                if (sr != null && station == null) { station = sr; stationDist = _hitsBuf[i].distance; continue; }
                 var cr = col.GetComponent<ComponentRef>();
                 if (cr != null && comp < 0)
                 {
                     var v2 = cr.GetComponentInParent<DisassemblyObjectView>();
-                    if (v2 != null) { view = v2; comp = cr.CompIdx; }
+                    if (v2 != null) { view = v2; comp = cr.CompIdx; compDist = _hitsBuf[i].distance; }
                 }
+            }
+
+            // Estación vs componente: gana el más cercano.
+            if (station != null && (comp < 0 || stationDist <= compDist))
+            {
+                _station = station;
+                HasTarget = true;
+                BuildStationHud(station);
+                return;
             }
             if (view == null || comp < 0) return;
 
@@ -177,6 +207,7 @@ namespace Etsv.Integration
             BuildHudInfo(view, comp, fast);
         }
 
+        // ------------------------------------------------------------------ HUD de objeto desmontable
         private void BuildHudInfo(DisassemblyObjectView view, int comp, int fast)
         {
             var bp = view.Blueprint;
@@ -213,6 +244,164 @@ namespace Etsv.Integration
             }
         }
 
+        // ------------------------------------------------------------------ HUD de estación
+        private void BuildStationHud(StationRef sr)
+        {
+            var def = StationsCatalog.ById(sr.StationId);
+            if (def == null) return;
+            ObjectName = def.Name;
+            var session = ETSVSessionView.Instance;
+
+            string carried = CarriedPiece != null ? CarriedPiece.DefId : null;
+            int carriedQ = CarriedPiece != null ? CarriedPiece.Quality.Value : 100;
+
+            switch (def.Kind)
+            {
+                case StationKind.Balanza:
+                    CompName = "Venta de piezas";
+                    if (carried != null)
+                    {
+                        int v = EstimateValue(carried, carriedQ);
+                        StateLabel = IsSealedDef(carried) ? "Sellado: no vendible" : "Lista para vender";
+                        Hint = IsSealedDef(carried)
+                            ? "El módulo sellado no se vende (residuo especial)"
+                            : "Mantené E para vender por $" + v;
+                    }
+                    else { StateLabel = "Sin pieza en las manos"; Hint = "Levantá una pieza (E) y volvé"; }
+                    break;
+
+                case StationKind.Trituradora:
+                    CompName = "Procesamiento (E=0.9, PROV-01)";
+                    if (carried != null)
+                    {
+                        StateLabel = IsSealedDef(carried) ? "Sellado: incompatible" : "Lista para procesar";
+                        Hint = IsSealedDef(carried)
+                            ? "El módulo sellado no entra en maquinaria común"
+                            : "Mantené E para procesar → " + RecipePreview(carried, carriedQ);
+                    }
+                    else { StateLabel = "Sin pieza en las manos"; Hint = "Levantá un componente y volvé"; }
+                    break;
+
+                case StationKind.ResiduosEspeciales:
+                    CompName = "Gestión con coste (GDD §6.2: −$5/u)";
+                    if (carried != null && IsSealedDef(carried))
+                    {
+                        int cost = SpecialCost(carried);
+                        int money = session != null ? session.Money.Value : 0;
+                        StateLabel = money >= cost ? "Entrega disponible" : "Fondos insuficientes";
+                        Hint = "Mantené E para entregar (coste $" + cost + ")";
+                    }
+                    else { StateLabel = "Solo residuos especiales"; Hint = "Traé el módulo eléctrico sellado"; }
+                    break;
+
+                case StationKind.Estanteria:
+                case StationKind.Pale:
+                case StationKind.Suelo:
+                {
+                    int zoneIdx = def.Kind == StationKind.Estanteria ? 0 : def.Kind == StationKind.Pale ? 1 : 2;
+                    byte used = 0; int cap = 8;
+                    if (session != null && zoneIdx < session.ZoneCounts.Count) used = session.ZoneCounts[zoneIdx];
+                    var zone = EconomyData.StorageZones[def.ZoneId];
+                    cap = zone.Capacity;
+                    CompName = "Almacén " + string.Join("/", zone.Accepts) + " · " + used + "/" + cap;
+                    if (CarriedPiece != null) { StateLabel = "Almacenar"; Hint = "Mantené E para guardar " + carried; }
+                    else { StateLabel = used > 0 ? "Retirar disponible" : "Vacía"; Hint = "Mantené E para retirar la última pieza"; }
+                    break;
+                }
+
+                case StationKind.ContenedorMaterial:
+                {
+                    int matIdx = System.Array.IndexOf(EconomyData.MatIds, def.MatId);
+                    ushort units = 0;
+                    if (session != null && matIdx >= 0 && matIdx < session.MaterialUnits.Count)
+                        units = session.MaterialUnits[matIdx];
+                    var m = EconomyData.Materials[def.MatId];
+                    CompName = m.Name + " · " + units + "/120 u (PROV-05)";
+                    if (units > 0 && m.Price > 0)
+                    {
+                        StateLabel = "Vender todo";
+                        Hint = "Mantené E: " + units + " u × $" + m.Price + " = $" + (units * m.Price);
+                    }
+                    else if (m.Price <= 0) { StateLabel = "No vendible"; Hint = "Los residuos especiales se gestionan en su contenedor"; }
+                    else { StateLabel = "Vacío"; Hint = "Procesá componentes que rindan " + m.Name; }
+                    break;
+                }
+            }
+            Quality = carriedQ;
+        }
+
+        private static int EstimateValue(string defId, int quality)
+        {
+            int vbase = VBaseOf(defId);
+            return JsMath.Round(vbase * (quality / 100.0) * EconomyData.CommercialMod);
+        }
+
+        /// <summary>VBase por definición (componente de blueprint o PART_DEF).</summary>
+        public static int VBaseOf(string defId)
+        {
+            if (defId == null) return 0;
+            foreach (var bp in CatalogIndex.Blueprints)
+            {
+                var cd = GameCatalog.CompById(bp, defId);
+                if (cd != null) return cd.VBase;
+            }
+            PartDef pd;
+            if (EconomyData.PartDefs.TryGetValue(defId, out pd)) return pd.VBase;
+            return 0;
+        }
+
+        private static bool IsSealedDef(string defId)
+        {
+            foreach (var bp in CatalogIndex.Blueprints)
+            {
+                var cd = GameCatalog.CompById(bp, defId);
+                if (cd != null) return cd.Sealed;
+            }
+            return false;
+        }
+
+        private static int SpecialCost(string defId)
+        {
+            foreach (var bp in CatalogIndex.Blueprints)
+            {
+                var cd = GameCatalog.CompById(bp, defId);
+                if (cd != null && cd.Recipe != null)
+                    foreach (var r in cd.Recipe)
+                        if (r.Mat == "MAT-08")
+                            return (int)(r.Base * System.Math.Abs(EconomyData.Materials["MAT-08"].Price));
+            }
+            return 0;
+        }
+
+        private string RecipePreview(string defId, int quality)
+        {
+            RecipeEntry[] recipe = null;
+            foreach (var bp in CatalogIndex.Blueprints)
+            {
+                var cd = GameCatalog.CompById(bp, defId);
+                if (cd != null) { recipe = cd.Recipe; break; }
+            }
+            if (recipe == null || recipe.Length == 0) return "sin receta";
+            var parts = new List<string>();
+            double P = quality / 100.0;
+            foreach (var r in recipe)
+            {
+                if (r.Mat != null)
+                {
+                    var m = EconomyData.Materials[r.Mat];
+                    parts.Add(m.Name + " ~" + (r.Base * 0.9 * P).ToString("0.#") + "u"); // E=0.9 PROV-01
+                }
+                if (r.Part != null)
+                {
+                    PartDef pd;
+                    string nm = EconomyData.PartDefs.TryGetValue(r.Part, out pd) ? pd.Name : r.Part;
+                    parts.Add(nm + " ×" + (int)r.Base);
+                }
+            }
+            return string.Join(", ", parts.ToArray());
+        }
+
+        // ------------------------------------------------------------------ pistas de componente
         private string HintForState(CompState state, ObjectBlueprint bp, ComponentDef def)
         {
             switch (state)
@@ -232,7 +421,6 @@ namespace Etsv.Integration
                     }
                     return "Bloqueado";
                 case CompState.Accesible:
-                    // Golpe solo si la herramienta equipada no sirve para NINGUNA fijación.
                     if (WrongToolForWholeComp(def)) return "Mantené E: golpear con " + ToolName(CurrentToolId()) + " lo va a dañar";
                     return def.Fasteners != null && def.Fasteners.Length > 0
                         ? "Apuntá a una fijación (esferas rojas)"
@@ -249,7 +437,7 @@ namespace Etsv.Integration
             foreach (var f in def.Fasteners)
             {
                 var ft = GameCatalog.FastenerTypes[f.Type];
-                if (ft.Tool == tool) return false; // alguna fijación sirve con esta herramienta
+                if (ft.Tool == tool) return false;
             }
             return true;
         }
@@ -287,6 +475,12 @@ namespace Etsv.Integration
         // ------------------------------------------------------------------ acciones (solicitudes al host)
         private void OnInteractPerformed(InputAction.CallbackContext _)
         {
+            if (_station != null)
+            {
+                if (ETSVSessionView.Instance != null)
+                    ETSVSessionView.Instance.StationUseRpc((byte)_station.StationId);
+                return;
+            }
             if (_view == null || _targetComp < 0) return;
 
             CompSync s;
@@ -296,8 +490,7 @@ namespace Etsv.Integration
             if (_targetFastener >= 0)
             {
                 if (state != CompState.Accesible) return; // el host también lo valida
-                var r = _view; byte c = (byte)_targetComp, f = (byte)_targetFastener;
-                r.WorkStartRpc(c, f);
+                _view.WorkStartRpc((byte)_targetComp, (byte)_targetFastener);
                 IsWorking = true;
                 _tickAccum = 0f;
                 return;
@@ -310,13 +503,14 @@ namespace Etsv.Integration
             }
 
             if ((state == CompState.Accesible || state == CompState.Bloqueado)
+                && _view.Blueprint != null
                 && WrongToolForWholeComp(_view.Blueprint.Components[_targetComp]))
             {
                 _view.DamageRpc((byte)_targetComp, StrikeDamage); // golpe con herramienta incorrecta
             }
         }
 
-        private void OnInteractCanceled(InputAction.CallbackContext _) => StopWorking();
+        private void OnInteractCanceled(InputAction.CallbackContext _) { StopWorking(); }
 
         private void StopWorking()
         {

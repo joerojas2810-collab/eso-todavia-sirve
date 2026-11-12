@@ -125,22 +125,10 @@ namespace Etsv.Integration
         // ------------------------------------------------------------------ host: spawn de pieza
         private void SpawnPiece(StoredPart piece, int compIdx)
         {
-            if (ETSVBootstrap.PiecePrefab == null || piece == null) return;
             Vector3 at = transform.position;
             if (_vis != null && compIdx < _vis.ComponentGOs.Length && _vis.ComponentGOs[compIdx] != null)
                 at = _vis.ComponentGOs[compIdx].transform.position + Vector3.up * 0.15f;
-
-            var go = Instantiate(ETSVBootstrap.PiecePrefab, at, Quaternion.identity);
-            var pv = go.GetComponent<DisassemblyPieceView>();
-            if (pv != null)
-            {
-                pv.DomainUidN.Value = DisassemblySessionHost.PieceUidToNet(piece.Uid);
-                int defIdx = CatalogIndex.PieceDefIndexOf(piece.DefId);
-                pv.DefIdx.Value = (byte)(defIdx < 0 ? 0 : defIdx);
-                pv.Quality.Value = (byte)piece.Quality;
-                pv.OriginBlueprintIdx.Value = BlueprintIdx.Value;
-            }
-            go.GetComponent<NetworkObject>().Spawn();
+            PieceSpawner.Spawn(piece, at); // identidad en NVs antes de Spawn() ⇒ late-join correcto
         }
 
         /// <summary>Refleja el snapshot del dominio en la NetworkList (solo host).</summary>

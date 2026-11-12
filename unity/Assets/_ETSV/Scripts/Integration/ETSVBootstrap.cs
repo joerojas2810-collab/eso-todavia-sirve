@@ -3,8 +3,10 @@
 //  1. RuntimeInitializeOnLoadMethod: registra los prefabs ETSV (Resources) en el
 //     NetworkManager ANTES de que empiece la red (AddNetworkPrefab, API verificada
 //     contra el fuente de NGO 2.12).
-//  2. OnServerStarted (host): crea DisassemblySessionHost (cerebro puro), spawnea
-//     el objeto de sesión, una mesa de trabajo y el microondas del blueprint.
+//  2. OnServerStarted (host): crea DisassemblySessionHost (cerebro puro) y
+//     ScrapyardSession (economía cooperativa, Instrucción 07), spawnea el objeto
+//     de sesión, una mesa de trabajo, el microondas del blueprint y las 14
+//     estaciones de la chatarrería; engancha la desconexión de clientes.
 //  3. Cada peer: cuando aparece su avatar local, le agrega el controlador de
 //     desmontaje y crea el HUD (UI Toolkit en código).
 // Todo lo construido es genérico: otros blueprints se spawnean igual (30 objetos
@@ -94,11 +96,27 @@ namespace Etsv.Integration
             host.PlayerPos = TryGetPlayerPos;
             ETSVSession.Host = host;
 
-            // Objeto de sesión (canal autoritativo de herramientas).
+            // Economía cooperativa (Instrucción 07): ANTES de spawnear instancias,
+            // porque fija Ctx.SessionOwner="chatarrera" y las piezas nacen con ese
+            // titular. Una sola copia de estado: el dominio ES el estado económico.
+            ETSVSession.Scrapyard = new ScrapyardSession(host);
+            _nm.OnClientDisconnectCallback += OnClientDisconnected;
+
+            // Objeto de sesión (canal autoritativo de herramientas + economía).
             var sessionGo = Instantiate(ETSVBootstrap.SessionPrefab);
             sessionGo.GetComponent<NetworkObject>().Spawn();
 
             SpawnWorkbenchAndMicrowave(host);
+            ScrapyardLayout.BuildStations(); // decorativas: mismas coordenadas en cada peer
+        }
+
+        private void OnClientDisconnected(ulong clientId)
+        {
+            var sc = ETSVSession.Scrapyard;
+            if (sc == null) return;
+            // Pieza transportada vuelve al suelo lógico; el NetworkObject físico
+            // persiste (PickupItem auto-drop) ⇒ sin duplicación ni pérdida.
+            sc.OnPlayerDisconnected(clientId);
         }
 
         private bool TryGetPlayerPos(ulong clientId, out P3 pos)
@@ -114,11 +132,7 @@ namespace Etsv.Integration
 
         private void SpawnWorkbenchAndMicrowave(DisassemblySessionHost host)
         {
-            Vector3 anchor = Vector3.zero;
-            var sp = GameObject.Find("Player 2 Spawn");
-            if (sp == null) sp = GameObject.Find("Player 1 Spawn");
-            if (sp != null) anchor = sp.transform.position;
-            Vector3 tablePos = anchor + new Vector3(1.8f, 0f, 1.2f);
+            Vector3 tablePos = ScrapyardLayout.TableAnchor(); // misma referencia que las estaciones
 
             BuildWorkbench(tablePos);
 

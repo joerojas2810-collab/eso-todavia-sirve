@@ -15,13 +15,24 @@ namespace Etsv.Domain
     /// Contexto de economía (paridad con el ctx de JS):
     /// { reg, cwh, mwh, carry, getMoney(), addMoney(n), onChanged() }.
     /// La integración lo construye sobre el estado del host.
+    ///
+    /// Instrucción 07 §2 — economía compartida de la chatarrería (GDD coop):
+    /// - SessionOwner: titular legal de las piezas de la sesión ("P1" por defecto
+    ///   preserva la paridad con el prototipo monojugador; la sesión cooperativa
+    ///   usa "chatarrera"). La propiedad ECONÓMICA es de la chatarrería compartida;
+    ///   quién transporta cada pieza se registra aparte (CarryByPlayer) y la
+    ///   trazabilidad de cada operación vive en la capa de sesión (no acá).
+    /// - CarryByPlayer: manos ocupadas POR JUGADOR (GDD 8.1: una pieza por
+    ///   jugador). Carry (single-slot) se conserva para la paridad con JS.
     /// </summary>
     public class EconomyContext
     {
         public PieceRegistry Reg;
         public ComponentWarehouse Cwh;
         public MaterialWarehouse Mwh;
-        public string Carry;                 // uid de la única pieza en las manos (GDD §8.1)
+        public string Carry;                 // uid de la única pieza en las manos (paridad JS monojugador)
+        public string SessionOwner = "P1";   // titular legal de las piezas de la sesión
+        public Dictionary<string, string> CarryByPlayer = new Dictionary<string, string>(); // playerId → uid
         public Func<int> GetMoney;
         public Action<int> AddMoney;
         public Action OnChanged;
@@ -47,9 +58,35 @@ namespace Etsv.Domain
             var p = PieceRules.GetPiece(ctx.Reg, uid);
             if (p == null) return OpResult.Fail("pieza_inexistente");
             if (PieceRules.IsTerminal(p)) return OpResult.Fail("pieza_terminal");
-            if (p.Owner != "P1") return OpResult.Fail("propiedad_ajena"); // futuro: otros jugadores/contratos
+            if (p.Owner != ctx.SessionOwner) return OpResult.Fail("propiedad_ajena"); // titular de la sesión (coop: chatarrería)
             if (!allowReserved && p.ReservedFor != null) return OpResult.Fail("pieza_reservada");
             return new OpResult { Ok = true, Piece = p };
+        }
+
+        // Libera el slot de transporte de la pieza, sea el single-slot legacy (JS)
+        // o el de cualquier jugador (sesión cooperativa).
+        private static void ClearCarry(EconomyContext ctx, string uid)
+        {
+            if (ctx.Carry == uid) ctx.Carry = null;
+            if (ctx.CarryByPlayer != null && ctx.CarryByPlayer.Count > 0)
+            {
+                List<string> keys = null;
+                foreach (var kv in ctx.CarryByPlayer)
+                    if (kv.Value == uid) { if (keys == null) keys = new List<string>(); keys.Add(kv.Key); }
+                if (keys != null) foreach (var k in keys) ctx.CarryByPlayer.Remove(k);
+            }
+        }
+
+        private static bool HandsFree(EconomyContext ctx, string playerId)
+        {
+            if (playerId == null) return ctx.Carry == null; // legacy monojugador
+            return ctx.CarryByPlayer == null || !ctx.CarryByPlayer.ContainsKey(playerId);
+        }
+
+        private static void SetCarry(EconomyContext ctx, string playerId, string uid)
+        {
+            if (playerId == null) ctx.Carry = uid;
+            else ctx.CarryByPlayer[playerId] = uid;
         }
 
         // ---------------------------------------------------------------- extracción
@@ -63,7 +100,14 @@ namespace Etsv.Domain
 
         // ---------------------------------------------------------------- transporte personal
         // GDD 5.0 §8.1: una pieza pequeña en las manos. P2 con movimiento reducido.
+        // playerId == null ⇒ comportamiento monojugador legacy (paridad JS: ctx.Carry).
+        // playerId != null ⇒ slot de manos de ese jugador (sesión cooperativa).
         public static OpResult PickupPiece(EconomyContext ctx, string uid)
+        {
+            return PickupPiece(ctx, uid, null);
+        }
+
+        public static OpResult PickupPiece(EconomyContext ctx, string uid, string playerId)
         {
             var c = CheckOperable(ctx, uid);
             if (!c.Ok) return c;
@@ -71,9 +115,9 @@ namespace Etsv.Domain
             if (p.Storage != "world") return OpResult.Fail("no_disponible_en_suelo");
             var wc = EconomyData.WeightClasses[p.WeightClass];
             if (!wc.Carryable) return OpResult.Fail("requiere_carro_o_grua");
-            if (ctx.Carry != null) return OpResult.Fail("manos_ocupadas"); // una pieza en las manos
+            if (!HandsFree(ctx, playerId)) return OpResult.Fail("manos_ocupadas"); // una pieza por jugador
             PieceRules.SetStorage(ctx.Reg, uid, "carried");
-            ctx.Carry = uid;
+            SetCarry(ctx, playerId, uid);
             Touch(ctx);
             return new OpResult { Ok = true, Piece = p, SpeedMul = wc.SpeedMul };
         }
@@ -84,7 +128,7 @@ namespace Etsv.Domain
             if (!c.Ok) return c;
             if (c.Piece.Storage != "carried") return OpResult.Fail("no_transportada");
             PieceRules.SetStorage(ctx.Reg, uid, "world");
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             Touch(ctx);
             return new OpResult { Ok = true, Piece = c.Piece };
         }
@@ -95,7 +139,7 @@ namespace Etsv.Domain
             if (!c.Ok) return c;
             if (c.Piece.Storage != "carried") return OpResult.Fail("no_transportada");
             PieceRules.SetStorage(ctx.Reg, uid, "scale");
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             Touch(ctx);
             return new OpResult { Ok = true, Piece = c.Piece };
         }
@@ -110,22 +154,28 @@ namespace Etsv.Domain
             if (!cs.Ok) return cs;
             WarehouseRules.StorePieceUid(ctx.Cwh, zoneId, uid);
             PieceRules.SetStorage(ctx.Reg, uid, "stored:" + zoneId);
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             Touch(ctx);
             return new OpResult { Ok = true, Piece = c.Piece, Zone = zoneId };
         }
 
         public static OpResult RetrievePiece(EconomyContext ctx, string uid, string zoneId)
         {
+            return RetrievePiece(ctx, uid, zoneId, null);
+        }
+
+        // playerId == null ⇒ legacy monojugador (ctx.Carry); si no, slot del jugador.
+        public static OpResult RetrievePiece(EconomyContext ctx, string uid, string zoneId, string playerId)
+        {
             var c = CheckOperable(ctx, uid);
             if (!c.Ok) return c;
             if (PieceRules.ZoneOf(c.Piece) != zoneId) return OpResult.Fail("no_esta_en_zona");
             var wc = EconomyData.WeightClasses[c.Piece.WeightClass];
             if (!wc.Carryable) return OpResult.Fail("requiere_carro_o_grua");
-            if (ctx.Carry != null) return OpResult.Fail("manos_ocupadas");
+            if (!HandsFree(ctx, playerId)) return OpResult.Fail("manos_ocupadas");
             WarehouseRules.RemovePieceUid(ctx.Cwh, zoneId, uid);
             PieceRules.SetStorage(ctx.Reg, uid, "carried");
-            ctx.Carry = uid;
+            SetCarry(ctx, playerId, uid);
             Touch(ctx);
             return new OpResult { Ok = true, Piece = c.Piece };
         }
@@ -214,7 +264,7 @@ namespace Etsv.Domain
                 }
             }
             if (PieceRules.IsStored(p)) WarehouseRules.RemovePieceUid(ctx.Cwh, PieceRules.ZoneOf(p), uid);
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             PieceRules.SetTerminal(ctx.Reg, uid, "procesado", machineId);
             Touch(ctx);
             return new OpResult { Ok = true, Gained = gained, NewParts = newParts };
@@ -231,7 +281,7 @@ namespace Etsv.Domain
                 return OpResult.Fail("no_vendible_desde");
             int value = JsMath.Round(PieceValue(ctx, p));
             if (PieceRules.IsStored(p)) WarehouseRules.RemovePieceUid(ctx.Cwh, PieceRules.ZoneOf(p), uid);
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             PieceRules.SetTerminal(ctx.Reg, uid, "vendido", "balanza");
             ctx.AddMoney(value);
             Touch(ctx);
@@ -268,7 +318,7 @@ namespace Etsv.Domain
             int cost = (int)(units * Math.Abs(EconomyData.Materials["MAT-08"].Price));
             if (ctx.GetMoney() < cost) return OpResult.Fail("fondos_insuficientes");
             if (PieceRules.IsStored(p)) WarehouseRules.RemovePieceUid(ctx.Cwh, PieceRules.ZoneOf(p), uid);
-            if (ctx.Carry == uid) ctx.Carry = null;
+            ClearCarry(ctx, uid);
             PieceRules.SetTerminal(ctx.Reg, uid, "entregado", "residuo_especial");
             ctx.AddMoney(-cost);
             Touch(ctx);
@@ -280,7 +330,7 @@ namespace Etsv.Domain
         {
             var p = PieceRules.GetPiece(ctx.Reg, uid);
             if (p == null) return OpResult.Fail("pieza_inexistente");
-            if (p.Owner != "P1") return OpResult.Fail("propiedad_ajena");
+            if (p.Owner != ctx.SessionOwner) return OpResult.Fail("propiedad_ajena");
             var r = PieceRules.Reserve(ctx.Reg, uid, purpose);
             if (r.Ok) Touch(ctx);
             return r;

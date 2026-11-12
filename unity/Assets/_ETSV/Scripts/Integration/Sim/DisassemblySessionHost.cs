@@ -3,15 +3,11 @@
 // dominio (ETSV.Domain, sin modificar). Los NetworkBehaviour de Unity son
 // cáscaras delgadas que reenvían RPCs acá; el dominio no sabe nada de red.
 //
-// Decisiones de integración registradas (NO son cambios al dominio):
-// - Owner = "P1" en todas las piezas de esta etapa: el GDD es cooperativo y el
-//   dominio actual solo reconoce "P1" (comentario original: "futuro: otros
-//   jugadores/contratos"). La propiedad por jugador queda como decisión
-//   pendiente para cuando el dominio evolucione (Instrucción 06 §11).
-// - El transporte físico (PickupItem) NO muta storage del dominio todavía:
-//   EconomyContext.Carry es single-slot (prototipo monojugador) y no debe
-//   modificarse arbitrariamente; la pieza extraída queda storage="world" hasta
-//   la etapa de balanza/almacén. Registrado en docs/INTEGRACION_DESARMADO.md.
+// Instrucción 07: la propiedad y el transporte cooperativos se resuelven en
+// ScrapyardSession (misma capa Sim): las piezas se crean con Owner =
+// Ctx.SessionOwner ("chatarrera", economía compartida GDD) y el transporte
+// físico (PickupItem.HeldBy) se refleja en el dominio por jugador
+// (CarryByPlayer). Ver docs/INTEGRACION_ECONOMIA.md.
 
 using System.Collections.Generic;
 using Etsv.Domain;
@@ -246,7 +242,7 @@ namespace Etsv.Integration
                 Kg = def.Kg,
                 WeightClass = def.WeightClass,
                 VBase = def.VBase,
-                Owner = "P1", // cooperativo provisional — ver nota de cabecera
+                Owner = Ctx.SessionOwner, // economía compartida: titular "chatarrera" (Instr. 07 §2)
                 Sealed = def.Sealed,
                 IsProtected = def.IsProtected,
                 Recipe = def.Recipe,

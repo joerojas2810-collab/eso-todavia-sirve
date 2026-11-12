@@ -8,5 +8,8 @@ namespace Etsv.Integration
     {
         /// <summary>Cerebro del host (null en clientes).</summary>
         public static DisassemblySessionHost Host;
+
+        /// <summary>Economía cooperativa de la sesión del host (null en clientes).</summary>
+        public static ScrapyardSession Scrapyard;
     }
 }
