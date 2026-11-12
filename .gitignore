@@ -1,0 +1,27 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Python / Node
+__pycache__/
+*.pyc
+node_modules/
+
+# Unity (cuando el proyecto viva acá)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+*.csproj
+*.sln
+
+# IDE
+.vscode/
+.idea/
+
+# builds
+dist/
+build/
+out/
