@@ -220,6 +220,20 @@ namespace Etsv.Integration
             AddBenchDetail(pos, "Travesanio", new Vector3(0f, 0.2f, 0.4f), new Vector3(1.44f, 0.06f, 0.06f), metal);
             AddBenchDetail(pos, "Travesanio2", new Vector3(0f, 0.2f, -0.4f), new Vector3(1.44f, 0.06f, 0.06f), metal);
             AddBenchDetail(pos, "Estante", new Vector3(0f, 0.24f, 0f), new Vector3(1.5f, 0.03f, 0.86f), new Color(0.4f, 0.29f, 0.18f));
+
+            // Utilería junto a la mesa (Instrucción 11): caja de herramientas, tacho y
+            // una caja de cartón. Modelos CC0 1:1, pivotes en la base, SIN colliders
+            // (la mesa nunca los tuvo; el raycast de interacción no debe cambiar).
+            // Sin padre (igual que AddBenchDetail): coordenadas de mundo absolutas.
+            ETSVModels.TryCreate(ETSVModels.Quaternius, "Prop_Chest", "ETSV_Workbench_CajaHerramientas",
+                null, pos + new Vector3(-1.15f, 0f, 0.3f), 0.55f, 25f,
+                ETSVArt.Tinted(ETSVArt.MetalPainted, new Color(0.7f, 0.45f, 0.3f)));
+            ETSVModels.TryCreate(ETSVModels.KenneyFurniture, "trashcan", "ETSV_Workbench_Tacho",
+                null, pos + new Vector3(1.15f, 0f, 0.35f), 1f, -15f,
+                ETSVArt.Tinted(ETSVArt.PlasticGrey, new Color(0.7f, 0.72f, 0.7f)));
+            ETSVModels.TryCreate(ETSVModels.KenneyFurniture, "cardboardBoxClosed", "ETSV_Workbench_Caja",
+                null, pos + new Vector3(0.4f, 0f, 0.75f), 1.2f, 12f,
+                ETSVArt.Tinted(ETSVArt.WoodPlanks, new Color(0.85f, 0.75f, 0.6f)));
         }
 
         private static void AddBenchDetail(Vector3 pos, string name, Vector3 off, Vector3 scale, Color tint)

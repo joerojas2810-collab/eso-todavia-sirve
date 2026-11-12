@@ -34,6 +34,7 @@ namespace Etsv.Integration
             BuildGroundPad(a);
             BuildShed(a);
             BuildContainers(a);
+            BuildLandmarks(a);
             BuildScrapPiles(a);
             BuildLamps(a);
             BuildSignage(a);
@@ -60,6 +61,17 @@ namespace Etsv.Integration
 
         private static readonly Color White = new Color(1f, 1f, 1f, 1f);
         private static Color T(float r, float g, float b) { return new Color(r, g, b, 1f); }
+
+        /// <summary>Intenta colocar un modelo CC0 (Instrucción 11). Devuelve true si
+        /// lo colocó; false si no existe el recurso ⇒ el llamador usa su primitivo.
+        /// Posición ABSOLUTA: _root está en el origen sin rotación ⇒ local == mundo.
+        /// Sin collider, sin red.</summary>
+        private static bool Model(string pack, string model, string name, Vector3 pos,
+            float scale, float yawDeg, string matName, Color tint)
+        {
+            return ETSVModels.TryCreate(pack, model, name, _root.transform, pos,
+                scale, yawDeg, ETSVArt.Tinted(matName, tint)) != null;
+        }
 
         // ---------------------------------------------------------------- suelo de trabajo
 
@@ -89,12 +101,21 @@ namespace Etsv.Integration
             Deco(PrimitiveType.Cube, "Scenery_Galpon_Techo",
                 back + new Vector3(0f, 3.5f, 1.3f), new Vector3(11.4f, 0.12f, 3.2f), 0f,
                 ETSVArt.CorrugatedRusty, T(0.75f, 0.73f, 0.7f));
-            // 4 postes de acero que sostienen el techo.
+            // 4 postes estructurales: modelo MegaKit (4 m reales, pivote en la base).
             float[] xs = { -5.2f, -1.8f, 1.8f, 5.2f };
             for (int i = 0; i < xs.Length; i++)
-                Deco(PrimitiveType.Cube, "Scenery_Galpon_Poste" + i,
-                    back + new Vector3(xs[i], 1.75f, 2.7f), new Vector3(0.14f, 3.5f, 0.14f), 0f,
-                    ETSVArt.SteelRusty, White);
+            {
+                Vector3 pp = back + new Vector3(xs[i], 0f, 2.7f);
+                if (!Model(ETSVModels.Quaternius, "Column_MetalSupport", "Scenery_Galpon_Poste" + i,
+                        pp, 0.9f, 0f, ETSVArt.SteelRusty, T(0.85f, 0.85f, 0.88f)))
+                    Deco(PrimitiveType.Cube, "Scenery_Galpon_Poste" + i,
+                        pp + new Vector3(0f, 1.75f, 0f), new Vector3(0.14f, 3.5f, 0.14f), 0f,
+                        ETSVArt.SteelRusty, White);
+            }
+            // Rejilla de ventilación en la pared del fondo.
+            if (!Model(ETSVModels.Quaternius, "Prop_Vent_Small", "Scenery_Galpon_Vent",
+                    back + new Vector3(3.4f, 2.6f, 0.08f), 1f, 180f, ETSVArt.SteelRusty, White))
+                { /* sin modelo: la pared queda limpia */ }
             // Viga cruzada sobre la mesa (de ahí cuelgan las lámparas).
             Deco(PrimitiveType.Cube, "Scenery_Galpon_Viga",
                 a + new Vector3(0f, 3.05f, -0.4f), new Vector3(7.4f, 0.1f, 0.1f), 0f,
@@ -105,49 +126,104 @@ namespace Etsv.Integration
 
         private static void BuildContainers(Vector3 a)
         {
-            // Izquierda: dos contenedores apilados (azul verdoso / verde).
-            Deco(PrimitiveType.Cube, "Scenery_Container_Izq_A",
-                a + new Vector3(-6.4f, 1.25f, -1.2f), new Vector3(2.4f, 2.5f, 6.0f), 0f,
-                ETSVArt.MetalPainted, T(0.35f, 0.55f, 0.58f));
-            Deco(PrimitiveType.Cube, "Scenery_Container_Izq_B",
-                a + new Vector3(-6.4f, 3.75f, -1.2f), new Vector3(2.4f, 2.5f, 6.0f), 0f,
-                ETSVArt.MetalPainted, T(0.45f, 0.58f, 0.42f));
-            // Derecha: uno rojo oxidado, rotado.
-            Deco(PrimitiveType.Cube, "Scenery_Container_Der",
-                a + new Vector3(6.6f, 1.25f, -0.4f), new Vector3(6.0f, 2.5f, 2.4f), 0f,
-                ETSVArt.MetalPainted, T(0.62f, 0.35f, 0.3f));
+            // Contenedores Kenney (City Kit, escala ×7 ⇒ 5.8 × 2.4 × 2.6 m, pivote en
+            // la base). Mismas posiciones/ocupación que los bloques anteriores.
+            const float S = ETSVModels.KenneyCityScale;
+            if (!Model(ETSVModels.KenneyCity, "shipping-container-a", "Scenery_Container_Izq_A",
+                    a + new Vector3(-6.4f, 0f, -1.2f), S, 0f, ETSVArt.MetalPainted, T(0.45f, 0.65f, 0.68f)))
+                Deco(PrimitiveType.Cube, "Scenery_Container_Izq_A",
+                    a + new Vector3(-6.4f, 1.25f, -1.2f), new Vector3(2.4f, 2.5f, 6.0f), 0f,
+                    ETSVArt.MetalPainted, T(0.35f, 0.55f, 0.58f));
+            if (!Model(ETSVModels.KenneyCity, "shipping-container-b", "Scenery_Container_Izq_B",
+                    a + new Vector3(-6.4f, 2.42f, -1.2f), S, 0f, ETSVArt.MetalPainted, T(0.55f, 0.68f, 0.5f)))
+                Deco(PrimitiveType.Cube, "Scenery_Container_Izq_B",
+                    a + new Vector3(-6.4f, 3.75f, -1.2f), new Vector3(2.4f, 2.5f, 6.0f), 0f,
+                    ETSVArt.MetalPainted, T(0.45f, 0.58f, 0.42f));
+            if (!Model(ETSVModels.KenneyCity, "shipping-container-c", "Scenery_Container_Der",
+                    a + new Vector3(6.6f, 0f, -0.4f), S, 90f, ETSVArt.MetalPainted, T(0.72f, 0.45f, 0.38f)))
+                Deco(PrimitiveType.Cube, "Scenery_Container_Der",
+                    a + new Vector3(6.6f, 1.25f, -0.4f), new Vector3(6.0f, 2.5f, 2.4f), 0f,
+                    ETSVArt.MetalPainted, T(0.62f, 0.35f, 0.3f));
+            // Placa de señalización sobre el contenedor derecho (cara al patio).
+            Model(ETSVModels.Quaternius, "Decal_Sign", "Scenery_Sign_Container",
+                a + new Vector3(5.35f, 1.3f, -0.4f), 1.4f, -90f, ETSVArt.SignAmber, White);
             // Cerramiento bajo al frente (no tapa la cámara: 1.1 m).
             Deco(PrimitiveType.Cube, "Scenery_Murete_Frente",
                 a + new Vector3(0f, 0.55f, 5.4f), new Vector3(9.5f, 1.1f, 0.25f), 0f,
                 ETSVArt.CorrugatedRusty, T(0.8f, 0.78f, 0.75f));
         }
 
+        // ---------------------------------------------------------------- hitos del perímetro
+
+        /// <summary>Galpones lejanos, torre de agua, chimenea y tanque (City Kit ×7).
+        /// Puramente panorámicos: fuera del área de juego, sin colliders.</summary>
+        private static void BuildLandmarks(Vector3 a)
+        {
+            const float S = ETSVModels.KenneyCityScale;
+            Model(ETSVModels.KenneyCity, "building-c", "Scenery_Galpon_Lejano_A",
+                a + new Vector3(-5.5f, 0f, -13.5f), S, 8f, ETSVArt.CorrugatedRusty, T(0.85f, 0.83f, 0.8f));
+            Model(ETSVModels.KenneyCity, "building-m", "Scenery_Galpon_Lejano_B",
+                a + new Vector3(7.5f, 0f, -14f), S, -12f, ETSVArt.MetalPainted, T(0.8f, 0.78f, 0.74f));
+            Model(ETSVModels.KenneyCity, "water-tower", "Scenery_Torre_Agua",
+                a + new Vector3(-12f, 0f, -8.5f), S, 0f, ETSVArt.SteelRusty, T(0.9f, 0.88f, 0.85f));
+            Model(ETSVModels.KenneyCity, "chimney-medium", "Scenery_Chimenea",
+                a + new Vector3(12.5f, 0f, -9.5f), S, 0f, ETSVArt.CorrugatedRusty, T(0.85f, 0.8f, 0.75f));
+            Model(ETSVModels.KenneyCity, "detail-tank-large", "Scenery_Tanque",
+                a + new Vector3(10.5f, 0f, 2.5f), S, -20f, ETSVArt.MetalPainted, T(0.75f, 0.72f, 0.68f));
+        }
+
         // ---------------------------------------------------------------- chatarra decorativa
 
         private static void BuildScrapPiles(Vector3 a)
         {
-            // Pila 1 (izquierda, junto al contenedor): cajas y cilindros apilados.
+            // Pila 1 (izquierda): cajones MegaKit + barril + cajas de cartón (pivotes
+            // en la base; MegaKit 1:1 en metros). Fallback: los primitivos de la Instr.10.
             Vector3 p1 = a + new Vector3(-4.2f, 0f, 1.6f);
-            Deco(PrimitiveType.Cube, "Scenery_Chatarra_1a", p1 + new Vector3(0f, 0.25f, 0f),
-                new Vector3(0.9f, 0.5f, 0.7f), 12f, ETSVArt.SteelRusty, White);
-            Deco(PrimitiveType.Cube, "Scenery_Chatarra_1b", p1 + new Vector3(0.1f, 0.65f, -0.05f),
-                new Vector3(0.6f, 0.35f, 0.5f), -20f, ETSVArt.MetalPainted, T(0.6f, 0.55f, 0.5f));
-            Deco(PrimitiveType.Cylinder, "Scenery_Chatarra_1c", p1 + new Vector3(0.7f, 0.3f, 0.4f),
-                new Vector3(0.4f, 0.3f, 0.4f), 0f, ETSVArt.SteelRusty, T(0.7f, 0.6f, 0.55f));
-            // Pila 2 (derecha): electrodoméstico viejo (cubo + puerta caída).
+            if (!Model(ETSVModels.Quaternius, "Prop_Crate3", "Scenery_Chatarra_1a",
+                    p1 + new Vector3(0f, 0f, 0f), 0.8f, 12f, ETSVArt.WoodPlanks, T(0.9f, 0.85f, 0.8f)))
+                Deco(PrimitiveType.Cube, "Scenery_Chatarra_1a", p1 + new Vector3(0f, 0.25f, 0f),
+                    new Vector3(0.9f, 0.5f, 0.7f), 12f, ETSVArt.SteelRusty, White);
+            if (!Model(ETSVModels.Quaternius, "Prop_Crate4", "Scenery_Chatarra_1b",
+                    p1 + new Vector3(0.15f, 0.75f, -0.05f), 0.5f, -20f, ETSVArt.MetalPainted, T(0.7f, 0.65f, 0.6f)))
+                Deco(PrimitiveType.Cube, "Scenery_Chatarra_1b", p1 + new Vector3(0.1f, 0.65f, -0.05f),
+                    new Vector3(0.6f, 0.35f, 0.5f), -20f, ETSVArt.MetalPainted, T(0.6f, 0.55f, 0.5f));
+            if (!Model(ETSVModels.Quaternius, "Prop_Barrel_Large", "Scenery_Chatarra_1c",
+                    p1 + new Vector3(0.85f, 0f, 0.45f), 0.8f, 0f, ETSVArt.MetalPainted, T(0.55f, 0.5f, 0.6f)))
+                Deco(PrimitiveType.Cylinder, "Scenery_Chatarra_1c", p1 + new Vector3(0.7f, 0.3f, 0.4f),
+                    new Vector3(0.4f, 0.3f, 0.4f), 0f, ETSVArt.SteelRusty, T(0.7f, 0.6f, 0.55f));
+            Model(ETSVModels.KenneyFurniture, "cardboardBoxClosed", "Scenery_Caja_1",
+                p1 + new Vector3(-0.7f, 0f, 0.5f), 1.3f, 25f, ETSVArt.WoodPlanks, T(0.85f, 0.75f, 0.6f));
+
+            // Pila 2 (derecha): electrodomésticos viejos REALES (Furniture Kit 1:1):
+            // microondas y televisor como chatarra. (El microondas JUGABLE sigue siendo
+            // el sistema modular de 6 componentes — restricción del GDD.)
             Vector3 p2 = a + new Vector3(3.9f, 0f, 2.1f);
-            Deco(PrimitiveType.Cube, "Scenery_Chatarra_2a", p2 + new Vector3(0f, 0.45f, 0f),
-                new Vector3(0.7f, 0.9f, 0.6f), 8f, ETSVArt.MetalPainted, T(0.75f, 0.72f, 0.68f));
-            Deco(PrimitiveType.Cube, "Scenery_Chatarra_2b", p2 + new Vector3(0.5f, 0.08f, 0.35f),
-                new Vector3(0.6f, 0.04f, 0.5f), 35f, ETSVArt.PlasticGrey, T(0.8f, 0.8f, 0.8f));
-            // Pila 3 (fondo derecha): vigas cruzadas.
+            if (!Model(ETSVModels.KenneyFurniture, "kitchenMicrowave", "Scenery_Chatarra_2a",
+                    p2 + new Vector3(0f, 0.55f, 0f), 1.7f, 8f, ETSVArt.MetalPainted, T(0.8f, 0.78f, 0.74f)))
+                Deco(PrimitiveType.Cube, "Scenery_Chatarra_2a", p2 + new Vector3(0f, 0.45f, 0f),
+                    new Vector3(0.7f, 0.9f, 0.6f), 8f, ETSVArt.MetalPainted, T(0.75f, 0.72f, 0.68f));
+            if (!Model(ETSVModels.KenneyFurniture, "televisionVintage", "Scenery_Chatarra_2b",
+                    p2 + new Vector3(0.65f, 0f, 0.3f), 1.4f, 35f, ETSVArt.PlasticGrey, T(0.75f, 0.72f, 0.65f)))
+                Deco(PrimitiveType.Cube, "Scenery_Chatarra_2b", p2 + new Vector3(0.5f, 0.08f, 0.35f),
+                    new Vector3(0.6f, 0.04f, 0.5f), 35f, ETSVArt.PlasticGrey, T(0.8f, 0.8f, 0.8f));
+            // Apoyo bajo la pila 2: cajón de madera.
+            Deco(PrimitiveType.Cube, "Scenery_Chatarra_2c", p2 + new Vector3(0f, 0.25f, 0f),
+                new Vector3(0.8f, 0.5f, 0.65f), 4f, ETSVArt.WoodPlanks, T(0.7f, 0.6f, 0.45f));
+            Model(ETSVModels.KenneyFurniture, "cardboardBoxOpen", "Scenery_Caja_2",
+                p2 + new Vector3(-0.6f, 0f, 0.55f), 1.2f, -15f, ETSVArt.WoodPlanks, T(0.8f, 0.7f, 0.55f));
+
+            // Pila 3 (fondo derecha): vigas cruzadas + barril MegaKit + mordaza.
             Vector3 p3 = a + new Vector3(4.4f, 0f, -3.1f);
             Deco(PrimitiveType.Cube, "Scenery_Chatarra_3a", p3 + new Vector3(0f, 0.12f, 0f),
                 new Vector3(1.6f, 0.14f, 0.14f), 15f, ETSVArt.SteelRusty, White);
             Deco(PrimitiveType.Cube, "Scenery_Chatarra_3b", p3 + new Vector3(0.1f, 0.3f, 0.1f),
                 new Vector3(1.4f, 0.14f, 0.14f), -25f, ETSVArt.SteelRusty, T(0.85f, 0.8f, 0.75f));
-            Deco(PrimitiveType.Cylinder, "Scenery_Barril", p3 + new Vector3(-0.9f, 0.45f, 0.8f),
-                new Vector3(0.55f, 0.45f, 0.55f), 0f, ETSVArt.MetalPainted, T(0.5f, 0.42f, 0.55f));
+            if (!Model(ETSVModels.Quaternius, "Prop_Barrel_Large", "Scenery_Barril",
+                    p3 + new Vector3(-0.9f, 0f, 0.8f), 1f, 0f, ETSVArt.MetalPainted, T(0.5f, 0.42f, 0.55f)))
+                Deco(PrimitiveType.Cylinder, "Scenery_Barril", p3 + new Vector3(-0.9f, 0.45f, 0.8f),
+                    new Vector3(0.55f, 0.45f, 0.55f), 0f, ETSVArt.MetalPainted, T(0.5f, 0.42f, 0.55f));
+            Model(ETSVModels.Quaternius, "Prop_Clamp", "Scenery_Mordaza",
+                p3 + new Vector3(0.9f, 0.45f, -0.5f), 1f, 40f, ETSVArt.SteelRusty, White);
         }
 
         private static void BuildTires(Vector3 a)
@@ -179,9 +255,14 @@ namespace Etsv.Integration
                 Deco(PrimitiveType.Cylinder, "Scenery_Lampara_Cable" + i,
                     at[i] + new Vector3(0f, 2.98f, 0f), new Vector3(0.02f, 0.08f, 0.02f), 0f,
                     ETSVArt.RubberBlack, White);
-                Deco(PrimitiveType.Cylinder, "Scenery_Lampara_Pantalla" + i,
-                    at[i] + new Vector3(0f, 2.88f, 0f), new Vector3(0.34f, 0.07f, 0.34f), 0f,
-                    ETSVArt.SteelRusty, T(0.6f, 0.6f, 0.62f));
+                // Artefacto: lámpara cuadrada de techo (Furniture Kit 1:1, pivote superior)
+                // con fallback al cilindro de la Instr.10. El globo emisivo queda igual
+                // (sin Light real: rendimiento, §6 biblia).
+                if (!Model(ETSVModels.KenneyFurniture, "lampSquareCeiling", "Scenery_Lampara_Artefacto" + i,
+                        at[i] + new Vector3(0f, 3.0f, 0f), 1.6f, 0f, ETSVArt.SteelRusty, T(0.55f, 0.55f, 0.58f)))
+                    Deco(PrimitiveType.Cylinder, "Scenery_Lampara_Pantalla" + i,
+                        at[i] + new Vector3(0f, 2.88f, 0f), new Vector3(0.34f, 0.07f, 0.34f), 0f,
+                        ETSVArt.SteelRusty, T(0.6f, 0.6f, 0.62f));
                 Deco(PrimitiveType.Sphere, "Scenery_Lampara_Globo" + i,
                     at[i] + new Vector3(0f, 2.80f, 0f), new Vector3(0.16f, 0.14f, 0.16f), 0f,
                     ETSVArt.LampGlow, White);

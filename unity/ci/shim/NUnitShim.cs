@@ -26,6 +26,11 @@ namespace NUnit.Framework
 
         public static void Greater(double a, double b, string msg = null) { if (!(a > b)) throw new AssertionException("Greater: " + a + " <= " + b + " " + msg); }
         public static void Less(double a, double b, string msg = null) { if (!(a < b)) throw new AssertionException("Less: " + a + " >= " + b + " " + msg); }
+        public static void DoesNotThrow(Action a, string msg = null)
+        {
+            try { a(); } catch (AssertionException) { throw; }
+            catch (Exception e) { throw new AssertionException("DoesNotThrow lanzó " + e.GetType().Name + ": " + e.Message + " " + msg); }
+        }
         public static void Fail(string msg = null) { throw new AssertionException("Fail: " + msg); }
         static string Fmt(object o) { return o == null ? "null" : o.ToString(); }
         static bool Eq(object e, object a)

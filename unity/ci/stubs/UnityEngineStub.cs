@@ -67,29 +67,66 @@ namespace UnityEngine
     {
         public Vector3 position;
         public Vector3 localPosition;
-        public Vector3 localScale;
+        public Vector3 localScale = new Vector3(1, 1, 1);
         public Vector3 localEulerAngles;
         public Vector3 eulerAngles;
         public Quaternion rotation;
         public Quaternion localRotation;
-        public Transform parent => null;
-        public void SetParent(Transform p, bool worldPositionStays) {}
-        public Transform Find(string n) => null;
+        public Transform parent;
+        public List<Transform> children = new List<Transform>();
+        public int childCount => children.Count;
+        public Transform GetChild(int i) => children[i];
+        public void SetParent(Transform p, bool worldPositionStays)
+        {
+            if (parent != null) parent.children.Remove(this);
+            parent = p;
+            if (p != null) p.children.Add(this);
+        }
+        public Transform Find(string n)
+        {
+            foreach (var c in children) if (c.name == n) return c;
+            return null;
+        }
         public Vector3 forward => Vector3.forward;
-        public bool IsChildOf(Transform t) => false;
+        public bool IsChildOf(Transform t)
+        {
+            for (var p = this; p != null; p = p.parent) if (p == t) return true;
+            return false;
+        }
     }
     public class GameObject : Object
     {
-        public Transform transform => null;
+        public Transform transform;
         public int layer;
-        public GameObject() {}
-        public GameObject(string name) {}
-        public T AddComponent<T>() where T : Component => default(T);
-        public T GetComponent<T>() => default(T);
+        private List<Component> _components = new List<Component>();
+        public GameObject() { transform = MakeTransform(this); }
+        public GameObject(string name) : this() { this.name = name; }
+        private static Transform MakeTransform(GameObject go)
+        {
+            var t = new Transform();
+            t.name = go.name;
+            return t;
+        }
+        public T AddComponent<T>() where T : Component, new()
+        {
+            var c = new T();
+            c.name = name;
+            _components.Add(c);
+            return c;
+        }
+        public T GetComponent<T>()
+        {
+            foreach (var c in _components) if (c is T) return (T)(object)c;
+            return default(T);
+        }
         public T GetComponentInParent<T>() => default(T);
-        public T GetComponentInChildren<T>() => default(T);
+        public T GetComponentInChildren<T>()
+        {
+            foreach (var c in _components) if (c is T) return (T)(object)c;
+            return default(T);
+        }
         public void SetActive(bool v) {}
-        public static GameObject CreatePrimitive(PrimitiveType t) => new GameObject();
+        public static GameObject CreatePrimitive(PrimitiveType t) => new GameObject(t.ToString());
         public static GameObject Find(string name) => null;
     }
     public enum PrimitiveType { Cube, Sphere, Cylinder, Capsule, Plane, Quad }
@@ -123,6 +160,8 @@ namespace UnityEngine
         public Material material => null;
     }
     public class MeshRenderer : Renderer {}
+    public class Mesh : Object { }
+    public class MeshFilter : Component { public Mesh sharedMesh; }
     public class Font : Object { public Material material => null; }
     public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
     public enum TextAlignment { Left, Center, Right }
@@ -165,6 +204,7 @@ namespace UnityEngine
     public static class Resources
     {
         public static T Load<T>(string path) where T : Object => null;
+        public static T[] LoadAll<T>(string path) where T : Object => new T[0];
         public static T GetBuiltinResource<T>(string path) where T : Object => null;
     }
     public static class Time { public static float deltaTime => 0.016f; public static float time => 0f; }

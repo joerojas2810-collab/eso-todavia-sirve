@@ -253,6 +253,18 @@ sobre cualquier otra pieza de arte:
 
 ## 13. Estado actual (qué existe hoy vs. qué es candidato)
 
+> **UPDATE Instrucción 11 (2026-11-12)**: primer set de **modelos 3D reales
+> CC0** incorporado (27 FBX: Kenney City Kit Industrial + Furniture Kit,
+> Quaternius Modular Sci-Fi MegaKit) con integración por `ETSVModels` y
+> fallback automático a primitivos. Sustituyen la geometría provisional en
+> contenedores, galpón (postes/ventilación), hitos del perímetro, pilas de
+> chatarra, estantería, residuos especiales, contenedores de material,
+> balanza/trituradora y utilería de la mesa. Los materiales siguen siendo los
+> 12 de la Instrucción 10 (nunca los del pack) ⇒ coherencia de estilo por
+> construcción. **La importación/capturas en Unity Editor están bloqueadas
+> SOLO por licencia** (el binario 6000.3.5f2 se ejecuta en el sandbox; ver
+> `MODELOS_3D.md` §4 y la evidencia en `unity/ci/logs/`).
+>
 > **UPDATE Instrucción 10 (2026-11-12)**: la primera implementación artística
 > REAL ya está incorporada (texturas PBR CC0 de Poly Haven, 12 materiales URP
 > Lit, sol cálido + niebla + Volume ACES, galpón/contenedores/chatarra/
