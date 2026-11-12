@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>¡ESO TODAVÍA SIRVE! — prototipo v0.1</title>
+<title>¡ESO TODAVÍA SIRVE! — prototipo v0.3</title>
 <style>
   :root{
     --cream:#f2e8d5; --rust:#c05a2e; --hazard:#e8871f; --steel:#8a8f98;
@@ -112,6 +112,31 @@
   .iq{font-size:12px;font-weight:900}
   .q-ok{color:#4c7a2f}.q-mid{color:#b07d18}.q-bad{color:#b3392e}
   #inspect .iclose{font-size:10.5px;opacity:.55;text-align:center;margin-top:2px}
+  /* -------- almacén (v0.3 · Instrucción 02) -------- */
+  #warehouse{position:fixed;inset:0;z-index:20;background:rgba(20,15,10,.7);display:flex;
+    align-items:center;justify-content:center;pointer-events:auto}
+  #warehouse .panel{background:var(--cream);color:var(--ink);border-radius:24px;padding:24px 28px;
+    width:min(760px,94vw);max-height:84vh;overflow-y:auto;border:5px solid var(--ink);
+    box-shadow:0 14px 0 rgba(36,29,22,.4)}
+  #warehouse h2{font-size:24px;letter-spacing:-.01em;margin-bottom:2px}
+  #warehouse .tag{font-size:11px;opacity:.6;margin-bottom:14px;letter-spacing:.1em}
+  .whzone{margin-bottom:14px}
+  .whzhead{font-size:14px;margin-bottom:6px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .whzcap{font-size:10.5px;font-weight:700;opacity:.55;letter-spacing:.04em}
+  .whempty{font-size:11.5px;opacity:.45;padding:2px 4px 6px}
+  .whrow{display:flex;align-items:center;gap:10px;background:#fff7e6;border:2px solid var(--ink);
+    border-radius:12px;padding:7px 10px;margin-bottom:6px}
+  .whnm{font-size:13px;line-height:1.2;flex:1}
+  .whnote{display:block;font-size:10.5px;font-weight:700;opacity:.6}
+  .whval{font-size:14px;color:var(--rust);white-space:nowrap}
+  .whdot{display:inline-block;width:11px;height:11px;border-radius:4px;border:2px solid var(--ink);
+    margin-right:7px;vertical-align:-1px}
+  .whbtns{display:flex;gap:6px}
+  .whb{pointer-events:auto;cursor:pointer;font:inherit;font-size:11px;font-weight:900;letter-spacing:.03em;
+    background:var(--hazard);color:var(--ink);border:2px solid var(--ink);border-radius:9px;padding:5px 10px}
+  .whb:hover{transform:translateY(-1px)}
+  .whb.warn{background:#c96a5f;color:var(--cream)}
+  #warehouse .close{font-size:12px;opacity:.6;text-align:center;margin-top:4px}
 </style>
 </head>
 <body>
@@ -152,19 +177,29 @@
   </div>
 </div>
 
+<div id="warehouse" class="hidden">
+  <div class="panel">
+    <h2>🏭 ALMACÉN DE LA CHATARRERÍA</h2>
+    <div class="tag">PIEZAS CON IDENTIDAD · MATERIALES COMPARTIDOS · VENDÉ, RETIRÁ O ENTREGÁ</div>
+    <div id="wh-list"></div>
+    <div class="close">[ I ] cerrar</div>
+  </div>
+</div>
+
 <div id="intro">
   <div class="card">
     <h1>¡ESO TODAVÍA<br>SIRVE!</h1>
-    <div class="sub">prototipo jugable v0.2 · golpeá, rompé, pesá y vendé · NUEVO: desmontaje modular del microondas</div>
+    <div class="sub">prototipo jugable v0.3 · desmontá, elegí: ¿pieza intacta o materiales? · almacén y economía del GDD 5.0</div>
     <div class="keys">
       <span><b>W A S D</b> moverse</span><span><b>MOUSE</b> mirar (clic para capturar)</span>
       <span><b>1 / 2 / 3</b> llave · destornillador · manos</span><span><b>CLIC mantenido</b> trabajar una fijación</span>
-      <span><b>CLIC izq.</b> golpear / lanzar lo que tenés</span><span><b>F</b> agarrar / soltar / depositar / procesar</span>
-      <span><b>E</b> inspeccionar el objeto en la mesada</span><span><b>R</b> vender en la balanza</span>
-      <span><b>B</b> oficina de mejoras</span><span><b>ESPACIO / SHIFT</b> saltar / correr</span>
+      <span><b>CLIC izq.</b> golpear / lanzar lo que tenés</span><span><b>F</b> levantar / soltar / depositar / procesar</span>
+      <span><b>E</b> inspeccionar el objeto en la mesada</span><span><b>R</b> vender balanza + materiales</span>
+      <span><b>I</b> almacén (piezas y materiales)</span><span><b>B</b> oficina de mejoras</span>
+      <span><b>ESPACIO / SHIFT</b> saltar / correr</span><span>☣️ <b>sellados</b> → contenedor rojo (cuesta $)</span>
     </div>
     <button id="enter">ENTRAR AL PATIO 🔧</button>
-    <div class="ver">graybox de diseño — el juego final va en Unity 6 · v0.2: sistema de desmontaje data-driven (objeto 01: microondas)</div>
+    <div class="ver">graybox de diseño — el juego final va en Unity 6 · v0.3: recuperación, inventario, almacenamiento y economía (Instrucción 02)</div>
   </div>
 </div>
 

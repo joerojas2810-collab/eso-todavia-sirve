@@ -134,13 +134,6 @@ export function allSettled(inst) {
   return inst.bp.components.every(c => TERMINAL.includes(inst.comps[c.id].state));
 }
 
-// Valor de venta de la pieza intacta según calidad (0–100).
-// quality 100 ⇒ 100% del valor; quality 0 ⇒ 40% (sigue siendo chatarra valiosa).
-export function effPartValue(comp, quality) {
-  if (!comp.partValue) return 0;
-  return Math.max(1, Math.round(comp.partValue * (0.4 + 0.6 * (quality / 100))));
-}
-
 export function drainEvents(inst) {
   const e = inst.events;
   inst.events = [];

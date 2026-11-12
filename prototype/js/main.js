@@ -1,17 +1,26 @@
 /* ============================================================================
-   ¡ESO TODAVÍA SIRVE! — v0.2 (sobre la base v0.1, sin reescribir el proyecto)
+   ¡ESO TODAVÍA SIRVE! — v0.3 (sobre la base v0.2, sin reescribir el proyecto)
    Loop original: golpear → romper → recuperar → pesar → vender → mejorar
-   NUEVO (Instrucción 01): sistema de desmontaje modular data-driven.
-     Capa 1 datos ....... js/data/catalog.js      (objetos, componentes, fijaciones)
-     Capa 2 reglas ...... js/systems/disassembly.js (estados, dependencias, calidad)
-     Capa 3 vista ....... js/world/disassemblyView.js (meshes, highlights, raycast)
-     Capa 4 integración . este archivo (input, herramientas, recuperación, economía)
-   Sistemas v0.1 conservados: escenario, movimiento, física de chatarra,
-   economía/inventario/materiales, balanza/venta/tienda, UI, audio, partículas.
+   Capas (Instrucción 02 §9):
+     1 datos ....... js/data/catalog.js · js/data/economyData.js (fuente única)
+     2 reglas ...... js/systems/disassembly.js · pieces.js · warehouse.js · economy.js
+     3 estado ...... js/state/gameState.js (persistible, versión 3)
+     4 presentación  js/world/disassemblyView.js + HUD/paneles
+     5 integración . este archivo: la UI NUNCA muta estado, siempre pide una
+                     operación atómica a economy.js (ctx) → listo para que el
+                     anfitrión autorice en multijugador.
+   Sistemas v0.1/v0.2 conservados: escenario, movimiento, física de chatarra,
+   balanza/venta/tienda, trituradora/cinta/contenedores (modelos intactos),
+   desmontaje modular del microondas, herramientas, calidad, UI, audio.
    ============================================================================ */
 import * as THREE from '../vendor/three.module.js';
-import { MATERIALS, FASTENER_TYPES, TOOLS, OBJECT_CATALOG, compById } from './data/catalog.js';
+import { FASTENER_TYPES, TOOLS, OBJECT_CATALOG, compById } from './data/catalog.js';
+import { MATERIALS, WEIGHT_CLASSES, STORAGE_ZONES, MATERIAL_CONTAINER_CAP } from './data/economyData.js';
 import * as DIS from './systems/disassembly.js';
+import * as PIE from './systems/pieces.js';
+import * as WH from './systems/warehouse.js';
+import * as ECO from './systems/economy.js';
+import * as GS from './state/gameState.js';
 import { DisassemblyView } from './world/disassemblyView.js';
 
 const BP = OBJECT_CATALOG[0]; // objeto 01 del GDD: microondas
@@ -25,12 +34,57 @@ const PAL = {
 const SCRAP_COLORS = [PAL.rust, PAL.olive, PAL.blue, PAL.red, PAL.yellow, PAL.steel, PAL.green];
 
 // ---------------------------------------------------------------- estado
+// Capa 3: estado persistible (billetera + registro de piezas + almacenes).
+const gs = GS.loadFromStorage() || GS.createGameState();
+let saveTimer = 0;
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => GS.saveToStorage(gs), 800); }
+
 const state = {
-  money: 0, carryCap: 60, grabRange: 3.0, dmg: 1,
+  carryCap: 60, grabRange: 3.0, dmg: 1,
   owned: { magnet: false, back: false, mace: false },
-  scaleKg: 0, scaleVal: 0, shopOpen: false, started: false,
+  scaleKg: 0, scaleVal: 0, shopOpen: false, whOpen: false, started: false,
   tool: 'llave',
 };
+// Fuente única del dinero: gs.money (el setter guarda la partida).
+Object.defineProperty(state, 'money', {
+  get: () => gs.money,
+  set: v => { gs.money = v; scheduleSave(); },
+});
+
+// Contexto de economía: TODA operación atómica pasa por acá (Instrucción 02 §7).
+const ctx = {
+  reg: gs.reg, cwh: gs.cwh, mwh: gs.mwh, carry: null,
+  getMoney: () => gs.money,
+  addMoney: n => { gs.money += n; scheduleSave(); },
+  onChanged: () => scheduleSave(),
+};
+
+// Razones de fallo → texto para el jugador (la lógica vive en economy.js).
+const FAIL_TEXT = {
+  manos_ocupadas: 'manos ocupadas: una sola pieza a la vez (GDD §8.1)',
+  requiere_carro_o_grua: 'demasiado pesada: requiere carro o grúa',
+  pieza_reservada: 'pieza reservada para un contrato',
+  propiedad_ajena: 'esa pieza es de otro operario',
+  pieza_terminal: 'pieza ya cerrada (vendida/procesada/entregada)',
+  zona_llena: 'esa zona del almacén está llena',
+  categoria_incompatible: 'esa zona no acepta esta clase de peso',
+  contenedor_lleno: 'contenedor de material lleno',
+  maquina_incompatible_sellado: 'módulo sellado: incompatible con la máquina',
+  pieza_protegida_no_vendible: 'pieza protegida: no se puede vender',
+  no_es_residuo_especial: 'no es un residuo especial',
+  fondos_insuficientes: 'fondos insuficientes para el coste de gestión',
+  insuficiente: 'materiales insuficientes',
+  no_transportada: 'no la tenés en las manos',
+  no_disponible_en_suelo: 'la pieza no está en el suelo',
+  no_disponible_para_procesar: 'la pieza no está disponible para procesar',
+  no_vendible_desde: 'no se puede vender desde ahí',
+  sin_receta: 'sin receta de recuperación',
+  pieza_inexistente: 'pieza inexistente',
+  no_esta_en_zona: 'la pieza no está en esa zona',
+  residuo_especial_no_procesable: 'residuos especiales: solo entrega en contenedor rojo',
+};
+const failText = r => FAIL_TEXT[r.reason] || String(r.reason || 'operación rechazada');
+
 const UPGRADES = [
   { id: 'magnet', ico: '🧲', slot: 'slot-magnet', name: 'Guante imán', desc: 'Alcance de agarre +50% y resorte más firme', cost: 150, apply: () => { state.grabRange = 4.5; } },
   { id: 'back', ico: '🎒', slot: 'slot-back', name: 'Espalda reforzada', desc: 'Capacidad de carga: 60 → 140 kg', cost: 250, apply: () => { state.carryCap = 140; } },
@@ -394,7 +448,7 @@ function spawnProp(kind, pos, opts = {}) {
     vpk: opts.vpk ?? K.vpk, hp: opts.hp ?? K.hp,
     name: opts.name ?? K.name, meta: opts.meta ?? null,
     vel: new THREE.Vector3(), av: new THREE.Vector3((Math.random() - .5) * 2, (Math.random() - .5) * 2, (Math.random() - .5) * 2),
-    held: false, frozen: false, pop: 0, shrinking: 0, color,
+    held: false, frozen: false, pop: 0, shrinking: 0, vanishT: 0, color,
   };
   bodies.push(b);
   return b;
@@ -438,14 +492,14 @@ function tryLock() {
 function hint(t) { document.getElementById('lookhint').textContent = t; }
 
 document.addEventListener('mousemove', e => {
-  if (state.shopOpen || !state.started) return;
+  if (state.shopOpen || state.whOpen || !state.started) return;
   if (locked || (dragLook && rightDown)) {
     player.yaw -= e.movementX * 0.0024;
     player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * 0.0024, -1.35, 1.35);
   }
 });
 document.addEventListener('mousedown', e => {
-  if (!state.started || state.shopOpen) return;
+  if (!state.started || state.shopOpen || state.whOpen) return;
   if (e.button === 2) { rightDown = true; return; }
   if (e.button !== 0) return;
   mouseHeld = true;
@@ -462,7 +516,7 @@ document.addEventListener('mouseup', e => {
   if (e.button === 2) rightDown = false;
   if (e.button === 0) { mouseHeld = false; working = null; }  // progreso queda guardado
 });
-canvas.addEventListener('click', () => { if (state.started && !state.shopOpen && !locked) tryLock(); });
+canvas.addEventListener('click', () => { if (state.started && !state.shopOpen && !state.whOpen && !locked) tryLock(); });
 
 document.addEventListener('keydown', e => {
   if (!state.started) return;
@@ -470,6 +524,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyF') interact();
   if (e.code === 'KeyR') sell();
   if (e.code === 'KeyB') toggleShop();
+  if (e.code === 'KeyI') toggleWarehouse();
   if (e.code === 'KeyE' && inst && nearBench()) {
     inspectOpen = !inspectOpen;
     document.getElementById('inspect').classList.toggle('hidden', !inspectOpen);
@@ -500,6 +555,7 @@ function findGrabbable() {
   let best = null, bestD = 1e9;
   for (const b of bodies) {
     if (b.held || b.frozen || b.shrinking) continue;
+    if (b.meta && b.meta.visual) continue; // residuo visual de la cinta: sin valor
     tmp.copy(b.mesh.position).sub(camera.position);
     const d = tmp.length();
     if (d > state.grabRange + b.r) continue;
@@ -514,56 +570,85 @@ function nearBench() { return player.pos.distanceTo(tmp.copy(BENCH_POS).setY(pla
 function nearShredder() { return player.pos.distanceTo(tmp.copy(SHRED_CENTER).setY(player.pos.y)) < 5.5; }
 function nearBin() { return player.pos.distanceTo(tmp.copy(BIN_POS).setY(player.pos.y)) < 3.0; }
 
-// valor de venta real de un prop: pieza intacta (por calidad) o kg × vpk
+// Valor de venta real de un prop: pieza registrada (V = Vb × Q/100 × M_c) o kg × vpk
 function partValueOf(b) {
-  if (b.meta && b.meta.part) return DIS.effPartValue(compById(BP, b.meta.compId), b.meta.quality);
+  if (b.meta && b.meta.uid) {
+    const p = PIE.getPiece(ctx.reg, b.meta.uid);
+    return p && !PIE.isTerminal(p) ? ECO.pieceValue(ctx, p) : 0;
+  }
   return b.kg * b.vpk;
+}
+// Valor del stock de materiales vendibles (los de precio positivo).
+function matStockValue() {
+  let v = 0;
+  for (const id of Object.keys(MATERIALS)) {
+    const M = MATERIALS[id];
+    if (M.price > 0) v += WH.materialUnits(ctx.mwh, id) * M.price;
+  }
+  return v;
 }
 
 function interact() {
-  if (state.shopOpen) return;
-  // 1) contenedor de residuos especiales: módulos sellados
+  if (state.shopOpen || state.whOpen) return;
+  // 1) contenedor de residuos especiales: entrega con coste de gestión (GDD 5.0 §6.2)
   if (nearBin() && held.some(b => b.meta && b.meta.sealed)) {
     for (const b of [...held]) {
       if (!(b.meta && b.meta.sealed)) continue;
-      DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'residuo especial');
-      state.money += 35; moneyPop();
+      const r = ECO.disposeSpecial(ctx, b.meta.uid);
+      if (!r.ok) { sfx.deny(); toast(`☣️ ${b.name}: ${failText(r)}`); continue; }
+      if (inst && b.meta.objId === inst.id) DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'residuo especial');
       removeBody(b);
-      sfx.thud(); sfx.coin();
-      toast('☣️ Módulo sellado gestionado como residuo especial (+$35)');
+      sfx.thud(); moneyPop();
+      toast(`☣️ Residuo especial entregado: gestión −$${r.cost} (${r.units} u × $5)`);
     }
     refreshInspect();
     return;
   }
-  // 2) trituradora: procesar piezas extraídas en sus materiales
+  // 2) trituradora: procesamiento atómico (GDD 5.0 §4.2) → almacén de materiales
   if (nearShredder() && held.length) {
-    const proc = held.filter(b => b.meta && b.meta.part && !b.meta.sealed && Object.keys(b.meta.materials || {}).length);
+    const proc = held.filter(b => b.meta && b.meta.uid && !b.meta.sealed);
     const sealedHeld = held.filter(b => b.meta && b.meta.sealed);
     if (proc.length) {
-      const jobs = proc.map(b => ({ mats: b.meta.materials }));
+      const gained = [], newParts = [];
+      let any = false;
       for (const b of proc) {
-        DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'triturado');
+        const r = ECO.processPiece(ctx, b.meta.uid, 'trituradora_basica'); // una sola transacción
+        if (!r.ok) { sfx.deny(); toast(`🏭 ${b.name}: ${failText(r)}`); continue; }
+        any = true;
+        gained.push(...r.gained); newParts.push(...r.newParts);
+        if (inst && b.meta.objId === inst.id) DIS.setTerminal(inst, b.meta.compId, DIS.ST.PROCESADO, 'triturado');
         removeBody(b);
       }
-      sfx.rumble(); toast('🏭 Triturando… los materiales salen por la cinta');
+      if (!any) return;
+      sfx.rumble(); toast('🏭 Triturando… los materiales van a los contenedores del almacén');
       setTimeout(() => {
-        for (const j of jobs) for (const [mId, kg] of Object.entries(j.mats)) {
-          const M2 = MATERIALS[mId];
+        // La cinta sigue mostrando el material saliendo (comportamiento visual
+        // v0.2 intacto), pero son residuos VISUALES: el valor ya está acreditado
+        // en el almacén de materiales y nunca se duplica.
+        for (const g of gained) {
+          const M2 = MATERIALS[g.mat];
           const c = spawnProp('chunk', BELT_EXIT.clone().add(new THREE.Vector3((Math.random() - .5) * .8, 0.2, (Math.random() - .5) * .8)), {
-            kg: Math.max(1, Math.round(kg)), vpk: M2.vpk, color: M2.color, name: M2.name, meta: { material: mId },
+            kg: 0, vpk: 0, color: M2.color, name: M2.name, meta: { material: g.mat, visual: true },
           });
+          c.vanishT = 3.5;
           c.vel.set(2 + Math.random() * 2, 2.5 + Math.random() * 2, 1 + Math.random() * 2); c.pop = 1;
         }
-        sfx.bigclank(); toast('⚙️ Materiales recuperados: recogelos y vendelos');
+        sfx.bigclank();
+        const partsTxt = newParts.length ? ` · 🔩 ${newParts.map(p => p.defName).join(', ')} → palé` : '';
+        toast(`⚙️ Rendimiento acreditado al almacén (I)${partsTxt}`);
       }, 1100);
       refreshInspect();
       return;
     }
     if (sealedHeld.length) { sfx.deny(); toast('☣️ El módulo sellado no se tritura: contenedor rojo de residuos especiales'); return; }
   }
-  // 3) balanza (sistema v0.1, ahora con valor por calidad de piezas)
+  // 3) balanza (sistema v0.1 + piezas registradas por la capa de economía)
   if (nearScale() && held.length) {
     for (const b of [...held]) {
+      if (b.meta && b.meta.uid) {
+        const r = ECO.placeOnScale(ctx, b.meta.uid); // carried → scale
+        if (!r.ok) { sfx.deny(); toast(`⚖️ ${b.name}: ${failText(r)}`); continue; }
+      }
       b.held = false; b.frozen = true; b.vel.set(0, 0, 0);
       const i = bodies.filter(x => x.frozen && !x.shrinking).length;
       b.mesh.position.set(SCALE_POS.x + (Math.random() - .5) * 2.4, 0.45 + (i % 4) * 0.34, SCALE_POS.z + (Math.random() - .5) * 2.4);
@@ -572,32 +657,68 @@ function interact() {
       state.scaleKg += b.kg; state.scaleVal += partValueOf(b);
       held.splice(held.indexOf(b), 1);
     }
-    sfx.thud(); toast('Chatarra depositada en la balanza ⚖️');
+    sfx.thud(); toast('Depositado en la balanza ⚖️ · R para vender');
     return;
   }
-  // 4) soltar (v0.1)
+  // 4) soltar (v0.1; las piezas registradas vuelven a 'world')
   if (held.length) {
-    for (const b of [...held]) { b.held = false; b.vel.copy(camDir()).multiplyScalar(3); held.splice(held.indexOf(b), 1); }
+    for (const b of [...held]) {
+      if (b.meta && b.meta.uid) ECO.dropPiece(ctx, b.meta.uid);
+      b.held = false; b.vel.copy(camDir()).multiplyScalar(3); held.splice(held.indexOf(b), 1);
+    }
     sfx.thud();
     return;
   }
-  // 5) agarrar (v0.1)
+  // 5) agarrar (v0.1; las piezas registradas pasan por pickupPiece)
   const b = findGrabbable();
   if (!b) return;
+  if (b.meta && b.meta.uid) {
+    const r = ECO.pickupPiece(ctx, b.meta.uid); // verifica clase, manos libres, propiedad
+    if (!r.ok) { sfx.deny(); toast(`✋ ${b.name}: ${failText(r)}`); return; }
+    b.held = true; b.frozen = false; held.push(b); sfx.grab();
+    if (r.speedMul < 1) toast(`🏋 ${b.name} (${b.kg} kg): movimiento reducido mientras la llevás`);
+    return;
+  }
   if (heldKg() + b.kg > state.carryCap) { sfx.deny(); toast(`⚠ ${b.kg} kg — te queda grande (B: mejoras)`); return; }
   b.held = true; b.frozen = false; held.push(b); sfx.grab();
 }
 
 function sell() {
-  if (!nearScale() || state.scaleKg <= 0) { if (nearScale()) sfx.deny(); return; }
-  const gain = Math.round(state.scaleVal);
-  state.money += gain;
-  for (const b of bodies.filter(x => x.frozen && !x.shrinking)) {
-    b.shrinking = 1;
-    if (b.meta && b.meta.part) DIS.setTerminal(inst, b.meta.compId, DIS.ST.VENDIDO, 'balanza');
+  if (!nearScale()) return;
+  const onScale = bodies.filter(x => x.frozen && !x.shrinking);
+  const matVal = matStockValue();
+  if (!onScale.length && matVal <= 0) { sfx.deny(); return; }
+  // Piezas registradas: venta atómica por pieza (el dinero lo agrega la operación).
+  let pieceGain = 0, scrapGain = 0;
+  for (const b of onScale) {
+    if (b.meta && b.meta.uid) {
+      const p = PIE.getPiece(ctx.reg, b.meta.uid);
+      const r = ECO.sellPiece(ctx, b.meta.uid);
+      if (r.ok) {
+        pieceGain += r.value;
+        if (inst && p && p.originObjectId === inst.id) DIS.setTerminal(inst, p.defId, DIS.ST.VENDIDO, 'balanza');
+      } else sfx.deny();
+    } else scrapGain += Math.round(b.kg * b.vpk); // chatarra v0.1: kg × vpk
   }
+  if (scrapGain) state.money += scrapGain;
+  // Materiales del almacén compartido: se venden todas las unidades enteras.
+  let matGain = 0;
+  for (const id of Object.keys(MATERIALS)) {
+    const M = MATERIALS[id];
+    if (M.price <= 0) continue; // MAT-08 nunca se "vende": se entrega con coste
+    const u = WH.materialUnits(ctx.mwh, id);
+    if (u > 0) { const r = ECO.sellMaterial(ctx, id, u); if (r.ok) matGain += r.delta; }
+  }
+  for (const b of onScale) b.shrinking = 1;
   state.scaleKg = 0; state.scaleVal = 0;
-  sfx.coin(); moneyPop(); toast(`💰 +$ ${gain.toLocaleString('es-AR')} — ¡eso todavía servía!`);
+  const total = pieceGain + scrapGain + matGain;
+  if (total > 0) { sfx.coin(); moneyPop(); }
+  const det = [
+    pieceGain ? `piezas $${pieceGain}` : '',
+    matGain ? `materiales $${matGain}` : '',
+    scrapGain ? `chatarra $${scrapGain}` : '',
+  ].filter(Boolean).join(' · ');
+  toast(`💰 +$ ${total.toLocaleString('es-AR')} — ¡eso todavía servía!${det ? ` (${det})` : ''}`);
   refreshInspect();
 }
 
@@ -608,6 +729,7 @@ function swing() {
   swingT = 0;
   if (held.length) {                          // lanzar lo sostenido (caos cooperativo)
     for (const b of [...held]) {
+      if (b.meta && b.meta.uid) ECO.dropPiece(ctx, b.meta.uid); // carried → world
       b.held = false;
       b.vel.copy(camDir()).multiplyScalar(13).add(new THREE.Vector3(0, 2.5, 0));
       b.av.set((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14);
@@ -643,10 +765,15 @@ function swing() {
   hit.vel.addScaledVector(fwd, power).add(new THREE.Vector3(0, 3.2, 0));
   hit.av.set((Math.random() - .5) * 12, (Math.random() - .5) * 12, (Math.random() - .5) * 12);
   hit.hp -= state.dmg;
-  if (hit.meta && hit.meta.part) {           // golpear una pieza extraída baja su calidad
-    hit.meta.quality = Math.max(0, hit.meta.quality - 12);
-    toast(`⚠ ${hit.name}: calidad ${hit.meta.quality}%`);
-    refreshInspect();
+  if (hit.meta && hit.meta.uid) {            // golpear una pieza extraída baja su calidad (GDD §5)
+    const r = ECO.damagePiece(ctx, hit.meta.uid, 12);
+    if (r.ok) {
+      hit.meta.quality = r.quality;
+      if (inst && hit.meta.objId === inst.id && inst.comps[hit.meta.compId])
+        inst.comps[hit.meta.compId].quality = r.quality;
+      toast(`⚠ ${hit.name}: calidad ${r.quality}%`);
+      refreshInspect();
+    }
   }
   sparks(hit.mesh.position, state.owned.mace ? 20 : 12);
   shake = Math.min(shake + 0.16, 0.4);
@@ -674,6 +801,15 @@ let inst = null, view = null, instCount = 0, respawnT = 0, inspectOpen = false;
 const raycaster = new THREE.Raycaster();
 const CENTER2 = new THREE.Vector2(0, 0);
 const compName = id => compById(BP, id).name;
+
+// Objeto "despojado": todos sus componentes extraídos/procesados/vendidos.
+// Las piezas pueden vivir en el almacén: su identidad persiste allí (GDD §8.3).
+function instStripped(inst) {
+  return BP.components.every(c => {
+    const s = inst.comps[c.id];
+    return DIS.TERMINAL.includes(s.state) || s.state === DIS.ST.EXTRAIDO;
+  });
+}
 
 function spawnAppliance() {
   instCount++;
@@ -705,14 +841,23 @@ function tryExtract(compId) {
   }
   if (heldKg() + c.kg > state.carryCap) { sfx.deny(); toast(`⚠ ${c.kg} kg — te queda grande (B: mejoras)`); return; }
   DIS.extract(inst, compId);
+  // Identidad de pieza (GDD 5.0 §8.3): se registra ANTES de crear el cuerpo físico.
+  const rp = ECO.extractPiece(ctx, {
+    defId: c.id, defName: c.name, originObjectId: inst.id,
+    quality: s.quality, kg: c.kg, weightClass: c.weightClass || 'P1',
+    vbase: c.vbase || 0, sealed: !!c.sealed, protected: !!c.protected,
+    recipe: c.recipe || null,
+  });
+  if (!rp.ok) { sfx.deny(); toast(`⚠ No se pudo registrar ${c.name}: ${failText(rp)}`); return; }
   const mesh = view.detachCompMesh(compId, scene);
   const b = spawnProp('part', mesh.position.clone(), {
     mesh, kg: c.kg, r: 0.34, name: c.name, vpk: 0, hp: 999,
-    meta: { part: true, compId, objId: inst.id, quality: s.quality, sealed: !!c.sealed, materials: c.materials || {} },
+    meta: { part: true, uid: rp.piece.uid, compId, objId: inst.id, quality: s.quality, sealed: !!c.sealed },
   });
   b.vel.set(0, 1.2, 0); b.pop = 1;
   sfx.grab();
-  toast(`🧰 ${c.name} extraída — calidad ${s.quality}% · ${c.kg} kg`);
+  const valTxt = c.sealed ? '☣️ gestión' : fmt(ECO.pieceValue(ctx, rp.piece));
+  toast(`🧰 ${c.name} extraída — calidad ${s.quality}% · ${c.kg} kg · ${valTxt}`);
   refreshInspect();
 }
 
@@ -766,6 +911,129 @@ function toggleShop(force) {
 }
 shopEl.addEventListener('mousedown', e => e.stopPropagation());
 
+// ---------------------------------------------------------------- almacén (I)
+// Presentación de los DOS almacenes (componentes por zonas + materiales).
+// Solo lee estado y pide operaciones atómicas a economy.js: nunca muta directo.
+const whEl = document.getElementById('warehouse');
+const whListEl = document.getElementById('wh-list');
+
+function renderWarehouse() {
+  whListEl.innerHTML = '';
+  // ---- almacén de componentes: zonas físicas por clase de peso (GDD §8.5)
+  for (const z of Object.values(STORAGE_ZONES)) {
+    const uids = WH.storedUids(ctx.cwh, z.id);
+    const sec = document.createElement('div');
+    sec.className = 'whzone';
+    sec.innerHTML = `<div class="whzhead">📦 ${z.name} <span class="whzcap">${uids.length}/${z.capacity} espacios · acepta ${z.accepts.join('/')}</span></div>`;
+    if (!uids.length) sec.innerHTML += `<div class="whempty">vacía</div>`;
+    for (const uid of uids) {
+      const p = PIE.getPiece(ctx.reg, uid);
+      if (!p) continue;
+      const row = document.createElement('div');
+      row.className = 'whrow';
+      const qcls = p.quality >= 80 ? 'q-ok' : p.quality >= 50 ? 'q-mid' : 'q-bad';
+      const val = p.sealed ? `☣️ gestión −$${((p.recipe || []).find(r => r.mat === 'MAT-08')?.base || 0) * 5}` : fmt(ECO.pieceValue(ctx, p));
+      row.innerHTML = `<div class="whnm">${p.defName}<span class="whnote">calidad <b class="${qcls}">${p.quality}%</b> · ${p.weightClass} · ${p.kg} kg${p.reservedFor ? ' · 🔒 ' + p.reservedFor : ''}</span></div><div class="whval">${val}</div>`;
+      const btns = document.createElement('div');
+      btns.className = 'whbtns';
+      if (!p.sealed) {
+        const sellB = document.createElement('button');
+        sellB.className = 'whb'; sellB.textContent = 'vender';
+        sellB.onclick = e => {
+          e.stopPropagation();
+          const r = ECO.sellPiece(ctx, uid);
+          if (r.ok) {
+            if (inst && p.originObjectId === inst.id && inst.comps[p.defId])
+              DIS.setTerminal(inst, p.defId, DIS.ST.VENDIDO, 'almacén');
+            sfx.coin(); moneyPop(); toast(`💰 ${p.defName} vendida desde el almacén (+$${r.value})`);
+            refreshInspect();
+          } else { sfx.deny(); toast(`⚠ ${failText(r)}`); }
+          renderWarehouse();
+        };
+        btns.appendChild(sellB);
+      } else {
+        const disB = document.createElement('button');
+        disB.className = 'whb warn'; disB.textContent = 'entregar ☣️';
+        disB.onclick = e => {
+          e.stopPropagation();
+          if (!nearBin()) { sfx.deny(); toast('☣️ Acercate al contenedor rojo de residuos especiales'); return; }
+          const r = ECO.disposeSpecial(ctx, uid);
+          if (r.ok) {
+            if (inst && p.originObjectId === inst.id && inst.comps[p.defId])
+              DIS.setTerminal(inst, p.defId, DIS.ST.PROCESADO, 'residuo especial');
+            moneyPop(); sfx.thud(); toast(`☣️ Entregado: gestión −$${r.cost}`);
+            refreshInspect();
+          } else { sfx.deny(); toast(`⚠ ${failText(r)}`); }
+          renderWarehouse();
+        };
+        btns.appendChild(disB);
+      }
+      const retB = document.createElement('button');
+      retB.className = 'whb'; retB.textContent = 'retirar';
+      retB.onclick = e => { e.stopPropagation(); retrieveFromWarehouse(uid, z.id); };
+      btns.appendChild(retB);
+      row.appendChild(btns);
+      sec.appendChild(row);
+    }
+    whListEl.appendChild(sec);
+  }
+  // ---- almacén de materiales: cantidades compartidas con fracciones (GDD §4.2)
+  const msec = document.createElement('div');
+  msec.className = 'whzone';
+  msec.innerHTML = `<div class="whzhead">🧪 Contenedores de materiales <span class="whzcap">cap ${MATERIAL_CONTAINER_CAP} u por material</span></div>`;
+  for (const id of Object.keys(MATERIALS)) {
+    const M = MATERIALS[id];
+    const u = WH.materialUnits(ctx.mwh, id);
+    const fr = WH.materialFraction(ctx.mwh, id);
+    const row = document.createElement('div');
+    row.className = 'whrow mat';
+    const dot = '#' + M.color.toString(16).padStart(6, '0');
+    row.innerHTML = `<div class="whnm"><span class="whdot" style="background:${dot}"></span>${M.name}` +
+      `<span class="whnote">${id} · $${M.price}/u${M.price < 0 ? ' (coste de gestión)' : ''}${fr > 0.009 ? ` · fracción acumulada ${fr.toFixed(2)}` : ''}</span></div>` +
+      `<div class="whval">${u} u</div>`;
+    if (u > 0 && M.price > 0) {
+      const btns = document.createElement('div');
+      btns.className = 'whbtns';
+      const b2 = document.createElement('button');
+      b2.className = 'whb'; b2.textContent = `vender ($${u * M.price})`;
+      b2.onclick = e => {
+        e.stopPropagation();
+        const r = ECO.sellMaterial(ctx, id, u);
+        if (r.ok) { sfx.coin(); moneyPop(); toast(`💰 ${u} u de ${M.name} (+$${r.delta})`); }
+        else { sfx.deny(); toast(`⚠ ${failText(r)}`); }
+        renderWarehouse();
+      };
+      btns.appendChild(b2);
+      row.appendChild(btns);
+    }
+    msec.appendChild(row);
+  }
+  whListEl.appendChild(msec);
+}
+
+// Retirar una pieza del almacén → queda EN LAS MANOS (estado 'carried') y se
+// materializa su cuerpo físico delante del jugador.
+function retrieveFromWarehouse(uid, zoneId) {
+  const r = ECO.retrievePiece(ctx, uid, zoneId);
+  if (!r.ok) { sfx.deny(); toast(`⚠ ${failText(r)}`); return; }
+  const p = r.piece;
+  toggleWarehouse(false);
+  camDir();
+  const b = spawnProp('part', camera.position.clone().addScaledVector(fwd, 1.4).setY(1.2), {
+    kg: p.kg, name: p.defName, color: PAL.steel,
+    meta: { part: true, uid: p.uid, quality: p.quality, sealed: p.sealed },
+  });
+  b.held = true; held.push(b); sfx.grab();
+  toast(`📦 ${p.defName} retirada — calidad ${p.quality}%${p.weightClass === 'P2' ? ' · movimiento reducido' : ''}`);
+}
+
+function toggleWarehouse(force) {
+  state.whOpen = force ?? !state.whOpen;
+  whEl.classList.toggle('hidden', !state.whOpen);
+  if (state.whOpen) { renderWarehouse(); if (locked) document.exitPointerLock(); }
+}
+whEl.addEventListener('mousedown', e => e.stopPropagation());
+
 // ---------------------------------------------------------------- HUD
 const el = id => document.getElementById(id);
 const handKgEl = el('hand-kg'), handItemsEl = el('hand-items'), moneyEl = el('money');
@@ -793,7 +1061,10 @@ function tick() {
     // ---- input movimiento
     camDir();
     const run = keys.has('ShiftLeft') || keys.has('ShiftRight');
-    const speed = run ? 8.5 : 5.0;
+    // GDD 5.0 §13.1: P2 reduce el movimiento; P1 sin penalización.
+    const carriedPiece = ctx.carry ? PIE.getPiece(ctx.reg, ctx.carry) : null;
+    const speedMul = carriedPiece ? WEIGHT_CLASSES[carriedPiece.weightClass].speedMul : 1;
+    const speed = (run ? 8.5 : 5.0) * speedMul;
     const wish = new THREE.Vector3();
     if (keys.has('KeyW') || keys.has('ArrowUp')) wish.add(fwd);
     if (keys.has('KeyS') || keys.has('ArrowDown')) wish.sub(fwd);
@@ -870,8 +1141,8 @@ function tick() {
         else if (ev.t === 'accessible') toast(`🔓 ${compName(ev.comp)}: accesible`);
         else if (ev.t === 'damage') refreshInspect();
       }
-      // respawn: cuando todo el objeto fue vendido/procesado y no queda nada suyo en el mundo
-      if (DIS.allSettled(inst) && !bodies.some(b => b.meta && b.meta.objId === inst.id)) {
+      // respawn: objeto despojado y sin cuerpos suyos en el mundo (piezas en almacén cuentan)
+      if (instStripped(inst) && !bodies.some(b => b.meta && b.meta.objId === inst.id)) {
         respawnT += dt;
         if (respawnT > 8) { respawnT = 0; view.detach(scene); inst = null; view = null; inspectOpen = false; el('inspect').classList.add('hidden'); spawnAppliance(); }
       } else respawnT = 0;
@@ -887,6 +1158,7 @@ function tick() {
         if (s <= 0) removeBody(b);
         continue;
       }
+      if (b.vanishT > 0) { b.vanishT -= dt; if (b.vanishT <= 0) b.shrinking = 1; } // residuo visual de la cinta
       if (b.pop > 0) { b.pop = Math.max(0, b.pop - dt * 4); b.mesh.scale.setScalar(1 + b.pop * 0.35); }
       if (b.frozen) continue;
       if (b.held) {
@@ -994,7 +1266,7 @@ function tick() {
 
     // ---- prompt contextual (desmontaje primero, luego v0.1)
     let p = '';
-    if (!state.shopOpen) {
+    if (!state.shopOpen && !state.whOpen) {
       if (aim && aim.kind === 'fast') {
         const s = inst.comps[aim.comp];
         const f = s.fasteners[aim.fIdx];
@@ -1018,21 +1290,38 @@ function tick() {
         }
         else p = `${c.name}: ${s.state}`;
       }
-      else if (nearBin() && held.some(b => b.meta && b.meta.sealed)) p = '<kbd>F</kbd>Gestionar residuo especial (+$35)';
+      else if (nearBin() && held.some(b => b.meta && b.meta.sealed)) p = '<kbd>F</kbd>Entregar residuo especial (coste de gestión −$5/u)';
       else if (nearShredder() && held.length) {
-        if (held.some(b => b.meta && b.meta.part && !b.meta.sealed && Object.keys(b.meta.materials || {}).length))
-          p = '<kbd>F</kbd>Procesar en trituradora → materiales';
+        if (held.some(b => b.meta && b.meta.uid && !b.meta.sealed))
+          p = '<kbd>F</kbd>Procesar en trituradora → materiales al almacén';
         else if (held.some(b => b.meta && b.meta.sealed)) p = '☣️ Sellado: llevalo al contenedor rojo';
       }
       else if (nearBench() && inst && !held.length) p = `<kbd>E</kbd>Inspeccionar ${BP.name} · 1/2/3 herramientas`;
       else if (ns && held.length) p = `<kbd>F</kbd>Depositar ${hkg} kg en la balanza`;
-      else if (ns && state.scaleKg > 0) p = `<kbd>R</kbd>Vender ${state.scaleKg} kg por ${fmt(state.scaleVal)}`;
+      else if (ns && (state.scaleKg > 0 || matStockValue() > 0)) {
+        const det = [
+          state.scaleKg > 0 ? `${state.scaleKg} kg (${fmt(state.scaleVal)})` : '',
+          matStockValue() > 0 ? `materiales ${fmt(matStockValue())}` : '',
+        ].filter(Boolean).join(' + ');
+        p = `<kbd>R</kbd>Vender ${det}`;
+      }
       else if (held.length) p = '<kbd>F</kbd>Soltar · <kbd>CLIC</kbd>lanzar';
       else {
         const g = findGrabbable();
-        if (g) p = heldKg() + g.kg > state.carryCap
-          ? `⚠ ${g.name} de ${g.kg} kg — te queda grande (B: mejoras)`
-          : `<kbd>F</kbd>Agarrar ${g.name} (${g.kg} kg · ${fmt(partValueOf(g))})`;
+        if (g) {
+          if (g.meta && g.meta.uid) {
+            const piece = PIE.getPiece(ctx.reg, g.meta.uid);
+            const busy = ctx.carry && ctx.carry !== g.meta.uid;
+            const val = g.meta.sealed ? '☣️ coste de gestión' : fmt(partValueOf(g));
+            p = busy
+              ? `✋ Manos ocupadas: una sola pieza a la vez`
+              : `<kbd>F</kbd>Levantar ${g.name} (${g.kg} kg · ${val}${piece && piece.weightClass === 'P2' ? ' · 🏋 lenta' : ''})`;
+          } else {
+            p = heldKg() + g.kg > state.carryCap
+              ? `⚠ ${g.name} de ${g.kg} kg — te queda grande (B: mejoras)`
+              : `<kbd>F</kbd>Agarrar ${g.name} (${g.kg} kg · ${fmt(partValueOf(g))})`;
+          }
+        }
       }
     }
     if (p) { promptEl.innerHTML = p; promptEl.classList.remove('hidden'); }
@@ -1055,5 +1344,8 @@ document.getElementById('enter').addEventListener('click', () => {
   state.started = true;
   audio().resume?.();
   tryLock();
-  toast('🔧 Nuevo: desmontá el microondas del puesto de trabajo · E: inspeccionar');
+  const saved = gs.money !== 0 || PIE.serializeRegistry(gs.reg).length > 0;
+  toast(saved
+    ? `💾 Partida cargada: ${fmt(gs.money)} · I: almacén de la chatarrería`
+    : '🔧 Desmontá el microondas · I: almacén · las piezas valen por calidad');
 });

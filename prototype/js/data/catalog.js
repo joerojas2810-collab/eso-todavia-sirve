@@ -1,22 +1,16 @@
 /* ============================================================================
    CATÁLOGO DE DATOS — ¡ESO TODAVÍA SIRVE!
    Capa 1: definiciones puras (sin lógica ni three.js).
-   Acá viven los objetos desmontables del GDD (30 previstos; hoy: objeto 01).
-   Agregar un objeto nuevo = agregar una entrada a OBJECT_CATALOG con sus
-   componentes, fijaciones, dependencias, materiales y geometría. Nada más.
+   Objeto 01 según GDD 3.0 (componentes, fijaciones, dependencias, resultados)
+   y GDD 5.0 (clases de peso, valores base). Las recetas usan IDs MAT-xx y
+   piezas genéricas de economyData; las cantidades B_i son PROVISORIAS (PROV-07)
+   porque GDD 3.0 lista materiales sin unidades.
+   Los precios/valores/capacidades viven SOLO en js/data/economyData.js.
    ============================================================================ */
-
-// ---------------------------------------------------------------- materiales
-// vpk = valor por kg al vender el material recuperado en la balanza
-export const MATERIALS = {
-  acero:    { id: 'acero',    name: 'acero',    vpk: 1.2, color: 0x9aa2ad },
-  cobre:    { id: 'cobre',    name: 'cobre',    vpk: 6.0, color: 0xc47a3d },
-  plastico: { id: 'plastico', name: 'plástico', vpk: 0.9, color: 0x4f6d8c },
-  vidrio:   { id: 'vidrio',   name: 'vidrio',   vpk: 0.5, color: 0xbfe3da },
-};
+import { PART_DEFS } from './economyData.js';
 
 // ---------------------------------------------------------------- fijaciones
-// Cada tipo de fijación define qué herramienta la opera y cuánto tarda.
+// Cada tipo de fijación define qué herramienta la opera y cuánto tarda (T_b).
 export const FASTENER_TYPES = {
   tornillo: { id: 'tornillo', name: 'tornillo',   tool: 'destornillador', time: 3.0, verb: 'Retirar tornillo',  icon: '🪛' },
   bisagra:  { id: 'bisagra',  name: 'bisagra',    tool: 'llave',          time: 2.0, verb: 'Liberar bisagra',   icon: '🔧' },
@@ -31,27 +25,24 @@ export const TOOLS = [
 ];
 export const toolById = id => TOOLS.find(t => t.id === id);
 
-// ---------------------------------------------------------------- objeto 01
-// Microondas — tabla de desmontaje del GDD:
-//   Carcasa metálica ........ retirar 4 tornillos
-//   Puerta .................. liberar 2 bisagras
-//   Panel de control ........ retirar 3 tornillos
-//   Plato giratorio ......... extracción directa
-//   Motor de giro ........... retirar 2 tornillos
-//   Módulo eléctrico sellado  liberar 4 fijaciones (residuo especial, no se abre)
-//
-// Geo: shape 'box' usa size [w,h,d]; 'cyl' usa r,h. offsets en metros, locales
-// al centro del electrodoméstico. fasteners: offsets locales al componente.
+// ---------------------------------------------------------------- objeto 01 · Microondas
+// GDD 3.0: E · M · D1 · Capítulo 1 · 6 componentes
+// Secuencia GDD: abrir carcasa → retirar controles y plato → extraer motor →
+//                entregar módulo sellado → procesar estructura.
+// recipe = resultados de descomposición: unidades abstractas de inventario
+//          (GDD 5.0 §4.1: "no representan kilogramos reales").
 export const OBJECT_CATALOG = [
   {
     id: 'microondas',
     name: 'Microondas',
-    version: 1,
+    family: 'E', size: 'M', complexity: 'D1',
+    version: 2,
     chassis: { geo: { shape: 'box', size: [0.56, 0.34, 0.42], color: 0x565b63 }, offset: [0, 0, 0] },
     components: [
       {
-        id: 'carcasa', name: 'Carcasa metálica', kg: 6, partValue: 22, blockedBy: [],
-        materials: { acero: 4.5, plastico: 0.6 },
+        id: 'carcasa', name: 'Carcasa metálica', kg: 6, weightClass: 'P2', vbase: 22, // PROV-08
+        blockedBy: [],
+        recipe: [{ mat: 'MAT-01', base: 4 }, { mat: 'MAT-04', base: 1 }], // PROV-07 (GDD: Acero)
         geo: {
           shape: 'box', size: [0.62, 0.40, 0.48], color: 0xe8dcc0, offset: [0, 0, 0],
           children: [{ shape: 'box', size: [0.64, 0.06, 0.50], color: 0xb4552d, offset: [0, -0.19, 0] }],
@@ -64,8 +55,9 @@ export const OBJECT_CATALOG = [
         ],
       },
       {
-        id: 'puerta', name: 'Puerta', kg: 2, partValue: 14, blockedBy: [],
-        materials: { vidrio: 0.8, acero: 0.9, plastico: 0.3 },
+        id: 'puerta', name: 'Puerta', kg: 2, weightClass: 'P1', vbase: 14, // PROV-08
+        blockedBy: [],
+        recipe: [{ mat: 'MAT-05', base: 2 }, { mat: 'MAT-04', base: 1 }], // PROV-07 (GDD: Vidrio, plástico)
         geo: {
           shape: 'box', size: [0.40, 0.34, 0.06], color: 0x4f6d8c, offset: [-0.10, 0.02, 0.26],
           children: [
@@ -79,8 +71,9 @@ export const OBJECT_CATALOG = [
         ],
       },
       {
-        id: 'panel', name: 'Panel de control', kg: 0.8, partValue: 18, blockedBy: [],
-        materials: { plastico: 0.4, cobre: 0.2 },
+        id: 'panel', name: 'Panel de control', kg: 0.8, weightClass: 'P1', vbase: 18, // PROV-08
+        blockedBy: [],
+        recipe: [{ mat: 'MAT-06', base: 2 }], // PROV-07 (GDD: Electrónica)
         geo: {
           shape: 'box', size: [0.14, 0.34, 0.06], color: 0x2e2a26, offset: [0.22, 0.02, 0.26],
           children: [
@@ -96,14 +89,19 @@ export const OBJECT_CATALOG = [
         ],
       },
       {
-        id: 'plato', name: 'Plato giratorio', kg: 1.5, partValue: 9, blockedBy: ['puerta'],
-        materials: { vidrio: 1.4 },
+        id: 'plato', name: 'Plato giratorio', kg: 1.5, weightClass: 'P1', vbase: 9, // PROV-08
+        blockedBy: ['puerta'],
+        recipe: [{ mat: 'MAT-05', base: 2 }], // PROV-07 (GDD: Vidrio)
         geo: { shape: 'cyl', r: 0.15, h: 0.02, color: 0xbfe3da, offset: [-0.06, -0.06, 0.02] },
         fasteners: [], // extracción directa
       },
       {
-        id: 'motor', name: 'Motor de giro', kg: 3.5, partValue: 26, blockedBy: ['carcasa'],
-        materials: { cobre: 1.6, acero: 1.4 },
+        // GDD 3.0: resultado "Motor pequeño" ⇒ la descomposición produce un
+        // subensamble reutilizable (PART_DEFS.motor_pequenio, Vb $90), no materiales sueltos.
+        id: 'motor', name: 'Motor de giro', kg: 3.5, weightClass: 'P2',
+        vbase: PART_DEFS.motor_pequenio.vbase, // GDD 5.0 §6.3: misma pieza, mismo precio
+        blockedBy: ['carcasa'],
+        recipe: [{ part: 'motor_pequenio', base: 1 }],
         geo: { shape: 'cyl', r: 0.08, h: 0.16, color: 0xc47a3d, offset: [-0.06, -0.15, 0.02] },
         fasteners: [
           { type: 'tornillo', offset: [0.07, -0.06, 0] },
@@ -111,10 +109,13 @@ export const OBJECT_CATALOG = [
         ],
       },
       {
-        id: 'modulo', name: 'Módulo eléctrico sellado', kg: 4, partValue: 0, blockedBy: ['carcasa'],
+        // GDD 3.0/5.0: módulo sellado, sin procedimientos reales de apertura.
+        // No procesable en máquinas comunes; se entrega como residuo especial.
+        id: 'modulo', name: 'Módulo eléctrico sellado', kg: 4, weightClass: 'P2', vbase: 0,
+        blockedBy: ['carcasa'],
         sealed: true, special: true,
-        note: 'Sellado de fábrica: no se abre. Se gestiona como residuo especial.',
-        materials: {},
+        note: 'Sellado de fábrica: no se abre ni se procesa. Entrega en contenedor de residuos especiales (coste de gestión).',
+        recipe: [{ mat: 'MAT-08', base: 4 }], // PROV-09: unidades de coste de gestión
         geo: {
           shape: 'box', size: [0.20, 0.16, 0.14], color: 0x3a3f45, offset: [0.15, -0.05, -0.08],
           children: [{ shape: 'box', size: [0.21, 0.05, 0.15], color: 0xe8871f, offset: [0, 0, 0] }],
@@ -128,8 +129,7 @@ export const OBJECT_CATALOG = [
       },
     ],
   },
-  // ... objetos 02–30 del GDD (lavadoras, heladeras, computadoras, vehículos,
-  // maquinaria) se agregan acá con el mismo esquema, sin tocar el resto del código.
+  // ... objetos 02–30 del GDD 3.0 se agregan acá con el mismo esquema.
 ];
 
 export const objectById = id => OBJECT_CATALOG.find(o => o.id === id);

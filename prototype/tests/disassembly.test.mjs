@@ -1,4 +1,4 @@
-import { OBJECT_CATALOG, FASTENER_TYPES, compById } from '../js/data/catalog.js';
+import { OBJECT_CATALOG, FASTENER_TYPES } from '../js/data/catalog.js';
 import * as DIS from '../js/systems/disassembly.js';
 const BP = OBJECT_CATALOG[0];
 let pass = 0, fail = 0;
@@ -35,8 +35,7 @@ workAll(inst, 'motor', 3.0);
 ok(inst.comps.motor.quality === q0, 'trabajo correcto no daña');
 ok(DIS.damage(inst, 'motor', 12) === 12 && inst.comps.motor.quality === 88, 'golpe baja calidad a 88');
 ok(DIS.damage(inst, 'carcasa', 12) === 0, 'no se daña lo ya extraído');
-ok(DIS.effPartValue(compById(BP, 'motor'), 100) === 26, 'valor intacto');
-ok(DIS.effPartValue(compById(BP, 'motor'), 88) === Math.round(26 * (0.4 + 0.6 * 0.88)), 'valor según calidad');
+// (el valor de venta vive ahora en la capa de economía: ver tests/economy.test.mjs)
 
 ok(!DIS.setTerminal(inst, 'panel', DIS.ST.PROCESADO, 'x'), 'NO se procesa sin extraer antes');
 workAll(inst, 'modulo', 2.5);
