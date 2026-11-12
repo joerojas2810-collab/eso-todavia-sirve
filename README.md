@@ -40,8 +40,12 @@ python3 -m http.server 8080
 
 | Ruta | Qué es |
 |---|---|
-| `prototype/` | Prototipo jugable (three.js, sin build). v0.2: loop vender/romper + **desmontaje modular data-driven** (objeto 01: microondas). Incluye tests de reglas y mapa de port a Unity 6 |
+| `unity/` | **Proyecto Unity 6 definitivo** (base U6-First-Person-Multiplayer + código propio `_ETSV`). Guía de apertura: `unity/README.md` · estado de integración: `unity/docs/INTEGRACION.md` · atribuciones: `unity/ATTRIBUTION.md` |
+| `prototype/` | Prototipo jugable web (three.js, sin build), **congelado como referencia ejecutable de las reglas**. v0.3: loop vender/romper + desmontaje modular + economía/inventario/almacenes. 73 tests de reglas (20 desmontaje + 53 economía) |
+| `docs/DOc 1.txt`…`DOc 5.txt` | **Los cinco GDD: fuente de verdad del diseño** |
 | `docs/GDD_catalogo.md` | Catálogo de objetos desmontables: reglas globales, objeto 01 completo y plantilla de los 30 |
+| `docs/sistemas_recuperacion_economia.md` | Sistemas de recuperación, inventario, almacenamiento y economía (capas, contratos, registro PROVISORIO) |
+| `docs/INFORME_auditoria_reutilizacion.md` | Auditoría Instrucción 03: qué reutilizar (bases Unity, packs de arte), licencias verificadas y matriz de decisión |
 | `INFORME_tecnico.md` | Investigación: reverse-engineering del estilo de Moon Sweepers, stack recomendado (Unity 6 + URP + NGO/Relay), bases de assets y código usables, plan de vertical slice |
 | `refs/` | Moodboards objetivo de estilo (imagen generada como referencia de dirección de arte, no es arte final) |
 
@@ -49,10 +53,13 @@ python3 -m http.server 8080
 
 - [x] Investigación de estilo y stack (`INFORME_tecnico.md`)
 - [x] Prototipo v0.1: loop romper→vender + mejoras + estilo visual
-- [x] **v0.2 (Instrucción 01): sistema de desmontaje modular + microondas jugable + tests de reglas**
-- [ ] v0.3: objetos 02–05 del catálogo (lavadora, heladera, PC, cocina) sobre la misma arquitectura
-- [ ] Port del loop validado a Unity 6 (scripts C#, ScriptableObjects, netcode NGO + Relay)
-- [ ] Vertical slice co-op 4–7 jugadores
+- [x] v0.2 (Instrucción 01): sistema de desmontaje modular + microondas jugable + tests de reglas
+- [x] v0.3 (Instrucción 02): recuperación, inventario, almacenamiento y economía sobre los GDD 3.0/4.0/5.0
+- [x] Instrucción 03: auditoría de reutilización (`docs/INFORME_auditoria_reutilizacion.md`)
+- [x] **Instrucción 04: proyecto Unity 6 sobre la base U6-FPM (1–7 jugadores adaptado, Vivox desactivado, dominio puro `_ETSV`)**
+- [ ] Port de las reglas JS → C# puro (paridad 1:1 de los 73 tests) + datos como ScriptableObjects
+- [ ] Integración de economía/desmontaje con NGO (operaciones autorizadas por el host) + chatarrería con arte CC0
+- [ ] Contratos, progresión y objetos 02–30 · Vertical slice co-op 1–7 jugadores
 
 ## ⚖️ Licencia y créditos
 
