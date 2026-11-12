@@ -1,0 +1,9 @@
+Todas las texturas en estas carpetas provienen de Poly Haven (https://polyhaven.com)
+y están bajo licencia CC0 1.0 Universal (dominio público).
+
+Texto legal completo: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Los archivos *_mask.png son derivados locales (reempaquetado de canales de los
+mapas AO/Roughness/Metallic originales) y permanecen bajo CC0.
+
+Descarga: 2026-11-12, resolución 1k, md5 verificados contra api.polyhaven.com.

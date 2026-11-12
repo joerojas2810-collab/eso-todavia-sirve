@@ -120,6 +120,7 @@ namespace Etsv.Integration
             // Geometría de referencia (idéntica en cada peer: no se replica).
             BuildWorkbench(ScrapyardLayout.TableAnchor());
             ScrapyardLayout.BuildStations();
+            ETSVScenery.Build(); // Instrucción 10: escenografía estática (sin colliders ni red)
 
             if (hub.TryRestore(host))
             {
@@ -195,11 +196,13 @@ namespace Etsv.Integration
             var wood = new Color(0.45f, 0.32f, 0.2f);
             var metal = new Color(0.4f, 0.42f, 0.45f);
 
+            // Footprint y altura de trabajo IDÉNTICOS (1.6 × 0.9 × 1.0, tope y=0.95):
+            // la geometría funcional no cambia, solo el material (Instrucción 10).
             var top = GameObject.CreatePrimitive(PrimitiveType.Cube);
             top.name = "ETSV_Workbench_Top";
             top.transform.position = pos + new Vector3(0f, 0.9f, 0f);
             top.transform.localScale = new Vector3(1.6f, 0.1f, 1.0f);
-            top.GetComponent<Renderer>().sharedMaterial = BlueprintBuilder.MakeMaterial(wood);
+            top.GetComponent<Renderer>().sharedMaterial = ETSVArt.Tinted(ETSVArt.WoodPlanks, wood);
 
             for (int i = 0; i < 4; i++)
             {
@@ -209,8 +212,25 @@ namespace Etsv.Integration
                 float z = (i < 2 ? -0.4f : 0.4f);
                 leg.transform.position = pos + new Vector3(x, 0.45f, z);
                 leg.transform.localScale = new Vector3(0.08f, 0.9f, 0.08f);
-                leg.GetComponent<Renderer>().sharedMaterial = BlueprintBuilder.MakeMaterial(metal);
+                leg.GetComponent<Renderer>().sharedMaterial = ETSVArt.Tinted(ETSVArt.SteelRusty, metal);
             }
+
+            // Travesaño inferior + estante (detalles visuales SIN collider: la mesa
+            // nunca tuvo colliders propios y el raycast de interacción no debe cambiar).
+            AddBenchDetail(pos, "Travesanio", new Vector3(0f, 0.2f, 0.4f), new Vector3(1.44f, 0.06f, 0.06f), metal);
+            AddBenchDetail(pos, "Travesanio2", new Vector3(0f, 0.2f, -0.4f), new Vector3(1.44f, 0.06f, 0.06f), metal);
+            AddBenchDetail(pos, "Estante", new Vector3(0f, 0.24f, 0f), new Vector3(1.5f, 0.03f, 0.86f), new Color(0.4f, 0.29f, 0.18f));
+        }
+
+        private static void AddBenchDetail(Vector3 pos, string name, Vector3 off, Vector3 scale, Color tint)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "ETSV_Workbench_" + name;
+            go.transform.position = pos + off;
+            go.transform.localScale = scale;
+            go.GetComponent<Renderer>().sharedMaterial = ETSVArt.Tinted(ETSVArt.SteelRusty, tint);
+            var c = go.GetComponent<Collider>();
+            if (c != null) Object.Destroy(c);
         }
 
         // ------------------------------------------------------------ cada peer

@@ -253,6 +253,12 @@ sobre cualquier otra pieza de arte:
 
 ## 13. Estado actual (qué existe hoy vs. qué es candidato)
 
+> **UPDATE Instrucción 10 (2026-11-12)**: la primera implementación artística
+> REAL ya está incorporada (texturas PBR CC0 de Poly Haven, 12 materiales URP
+> Lit, sol cálido + niebla + Volume ACES, galpón/contenedores/chatarra/
+> señalización, estaciones y microondas con materiales y detalles). Ver
+> `ARTE_v1.md` para el detalle completo y el estado de verificación.
+
 **Existente (provisorio, funcional):**
 - Primitivos con colores planos creados en runtime: mesa (`BuildWorkbench`),
   14 estaciones (`ScrapyardLayout.BuildStations` + etiquetas TextMesh),

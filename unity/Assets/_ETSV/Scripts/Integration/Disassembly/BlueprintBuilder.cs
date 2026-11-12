@@ -52,6 +52,58 @@ namespace Etsv.Integration
         }
 
         /// <summary>
+        /// Detalles visuales por componente (hijos SIN collider: no interfieren con el
+        /// raycast de interacción, que pega contra el primitivo del componente). Solo
+        /// se invocan cuando hay material artístico disponible.
+        /// </summary>
+        private static void AddComponentDetail(GameObject comp, ComponentDef def, CompLayout lay)
+        {
+            string id = def.Id ?? "";
+            if (id.Contains("puerta"))
+            {
+                // Ventana de vidrio en la puerta (el marco lo aporta el cuerpo plástico).
+                var glass = MakePrimitive("cube", "Detalle_Ventana", comp.transform,
+                    new Vector3(0f, 0.05f, 0.52f), new Vector3(0.72f, 0.6f, 0.06f), Color.white);
+                ETSVArt.Apply(glass.GetComponent<Renderer>(), ETSVArt.Tinted(ETSVArt.GlassClear, Color.white));
+                StripCollider(glass);
+            }
+            else if (id.Contains("panel"))
+            {
+                // Perilla + botonera del panel de control.
+                var knob = MakePrimitive("cylinder", "Detalle_Perilla", comp.transform,
+                    new Vector3(0.25f, 0.2f, 0.55f), new Vector3(0.16f, 0.03f, 0.16f), Color.white);
+                ETSVArt.Apply(knob.GetComponent<Renderer>(), ETSVArt.Tinted(ETSVArt.PlasticGrey, new Color(0.8f, 0.8f, 0.82f)));
+                StripCollider(knob);
+                var btn = MakePrimitive("cube", "Detalle_Botones", comp.transform,
+                    new Vector3(-0.15f, 0.25f, 0.52f), new Vector3(0.5f, 0.18f, 0.05f), Color.white);
+                ETSVArt.Apply(btn.GetComponent<Renderer>(), ETSVArt.Tinted(ETSVArt.SignGreen, new Color(0.5f, 0.7f, 0.55f)));
+                StripCollider(btn);
+            }
+            else if (id.Contains("motor"))
+            {
+                // Eje visible del motor.
+                var shaft = MakePrimitive("cylinder", "Detalle_Eje", comp.transform,
+                    new Vector3(0f, 0.55f, 0f), new Vector3(0.18f, 0.12f, 0.18f), Color.white);
+                ETSVArt.Apply(shaft.GetComponent<Renderer>(), ETSVArt.Tinted(ETSVArt.SteelRusty, new Color(0.75f, 0.72f, 0.7f)));
+                StripCollider(shaft);
+            }
+            else if (id.Contains("plato"))
+            {
+                // Aro del plato giratorio.
+                var ring = MakePrimitive("cylinder", "Detalle_Aro", comp.transform,
+                    new Vector3(0f, 0.6f, 0f), new Vector3(1.02f, 0.25f, 1.02f), Color.white);
+                ETSVArt.Apply(ring.GetComponent<Renderer>(), ETSVArt.Tinted(ETSVArt.GlassClear, new Color(0.9f, 0.95f, 0.95f)));
+                StripCollider(ring);
+            }
+        }
+
+        private static void StripCollider(GameObject go)
+        {
+            var c = go.GetComponent<Collider>();
+            if (c != null) Object.Destroy(c);
+        }
+
+        /// <summary>
         /// Construye el objeto completo bajo `root`. Los colliders de componentes y
         /// fijaciones quedan en el layer de root (Default) para los raycasts de
         /// interacción.
@@ -77,6 +129,20 @@ namespace Etsv.Integration
                 vis.ComponentGOs[ci] = go;
                 vis.ComponentRenderers[ci] = go.GetComponent<Renderer>();
                 vis.BaseColors[ci] = lay.Color;
+
+                // Instrucción 10: material artístico por componente (data-driven, sirve
+                // para los 30 objetos del GDD). Sin el asset, queda el color plano de
+                // arriba. BaseColors pasa a blanco cuando hay textura: los tintes de
+                // estado de ApplyVisuals (bloqueado/liberado) multiplican la textura en
+                // vez de ensuciarla. La GEOMETRÍA, los pivotes y las fijaciones NO
+                // cambian: el sistema modular del dominio queda intacto.
+                string lib = ETSVArt.ComponentMaterialFor(def);
+                if (lib != null)
+                {
+                    ETSVArt.Apply(vis.ComponentRenderers[ci], ETSVArt.Tinted(lib, Color.white));
+                    vis.BaseColors[ci] = Color.white;
+                    AddComponentDetail(go, def, lay);
+                }
 
                 int nf = def.Fasteners != null ? def.Fasteners.Length : 0;
                 var fgo = new GameObject[nf];

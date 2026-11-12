@@ -71,6 +71,7 @@ namespace UnityEngine
         public Vector3 localEulerAngles;
         public Vector3 eulerAngles;
         public Quaternion rotation;
+        public Quaternion localRotation;
         public Transform parent => null;
         public void SetParent(Transform p, bool worldPositionStays) {}
         public Transform Find(string n) => null;
@@ -111,6 +112,7 @@ namespace UnityEngine
     public class Material : Object
     {
         public Material(Shader s) {}
+        public Material(Material src) {} // clon (ETSVArt.Tinted); en el stub no copia nada
         public Color color;
         public bool HasProperty(string n) => false;
         public void SetColor(string n, Color c) {}

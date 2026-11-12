@@ -56,8 +56,15 @@ namespace Etsv.Integration
             transform.localScale = DisassemblyLayouts.PieceScale(defId);
             var rend = GetComponentInChildren<Renderer>();
             if (rend != null)
-                rend.sharedMaterial = BlueprintBuilder.MakeMaterial(
-                    DisassemblyLayouts.PieceColor(defId, bp != null ? bp.Id : null));
+            {
+                // Instrucción 10: material artístico teñido con el color del dominio
+                // (la pieza sigue siendo reconocible por color); sin el asset, plano.
+                Color pc = DisassemblyLayouts.PieceColor(defId, bp != null ? bp.Id : null);
+                string lib = ETSVArt.PieceMaterialFor(defId);
+                rend.sharedMaterial = lib != null
+                    ? ETSVArt.Tinted(lib, pc)
+                    : BlueprintBuilder.MakeMaterial(pc);
+            }
             var rb = GetComponent<Rigidbody>();
             if (rb != null)
             {

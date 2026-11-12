@@ -82,15 +82,20 @@ namespace Etsv.Integration
         }
 
         private static GameObject Part(GameObject parent, PrimitiveType type, string name,
-            Vector3 localPos, Vector3 localScale, Color color)
+            Vector3 localPos, Vector3 localScale, Color color, string libMat = null)
         {
             var go = GameObject.CreatePrimitive(type);
             go.name = name;
             go.transform.SetParent(parent.transform, false);
             go.transform.localPosition = localPos;
             go.transform.localScale = localScale;
-            go.GetComponent<Renderer>().sharedMaterial = BlueprintBuilder.MakeMaterial(color);
-            // Sin collider propio: la interacción la resuelve el BoxCollider de la raíz.
+            // Instrucción 10: material artístico del set (URP Lit + PBR CC0) teñido con
+            // el color del dominio; sin el asset disponible, fallback plano exacto de
+            // antes ⇒ nada depende del arte. Sin collider propio: la interacción la
+            // resuelve SIEMPRE el BoxCollider de la raíz (los ids y el gating no cambian).
+            var rend = go.GetComponent<Renderer>();
+            if (libMat != null) ETSVArt.Apply(rend, ETSVArt.Tinted(libMat, color));
+            else rend.sharedMaterial = BlueprintBuilder.MakeMaterial(color);
             var c = go.GetComponent<Collider>();
             if (c != null) Object.Destroy(c);
             return go;
@@ -98,41 +103,71 @@ namespace Etsv.Integration
 
         private static void BuildScale(GameObject root)
         {
-            Part(root, PrimitiveType.Cube, "Base", new Vector3(0f, 0.05f, 0f), new Vector3(0.6f, 0.1f, 0.6f), new Color(0.35f, 0.4f, 0.48f));
-            Part(root, PrimitiveType.Cube, "Plataforma", new Vector3(0f, 0.13f, 0f), new Vector3(0.55f, 0.06f, 0.55f), new Color(0.72f, 0.75f, 0.8f));
-            Part(root, PrimitiveType.Cube, "Visor", new Vector3(0f, 0.5f, -0.25f), new Vector3(0.3f, 0.25f, 0.06f), new Color(0.1f, 0.35f, 0.2f));
+            Part(root, PrimitiveType.Cube, "Base", new Vector3(0f, 0.05f, 0f), new Vector3(0.6f, 0.1f, 0.6f), new Color(0.35f, 0.4f, 0.48f), ETSVArt.SteelRusty);
+            Part(root, PrimitiveType.Cube, "Plataforma", new Vector3(0f, 0.13f, 0f), new Vector3(0.55f, 0.06f, 0.55f), new Color(0.72f, 0.75f, 0.8f), ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cylinder, "Poste", new Vector3(0f, 0.32f, -0.25f), new Vector3(0.05f, 0.2f, 0.05f), new Color(0.4f, 0.42f, 0.45f), ETSVArt.SteelRusty);
+            Part(root, PrimitiveType.Cube, "Visor", new Vector3(0f, 0.5f, -0.25f), new Vector3(0.3f, 0.25f, 0.06f), new Color(0.1f, 0.35f, 0.2f), ETSVArt.PlasticGrey);
+            Part(root, PrimitiveType.Cube, "VisorMarco", new Vector3(0f, 0.5f, -0.27f), new Vector3(0.34f, 0.29f, 0.03f), new Color(0.3f, 0.32f, 0.35f), ETSVArt.MetalPainted);
         }
 
         private static void BuildShredder(GameObject root)
         {
-            Part(root, PrimitiveType.Cube, "Cuerpo", new Vector3(0f, 0.45f, 0f), new Vector3(0.8f, 0.9f, 0.7f), new Color(0.45f, 0.2f, 0.18f));
-            Part(root, PrimitiveType.Cylinder, "Tolva", new Vector3(0f, 1.0f, 0f), new Vector3(0.5f, 0.15f, 0.5f), new Color(0.3f, 0.32f, 0.36f));
-            Part(root, PrimitiveType.Cube, "Salida", new Vector3(0f, 0.15f, 0.4f), new Vector3(0.35f, 0.3f, 0.15f), new Color(0.25f, 0.26f, 0.3f));
+            Part(root, PrimitiveType.Cube, "Cuerpo", new Vector3(0f, 0.45f, 0f), new Vector3(0.8f, 0.9f, 0.7f), new Color(0.45f, 0.2f, 0.18f), ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cube, "Bancada", new Vector3(0f, 0.05f, 0f), new Vector3(0.9f, 0.1f, 0.8f), new Color(0.3f, 0.31f, 0.34f), ETSVArt.SteelRusty);
+            Part(root, PrimitiveType.Cylinder, "Tolva", new Vector3(0f, 1.0f, 0f), new Vector3(0.5f, 0.15f, 0.5f), new Color(0.3f, 0.32f, 0.36f), ETSVArt.SteelRusty);
+            Part(root, PrimitiveType.Cube, "Salida", new Vector3(0f, 0.15f, 0.4f), new Vector3(0.35f, 0.3f, 0.15f), new Color(0.25f, 0.26f, 0.3f), ETSVArt.RubberBlack);
+            Part(root, PrimitiveType.Cube, "FranjaPeligro", new Vector3(0f, 0.78f, 0.353f), new Vector3(0.81f, 0.1f, 0.01f), new Color(0.95f, 0.72f, 0.24f), ETSVArt.SignAmber);
         }
 
         private static void BuildHazardBin(GameObject root)
         {
-            Part(root, PrimitiveType.Cube, "Contenedor", new Vector3(0f, 0.35f, 0f), new Vector3(0.55f, 0.7f, 0.55f), new Color(0.85f, 0.7f, 0.1f));
-            Part(root, PrimitiveType.Cube, "Tapa", new Vector3(0f, 0.73f, 0f), new Vector3(0.6f, 0.06f, 0.6f), new Color(0.35f, 0.3f, 0.1f));
+            Part(root, PrimitiveType.Cube, "Contenedor", new Vector3(0f, 0.35f, 0f), new Vector3(0.55f, 0.7f, 0.55f), new Color(0.85f, 0.7f, 0.1f), ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cube, "Tapa", new Vector3(0f, 0.73f, 0f), new Vector3(0.6f, 0.06f, 0.6f), new Color(0.35f, 0.3f, 0.1f), ETSVArt.RubberBlack);
+            // Franjas alternas de peligro (ámbar/negro) rodeando el contenedor.
+            for (int i = 0; i < 4; i++)
+            {
+                float y = 0.18f + i * 0.16f;
+                Part(root, PrimitiveType.Cube, "Franja" + i, new Vector3(0f, y, 0.281f),
+                    new Vector3(0.56f, 0.07f, 0.005f),
+                    i % 2 == 0 ? new Color(0.95f, 0.72f, 0.24f) : new Color(0.15f, 0.14f, 0.13f),
+                    i % 2 == 0 ? ETSVArt.SignAmber : ETSVArt.RubberBlack);
+            }
         }
 
         private static void BuildRack(GameObject root)
         {
             var steel = new Color(0.8f, 0.45f, 0.15f);
-            Part(root, PrimitiveType.Cube, "PosteL", new Vector3(-0.45f, 0.9f, 0f), new Vector3(0.06f, 1.8f, 0.45f), steel);
-            Part(root, PrimitiveType.Cube, "PosteR", new Vector3(0.45f, 0.9f, 0f), new Vector3(0.06f, 1.8f, 0.45f), steel);
+            Part(root, PrimitiveType.Cube, "PosteL", new Vector3(-0.45f, 0.9f, 0f), new Vector3(0.06f, 1.8f, 0.45f), steel, ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cube, "PosteR", new Vector3(0.45f, 0.9f, 0f), new Vector3(0.06f, 1.8f, 0.45f), steel, ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cube, "Travesanio", new Vector3(0f, 1.78f, 0f), new Vector3(0.95f, 0.05f, 0.06f), steel, ETSVArt.MetalPainted);
             for (int i = 0; i < 3; i++)
-                Part(root, PrimitiveType.Cube, "Estante" + i, new Vector3(0f, 0.35f + i * 0.55f, 0f), new Vector3(0.95f, 0.05f, 0.45f), new Color(0.5f, 0.52f, 0.56f));
+            {
+                Part(root, PrimitiveType.Cube, "Estante" + i, new Vector3(0f, 0.35f + i * 0.55f, 0f), new Vector3(0.95f, 0.05f, 0.45f), new Color(0.5f, 0.42f, 0.3f), ETSVArt.WoodPlanks);
+                // Cajones/objetos guardados (decoración: la capacidad la lleva el dominio).
+                if (i < 2)
+                    Part(root, PrimitiveType.Cube, "Cajon" + i, new Vector3(-0.15f + i * 0.3f, 0.48f + i * 0.55f, 0f),
+                        new Vector3(0.3f, 0.2f, 0.3f), new Color(0.55f, 0.5f, 0.45f),
+                        i == 0 ? ETSVArt.WoodPlanks : ETSVArt.PlasticGrey);
+            }
         }
 
         private static void BuildPallet(GameObject root)
         {
-            Part(root, PrimitiveType.Cube, "Palé", new Vector3(0f, 0.07f, 0f), new Vector3(1.0f, 0.14f, 1.0f), new Color(0.5f, 0.36f, 0.2f));
+            Part(root, PrimitiveType.Cube, "Palé", new Vector3(0f, 0.07f, 0f), new Vector3(1.0f, 0.14f, 1.0f), new Color(0.5f, 0.36f, 0.2f), ETSVArt.WoodPlanks);
+            // Segundo palé apilado, apenas rotado (visual; el dominio cuenta capacidad).
+            var segundo = Part(root, PrimitiveType.Cube, "Palé2", new Vector3(0.03f, 0.21f, -0.02f), new Vector3(1.0f, 0.14f, 1.0f), new Color(0.46f, 0.33f, 0.19f), ETSVArt.WoodPlanks);
+            segundo.transform.localRotation = Quaternion.Euler(0f, 7f, 0f);
         }
 
         private static void BuildFloorZone(GameObject root)
         {
-            Part(root, PrimitiveType.Cube, "Zona", new Vector3(0f, 0.01f, 0f), new Vector3(1.3f, 0.02f, 1.3f), new Color(0.3f, 0.33f, 0.38f));
+            Part(root, PrimitiveType.Cube, "Zona", new Vector3(0f, 0.01f, 0f), new Vector3(1.3f, 0.02f, 1.3f), new Color(0.3f, 0.33f, 0.38f), ETSVArt.ConcreteWorn);
+            // Esquinas pintadas de la zona (marcas de suelo amarillas).
+            float[] cx = { -0.6f, 0.6f }; float[] cz = { -0.6f, 0.6f };
+            int n = 0;
+            foreach (float x in cx) foreach (float z in cz)
+                Part(root, PrimitiveType.Cube, "Marca" + (n++), new Vector3(x, 0.025f, z),
+                    new Vector3(0.22f, 0.005f, 0.22f), new Color(0.95f, 0.72f, 0.24f), ETSVArt.SignAmber);
         }
 
         private static void BuildMaterialBin(GameObject root, string matId)
@@ -140,8 +175,10 @@ namespace Etsv.Integration
             var m = EconomyData.Materials[matId];
             int hex = m.Color;
             var color = new Color(((hex >> 16) & 0xFF) / 255f, ((hex >> 8) & 0xFF) / 255f, (hex & 0xFF) / 255f);
-            Part(root, PrimitiveType.Cylinder, "Contenedor", new Vector3(0f, 0.28f, 0f), new Vector3(0.36f, 0.28f, 0.36f), color);
-            Part(root, PrimitiveType.Cylinder, "Aro", new Vector3(0f, 0.57f, 0f), new Vector3(0.4f, 0.02f, 0.4f), new Color(0.25f, 0.26f, 0.3f));
+            Part(root, PrimitiveType.Cylinder, "Contenedor", new Vector3(0f, 0.28f, 0f), new Vector3(0.36f, 0.28f, 0.36f), color, ETSVArt.MetalPainted);
+            Part(root, PrimitiveType.Cylinder, "Aro", new Vector3(0f, 0.57f, 0f), new Vector3(0.4f, 0.02f, 0.4f), new Color(0.25f, 0.26f, 0.3f), ETSVArt.SteelRusty);
+            // Muestra del material en la cara frontal (mismo color del dominio).
+            Part(root, PrimitiveType.Cube, "Muestra", new Vector3(0f, 0.3f, 0.185f), new Vector3(0.14f, 0.14f, 0.01f), color, ETSVArt.MetalPainted);
         }
 
         private static void AddLabel(GameObject root, string text, float height)
