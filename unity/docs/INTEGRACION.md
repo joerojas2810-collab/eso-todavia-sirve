@@ -97,3 +97,13 @@ corresponda: Kenney City Kit Industrial (CC0) + Quaternius (CC0) para personajes
 ithappy Junkyard ($89) **en espera** (decisión Instrucción 04 #3); la demo scene de
 ithappy reemplazaría este espacio cuando se compre. Los objetos desmontables serán
 producción propia (kitbash) — fuera del alcance actual.
+
+## 7. Instrucción 06 — desmontaje físico integrado
+
+El sistema de desmontaje ya está conectado al mundo físico y a la red
+host-authoritative (microondas del GDD como primer objeto). **No hace falta
+modelar ni colocar nada en la escena a mano**: `ETSVBootstrap` registra los
+prefabs de `Assets/_ETSV/Resources/ETSV/` y el host spawnea mesa + microondas
+junto al spawn point al iniciar. Detalles, sistemas reutilizados de la base,
+adaptaciones y checklist de verificación en el editor:
+[`INTEGRACION_DESARMADO.md`](INTEGRACION_DESARMADO.md).

@@ -2,7 +2,8 @@
     "name": "ETSV.Domain.Tests",
     "rootNamespace": "Etsv.Domain.Tests",
     "references": [
-        "ETSV.Domain"
+        "ETSV.Domain",
+        "ETSV.Sim"
     ],
     "includePlatforms": [
         "Editor"

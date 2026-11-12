@@ -20,18 +20,28 @@ Assets/_ETSV/
 │   │   ├── Warehouse/         ComponentWarehouse (zonas) + MaterialWarehouse (fracciones)
 │   │   ├── Economy/           EconomyOps (operaciones atómicas con validación de propiedad)
 │   │   └── Persistence/       SaveGame v3 (DTO) + SaveSerializer + SaveValidator
-│   └── Integration/       ← capa que CONECTA el dominio con Unity/NGO (Assembly-CSharp)
-│       ├── SessionConfig.cs   parámetros de sesión (la leen los scripts upstream)
-│       ├── DomainHost.cs      estado agregado + EconomyContext + event Changed (costura NGO)
-│       ├── SaveJsonAdapter.cs DTO ↔ JSON con Newtonsoft (paquete ya presente en el proyecto)
-│       └── (futuro) EconomyServerRpc, IInteractable de balanza/trituradora/contenedor/almacén,
-│           DisassemblyView, generación de prefabs por blueprint
+│   └── Integration/
+│       ├── SessionConfig.cs   parámetros de sesión (Assembly-CSharp; la leen los upstream)
+│       ├── Sim/             ← assembly ETSV.Sim (C# PURO: noEngineReferences = true)
+│       │   ├── ETSVSession.cs / CatalogIndex.cs    cerebro del host + índices de red
+│       │   ├── DisassemblyGate.cs                  validadores (identidad/distancia/conflictos)
+│       │   ├── DisassemblySync.cs                  CompSync + pack/unpack (NetworkList NGO)
+│       │   ├── DisassemblySessionHost.cs           solicitudes de red → ops del dominio
+│       │   ├── DomainHost.cs / SaveJsonAdapter.cs  estado agregado + DTO↔JSON (Newtonsoft)
+│       ├── Disassembly/     ← cáscaras Unity delgadas (Assembly-CSharp)
+│       │   ├── DisassemblyObjectView / PieceView / ETSVSessionView (NetworkBehaviour)
+│       │   ├── BlueprintBuilder + DisassemblyLayouts (visuales genéricos por blueprint)
+│       │   ├── DisassemblyPlayerController (input → RPCs) + DisassemblyHud (UI Toolkit)
+│       └── ETSVBootstrap.cs   arranque runtime SIN tocar escena/prefabs de la base
+├── Resources/ETSV/          ← prefabs de red (ETSVSession/DisassemblyObject/DisassemblyPiece)
 └── Tests/
     └── EditMode/          ← ETSV.Domain.Tests (NUnit)
         ├── DomainSmokeTests.cs          3 smoke (Instrucción 04)
         ├── DisassemblyParityTests.cs    20 asserts JS → 20 [Test] con [Order]
-        └── EconomyParityTests.cs        53 asserts JS → 10 [Test] por bloque
+        ├── EconomyParityTests.cs        53 asserts JS → 10 [Test] por bloque
+        └── HostSessionTests.cs          13 tests de la Instrucción 06 §10 (capa Sim)
         Matriz completa: unity/docs/MATRIZ_PARIDAD_TESTS.md
+        Integración física/red: unity/docs/INTEGRACION_DESARMADO.md
 ```
 
 ## Reglas de la capa Domain (innegociables)
