@@ -20,23 +20,35 @@ namespace Etsv.Integration
             var sp = GameObject.Find("Player 2 Spawn");
             if (sp == null) sp = GameObject.Find("Player 1 Spawn");
             Vector3 anchor = sp != null ? sp.transform.position : Vector3.zero;
-            return anchor + new Vector3(1.8f, 0f, 1.2f);
+            // Instrucción 12: la mesa se aleja del spawn (antes +1.8/+1.2 ⇒ el jugador
+            // aparecía a ~1 m de la mesa). Con +3.9/+0.2 quedan ≥3 m libres al frente
+            // de cada spawn y el patio entero corre con él (estaciones, escenografía,
+            // microondas y utilería se anclan todos a esta misma posición).
+            return anchor + new Vector3(3.9f, 0f, 0.2f);
         }
 
         // Offsets locales respecto de la mesa (misma convención en todas las peers).
+        // Instrucción 12 — plan de zonas (offsets en METROS desde el ancla A):
+        //   frente (+z): ENTRADA y circulación (despejada; spawns al norte)
+        //   A:           mesa de desmontaje al aire libre
+        //   ±x frente:   balanza/venta (izq) y trituradora (der)
+        //   fondo (-z):  residuos, almacenamiento (estantería/palé/suelo) y la
+        //                fila de contenedores de material bajo el galpón
+        // Separación mínima entre estaciones: 1.8 m (antes 0.7 m en la fila ⇒
+        // textos superpuestos). Ver unity/docs/ESCENARIO_v2.md.
         private static readonly Vector3[] Offsets =
         {
-            new Vector3(-1.7f, 0f,  0.6f),  // 0 balanza
-            new Vector3( 1.7f, 0f,  0.6f),  // 1 trituradora
-            new Vector3( 1.7f, 0f, -1.0f),  // 2 residuos especiales
-            new Vector3(-2.4f, 0f, -0.8f),  // 3 estantería
-            new Vector3(-0.9f, 0f, -1.5f),  // 4 palé
-            new Vector3( 0.5f, 0f, -1.7f),  // 5 suelo
-            // 6..13 contenedores de materiales (fila trasera)
-            new Vector3(-2.45f, 0f, -2.8f), new Vector3(-1.75f, 0f, -2.8f),
-            new Vector3(-1.05f, 0f, -2.8f), new Vector3(-0.35f, 0f, -2.8f),
-            new Vector3( 0.35f, 0f, -2.8f), new Vector3( 1.05f, 0f, -2.8f),
-            new Vector3( 1.75f, 0f, -2.8f), new Vector3( 2.45f, 0f, -2.8f),
+            new Vector3(-2.6f, 0f,  1.4f),  // 0 balanza (venta, frente izq)
+            new Vector3( 2.7f, 0f,  1.2f),  // 1 trituradora (frente der)
+            new Vector3( 3.2f, 0f, -1.2f),  // 2 residuos especiales (der, bajo galpón)
+            new Vector3(-5.0f, 0f, -2.2f),  // 3 estantería (almacén izq)
+            new Vector3(-2.0f, 0f, -2.6f),  // 4 palé (almacén)
+            new Vector3( 0.6f, 0f, -2.6f),  // 5 suelo (zona de piezas grandes)
+            // 6..13 contenedores de materiales: fila trasera, paso 1.15 m
+            new Vector3(-4.025f, 0f, -4.2f), new Vector3(-2.875f, 0f, -4.2f),
+            new Vector3(-1.725f, 0f, -4.2f), new Vector3(-0.575f, 0f, -4.2f),
+            new Vector3( 0.575f, 0f, -4.2f), new Vector3( 1.725f, 0f, -4.2f),
+            new Vector3( 2.875f, 0f, -4.2f), new Vector3( 4.025f, 0f, -4.2f),
         };
 
         public static Vector3 StationPos(int stationId)
@@ -70,7 +82,24 @@ namespace Etsv.Integration
                 col.size = new Vector3(1.0f, 1.6f, 1.0f);
                 col.center = new Vector3(0f, 0.8f, 0f);
                 root.AddComponent<StationRef>().Init(id);
-                AddLabel(root, def.Name, 1.75f);
+                AddLabel(root, def.Name, LabelHeightFor(def.Kind));
+            }
+        }
+
+        /// <summary>Instrucción 12: la etiqueta va justo encima del visual de cada
+        /// estación (antes todas a 1.75 m ⇒ textos flotantes superpuestos entre la
+        /// fila de tambores y el techo del galpón).</summary>
+        private static float LabelHeightFor(StationKind kind)
+        {
+            switch (kind)
+            {
+                case StationKind.Balanza: return 1.05f;
+                case StationKind.Trituradora: return 1.85f;
+                case StationKind.ResiduosEspeciales: return 1.15f;
+                case StationKind.Estanteria: return 2.05f;
+                case StationKind.Pale: return 0.62f;
+                case StationKind.Suelo: return 0.32f;
+                default: return 1.02f; // ContenedorMaterial (tambor de 0.77 m)
             }
         }
 
@@ -245,7 +274,7 @@ namespace Etsv.Integration
             go.transform.localPosition = new Vector3(0f, height, 0f);
             var tm = go.AddComponent<TextMesh>();
             tm.text = text;
-            tm.characterSize = 0.09f;
+            tm.characterSize = 0.075f; // Instrucción 12: menos solape entre etiquetas
             tm.fontSize = 48;
             tm.anchor = TextAnchor.LowerCenter;
             tm.alignment = TextAlignment.Center;
