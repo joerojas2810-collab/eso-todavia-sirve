@@ -2,7 +2,11 @@
 // Estado derivable mínimo por componente (Instrucción 06 §6: no sincronizar
 // continuamente datos derivados): estado + calidad + fijaciones empaquetadas.
 // CompSync es unmanaged + IEquatable ⇒ válido para NetworkList<CompSync> de
-// NGO 2.12 (restricción verificada contra el fuente real del paquete).
+// NGO 2.12, e implementa INetworkSerializeByMemcpy (tag interface): SIN él, el
+// codegen ILPP de NGO no genera serializador para structs custom y el runtime
+// cae en FallbackSerializer ⇒ ArgumentException en el primer sync (verificado
+// contra Editor/CodeGen/NetworkBehaviourILPP.cs y Documentation~/basics/
+// networkvariable.md del paquete real 2.12.0).
 // El progreso de cada fijación se cuantiza a 7 bits (0..127) para la red; el
 // valor exacto vive solo en el host (fuente de verdad).
 
@@ -11,8 +15,10 @@ using Etsv.Domain;
 
 namespace Etsv.Integration
 {
-    /// <summary>Estado sincronizable de UN componente (8 bytes).</summary>
-    public struct CompSync : System.IEquatable<CompSync>
+    /// <summary>Estado sincronizable de UN componente (8 bytes). Tag
+    /// INetworkSerializeByMemcpy: serialización por memcpy generada por el ILPP
+    /// de NGO (todos sus campos son POD: byte×3 + ulong).</summary>
+    public struct CompSync : System.IEquatable<CompSync>, Unity.Netcode.INetworkSerializeByMemcpy
     {
         public byte CompIdx;        // índice en ObjectBlueprint.Components
         public byte State;          // (byte)CompState

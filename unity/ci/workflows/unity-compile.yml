@@ -1,0 +1,113 @@
+# =============================================================================
+# UBICACIÓN: este archivo vive en unity/ci/workflows/ y NO está activo
+# todavía: el token con el que se pushea el repo no tiene el scope
+# 'workflow' de GitHub (rechaza crear/modificar .github/workflows).
+# ACTIVACIÓN (1 paso, lo hace el propietario): copiar este archivo a
+# .github/workflows/ (commit manual o web UI de GitHub) — el contenido
+# ya está listo para correr tal cual.
+# ¡ESO TODAVÍA SIRVE! — COMPILACIÓN REAL DE UNITY (batchmode)
+# =============================================================================
+# ESTADO: PREPARADO PERO DESACTIVADO (on: workflow_dispatch únicamente).
+# No se ha ejecutado todavía: requiere que el PROPIETARIO del repo configure
+# secretos con su licencia Unity (ver unity/ci/README.md §"Compilación real").
+# Este archivo NO inventa credenciales: sin secretos configurados, el job
+# falla de forma explícita en el paso "Verificar secretos".
+#
+# Usa game-ci/unity-builder (imagen oficial con Unity 6000.3.5f2 + módulos),
+# que es la vía estándar y reutilizable sin comprometer licencias: la licencia
+# personal se activa UNA vez de forma manual (Unity hub / ULF-ALF) y sus
+# valores se guardan como secretos del repo.
+#
+# Qué ejecuta (cuando se active):
+#   - Compilación real de todos los assemblies (incluido el ILPP de NGO 2.12:
+#     genera los serializadores de NetworkVariable/NetworkList y las tablas de
+#     RPC — lo que el banco de stubs NO puede verificar).
+#   - Tests EditMode reales con Unity Test Framework (los 76+ de ETSV).
+#   - Valida el import de los prefabs YAML manuales de Assets/_ETSV/Resources.
+name: Unity (compilación real + EditMode) — DESACTIVADO hasta configurar licencia
+
+on:
+  workflow_dispatch:
+    inputs:
+      solo_compilar:
+        description: 'Solo compilar (sin tests EditMode)'
+        type: boolean
+        default: false
+
+env:
+  UNITY_VERSION: "6000.3.5f2"
+  UNITY_PROJECT_PATH: unity
+
+jobs:
+  exigir-secretos:
+    name: Verificar secretos de licencia (falla aquí si no están)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Comprobar secretos requeridos
+        env:
+          LICENSE: ${{ secrets.UNITY_LICENSE }}
+          EMAIL: ${{ secrets.UNITY_EMAIL }}
+          PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          echo "Se requieren (ver unity/ci/README.md):"
+          echo "  UNITY_EMAIL    — cuenta Unity            : $([ -n "$EMAIL" ] && echo OK || echo FALTA)"
+          echo "  UNITY_PASSWORD — contraseña de la cuenta : $([ -n "$PASSWORD" ] && echo OK || echo FALTA)"
+          echo "  UNITY_LICENSE  — contenido del .ulf (personal/free) O"
+          echo "  UNITY_SERIAL   — número de serie (licencia Plus/Pro con .alf)"
+          if [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; then exit 1; fi
+          if [ -z "$LICENSE" ] && [ -z "$SERIAL" ]; then exit 1; fi
+
+  compile:
+    name: Compilar proyecto Unity ${{ env.UNITY_VERSION }}
+    needs: exigir-secretos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear carpeta Library vacía (acelera cache)
+        run: mkdir -p ${{ env.UNITY_PROJECT_PATH }}/Library
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.UNITY_PROJECT_PATH }}/Library
+          key: Library-${{ env.UNITY_VERSION }}-etsv-${{ hashFiles('unity/Assets/**', 'unity/Packages/**') }}
+          restore-keys: Library-${{ env.UNITY_VERSION }}-etsv-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: ${{ env.UNITY_PROJECT_PATH }}
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: StandaloneLinux64
+          buildMethod: ""   # solo compilar; sin método de build propio
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-compile-logs
+          path: artifacts
+
+  editmode-tests:
+    name: Tests EditMode reales (Unity Test Framework)
+    if: ${{ !inputs.solo_compilar }}
+    needs: exigir-secretos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: ${{ env.UNITY_PROJECT_PATH }}
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: editmode
+          artifactsPath: artifacts/editmode
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: editmode-test-results
+          path: artifacts/editmode

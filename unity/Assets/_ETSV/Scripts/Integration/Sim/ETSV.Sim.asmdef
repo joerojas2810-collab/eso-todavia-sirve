@@ -2,7 +2,8 @@
     "name": "ETSV.Sim",
     "rootNamespace": "Etsv.Integration",
     "references": [
-        "ETSV.Domain"
+        "ETSV.Domain",
+        "Unity.Netcode.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,0 +1,57 @@
+# =============================================================================
+# UBICACIÓN: este archivo vive en unity/ci/workflows/ y NO está activo
+# todavía: el token con el que se pushea el repo no tiene el scope
+# 'workflow' de GitHub (rechaza crear/modificar .github/workflows).
+# ACTIVACIÓN (1 paso, lo hace el propietario): copiar este archivo a
+# .github/workflows/ (commit manual o web UI de GitHub) — el contenido
+# ya está listo para correr tal cual.
+# ¡ESO TODAVÍA SIRVE! — Verificación automática SIN Unity Editor
+# =============================================================================
+# Ejecuta en cada push/PR:
+#   1. El banco de verificación C# puro (unity/ci/build-and-test.sh): compila
+#      ETSV.Domain + ETSV.Sim + capa de integración (contra stubs con firmas
+#      del fuente real de NGO 2.12) y corre los tests EditMode con mono.
+#   2. La suite del prototipo JS congelado (prototype/tests).
+# No requiere secretos ni licencias: corre en runners públicos de GitHub.
+#
+# IMPORTANTE: esto NO es una compilación real de Unity (no ejercita el
+# compilador de Unity, el ILPP de NGO ni el import de assets). La compilación
+# real está documentada en unity/ci/README.md y preparada (desactivada) en
+# .github/workflows/unity-compile.yml — requiere licencias del propietario.
+name: Verificación (dominio + sim + prototipo)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  banco-csharp:
+    name: Banco C# (mono) — Domain + Sim + integración + tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar mono (mcs + runtime)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mono-mcs mono-runtime \
+            libmono-system-data4.0-cil libmono-system-runtime-serialization4.0-cil \
+            unzip curl
+      - name: Compilar y ejecutar el banco
+        run: bash unity/ci/build-and-test.sh
+
+  prototipo-js:
+    name: Prototipo JS congelado (v0.3)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Suite de desmontaje
+        run: node tests/disassembly.test.mjs
+        working-directory: prototype
+      - name: Suite de economía
+        run: node tests/economy.test.mjs
+        working-directory: prototype
