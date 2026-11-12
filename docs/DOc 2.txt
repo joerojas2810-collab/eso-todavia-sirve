@@ -1,0 +1,1631 @@
+# ¡ESO TODAVÍA SIRVE!
+
+Documento maestro de diseño de juego (GDD) · Versión 2.0 · Especificación integral de contenido y progresión
+
+Vamos a cerrar el diseño de los sistemas de forma que Fable o cualquier equipo de desarrollo pueda entender qué existe, cómo funciona, cómo interactúa con otros sistemas y cuándo se desbloquea.
+
+La premisa definitiva es una chatarrería heredada, inicialmente en ruinas, que los jugadores convierten en una planta de recuperación industrial. El humor surge de los accidentes y las decisiones de los jugadores; la satisfacción, de desarmar objetos y recuperar materiales; y el misterio, de los encargos del antiguo propietario.
+
+Las cifras de precios, tiempos y recompensas que siguen son valores iniciales para balancear, no resultados de pruebas.
+
+## 1. Reglas fundamentales del juego
+
+- Jugadores: 1–7, cooperativo en primera persona.
+- Sesiones: 2–3 horas continuas como experiencia habitual, sin límite obligatorio.
+- Campaña: objetivo inicial de 8–12 horas, más contratos repetibles.
+- Mundo: una chatarrería ampliable con zonas interiores y exteriores.
+- Progreso: compartido y guardado por la partida del anfitrión.
+- Fracaso: nunca se pierde toda la campaña por quedarse sin dinero o cometer un error.
+- Objetivo: recuperar materiales, completar contratos, mejorar instalaciones, pagar la deuda heredada y descubrir el misterio del galpón.
+
+El juego debe mantener una regla económica importante: destruir es más rápido, desmontar bien es más rentable. Ninguna de las dos opciones debe ser inútil.
+
+# 2. Catálogo completo de herramientas
+
+Cada herramienta tiene un uso, una interacción, restricciones y una razón para seguir existiendo después de desbloquear herramientas mejores.
+
+[Cartoon screwdriver with a yellow handle](https://images.openai.com/static-rsc-4/AIDLcoqmrMYnvaCGYDLNiohsyan3a4brX2KjZyz4EFy1uD6V_p2cajZ8V9vvCbMjwlomkfCMvZ5_C5sNVeae8UB_2Q-8WuYCFAyt99S7e05Ny9IY_xg7Y6HHR3FqjNYHdslSKVGzG20T7XsTFWkuulCc-OWBbLwS4yZeZa2-KSNR4kBiBJ2zDTKD8dxhgA6v?purpose=inline)
+
+H01 · Destornillador manual
+
+Inicial
+
+Retira tornillos pequeños de carcasas, paneles y equipos electrónicos. Se mantiene pulsado el botón de uso mientras una animación hace girar la herramienta.
+
+Cada tornillo tiene entre una y tres vueltas de trabajo. Si el jugador deja de pulsar, conserva el progreso.
+
+Ventaja: máxima precisión, no daña la pieza. Limitación: lento y no sirve para pernos grandes.
+
+[3D model Toolbox and tools - Stylized Low Poly VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/cHHqdjYgn8xStI10Wu82fQUnNQlo15pz_8ZcTH1gknRrQ-vpfQVdFcNaVLLXjTtIGvZK70MTaSMkOXCDIP24kTCF9WOB-z3mOGao38SyXtg9h1CChgObmpuMFyF2gScyrHEyd_mlO5quqvgKu20lBvpHWsUfoCyC-vrgY1yqH9k?purpose=inline)
+
+H02 · Llave inglesa
+
+Inicial
+
+Afloja tuercas y pernos de motores, ruedas y estructuras. El jugador realiza ciclos cortos de giro.
+
+Puede utilizarse sobre fijaciones medianas y algunas grandes, pero requiere más tiempo.
+
+Ventaja: versátil. Limitación: no corta ni rompe uniones soldadas.
+
+[All PNG Images & PSDs Available for Download | PixelSquid](https://images.openai.com/static-rsc-4/opSSbTgvY4-VYEZY1N1uRRA0oDQWlUrZ-4M0JUGzLqYZ4dY9Mu5AH_UBBBdHYXS57NwnEZEBshjpcuxJfyBlvCtr9l72qNsGwVAiVDXEagtWg1oo9UQnM4fLgrSxIXMMzMHNBBmFnH3nOhBS0eQoseng2wdx-jPLVmeFAy6XjTA?purpose=inline)
+
+H03 · Martillo
+
+Inicial
+
+Rompe vidrio, plástico deteriorado, paneles frágiles y fijaciones oxidadas.
+
+Los golpes generan daño localizado y pueden reducir la calidad de componentes cercanos.
+
+Ventaja: rápido y satisfactorio. Limitación: poco rentable para recuperar piezas delicadas.
+
+[Pliers](https://images.openai.com/static-rsc-4/g9mSxRTE1-OxS99Rmu2j7bgLK2Dki5lDGBLUSYhJS7zC2xWqQv6zKsARd5-EoRPka9SzbRk2SEYLEqy_WZ5EBG89UUirTs20LwQGaKS3l6D5mxs-0KgF7pZPgF5owb7hkPDJJotnKRXs2ZAmjBtwxAe4iuYOgXL9EhPR_56o-WI?purpose=inline)
+
+H04 · Alicate de corte
+
+Inicial
+
+Corta cables, bridas, conectores sencillos y pequeñas abrazaderas.
+
+Puede extraer cableado de forma cuidadosa si primero se desconectan sus terminales.
+
+Ventaja: permite recuperar cobre y electrónica. Limitación: no corta estructuras metálicas.
+
+[Cordless Drill | Powertools  models | Blendkit](https://images.openai.com/static-rsc-4/_Uxim96ZBej6FPRhet2GAT76OyDyCevFVPfBmwLnSoawpqQ4edFan47numFsc1By9aoCnip48pfYwOfpzwfzdejwZ9I1jH9YEnQxSpMzZyHsQXN_s2ez0tPt7nzu2jVPVGAwnubYbVjucgJK147FO9EQcxFA4bRiV13gtQ-Fal8?purpose=inline)
+
+H05 · Atornillador eléctrico
+
+Capítulo 2
+
+Retira tornillos pequeños y medianos mucho más rápido. Produce un sonido continuo y una animación de rotación.
+
+Los tornillos dañados pueden atascarse y requerir herramienta manual.
+
+Ventaja: velocidad. Limitación: no sustituye la llave para pernos grandes.
+
+H06 · Palanca
+
+Capítulo 2
+
+Se introduce en puntos marcados para separar paneles previamente liberados.
+
+El jugador mantiene pulsado para llenar un indicador de fuerza. Si todavía quedan fijaciones, puede doblar la pieza.
+
+Ventaja: permite retirar paneles grandes. Limitación: no elimina tornillos.
+
+[Angel Grinder | Powertools  models | BlenderKit](https://images.openai.com/static-rsc-4/K5MdYds7Apz5Lv5skDD_JmfL6uKJaV3b9cpj_6R-T6RIXNDzYB_sUygw0WpoPOnExkD5zTSbRADs9yrt4XkhvwHvevHm0Rr0PSxjVTTzhWnC8wIDqN6TChw0VYuG0xW1EYwQ1YJB_V4mgXvduuf_4ZFLw47t-MfqhrKFeWOo3NQ?purpose=inline)
+
+H07 · Amoladora
+
+Capítulo 2
+
+Corta soldaduras, bisagras dañadas, barras y uniones metálicas.
+
+Genera chispas y un medidor de temperatura. Si se utiliza demasiado tiempo, debe enfriarse brevemente.
+
+Ventaja: desbloquea desmontaje estructural. Limitación: puede dañar piezas valiosas.
+
+[WORX WX508.9 Akumulátorová Pila Ocaska 3D model - 3DModels.org](https://images.openai.com/static-rsc-4/jalKmAQqlBhiuuqxlGOxP-FvkXCDNH6VOhHpoiNKX2yGlwCorqBMenbSsirwKRrjqAT1Ces-tK76vggAn-7dRxDU234PVW1B4wpe7C-lXdxHiSVEwLCgEOIsrbeRXUWMhsI6p2Sv-3TowL0a-B7PCXKq873HCUYUCF_RSrpEoTg?purpose=inline)
+
+H08 · Sierra eléctrica
+
+Capítulo 3
+
+Corta paneles, tubos, soportes y materiales mixtos.
+
+A diferencia de la amoladora, sirve para piezas no metálicas y cortes largos.
+
+Ventaja: mayor versatilidad de materiales. Limitación: menos precisa en componentes pequeños.
+
+[CP7748 Series - Impact Wrenches - Pneumatic impact wrenches | custom.seo.applicationName](https://images.openai.com/static-rsc-4/0qpra9d_nOozHP7bTPBXc7ut1025qFpAKPR4vzutjik6e3jsqhH52tnzXAk-4KTT_o8BkY5lkP7_gITsXO48_GZ7lVQww_f1FWrviOKvezFpMIwB4_fgL3gh-x7azEYOyRhdVkNCB5T_KtrjTcrfzYYQJuiTYPdpXoc0ezhz0Gg?purpose=inline)
+
+H09 · Pistola de impacto
+
+Capítulo 3
+
+Retira pernos de ruedas, motores, suspensiones y maquinaria pesada.
+
+Produce golpes rotatorios y puede liberar fijaciones oxidadas.
+
+Ventaja: velocidad en vehículos. Limitación: no funciona con tornillos delicados.
+
+[3d Hydraulic Cutter Model](https://images.openai.com/static-rsc-4/Yn3nWVE3YG4DRr5dnx-dM2jennz9A0agZ03f53_LUTv00X7phgwht5nnPUsy9AJdJnDd_UwC26s558HmyX-jM6vm2pMT3qonsS-ZoyFkdYSDb8Iefcc7JAfiOaWH8ifIqOb_Fsyx5YO2GAJvF3Jtl51-WHmMEmp1bi8ieFuy4Js?purpose=inline)
+
+H10 · Cortadora hidráulica
+
+Capítulo 4
+
+Separa uniones estructurales y corta soportes gruesos.
+
+Su funcionamiento consiste en colocar las mordazas en un punto compatible y mantener pulsado hasta completar el corte.
+
+Ventaja: permite trabajar con maquinaria pesada. Limitación: lenta y poco útil en componentes pequeños.
+
+[Handheld Scanner 3D Model - TurboSquid 2177005](https://images.openai.com/static-rsc-4/pucPhsgPk_hZM6yrEmBboMhhOmWu4vHGJ88bW51Xj5WJpJn_R5X8VnzJYxKEpZ6ZH9Ezk78t8oNVpy_wltLfRmfC9Qeik0QjvYzwvjQ-_G9c965PnGhRNXpIdQ_Z39A3SG4D_fPfJU4q3C7hIHVoXVuDm3iGzHhFiCBjPygkxg0?purpose=inline)
+
+H11 · Escáner de componentes
+
+Capítulo 3
+
+Identifica piezas ocultas, materiales y posibles riesgos. No desmonta nada.
+
+Al inspeccionar un objeto, revela información parcial: valor estimado, componentes inaccesibles y zonas de interés.
+
+Ventaja: ayuda a decidir cómo trabajar. Limitación: no reemplaza la exploración física.
+
+[Sledge Hammer 3D Icons - Free Download in PNG, glTF](https://images.openai.com/static-rsc-4/qGBfEme8cCsdWO3kfYqwuYZWr2f5R9C5Zp0F7J6ym9pt0SbNwGC9PCKFM2m-M0bqWaIL1CxxIxPhRfOtnCEz80OTieNgWboZVRhKOxAOcVcifVYXhY5r224qsF93ePontPsdrfSL61TCWYxRaSAOeCPx2KBB5nMTP6p3eVcuNK4?purpose=inline)
+
+H12 · Mazo industrial
+
+Capítulo 3
+
+Destruye carcasas grandes y componentes de poco valor.
+
+Tiene una animación lenta y un impacto potente que puede desprender paneles dañados.
+
+Ventaja: ideal para contratos de destrucción. Limitación: perjudica la recuperación cuidadosa.
+
+## 2.1 Mejoras de herramientas
+
+Cada herramienta puede tener hasta tres niveles de mejora. En lugar de comprar diez versiones visualmente idénticas, mejoramos el equipo existente.
+
+| Mejora    | Nivel 1              | Nivel 2            | Nivel 3              |
+| --------- | -------------------- | ------------------ | -------------------- |
+| Velocidad | +10 %                | +20 %              | +30 %                |
+| Precisión | −10 % riesgo de daño | −20 %              | −30 %                |
+| Capacidad | Uniones básicas      | Uniones reforzadas | Uniones industriales |
+
+Los porcentajes son objetivos iniciales de balance. No todas las herramientas tienen las tres ramas: el escáner mejora alcance e información; el mazo mejora fuerza y control.
+
+Las herramientas no se consumen ni requieren mantenimiento repetitivo. Los jugadores pueden dejarlas en estaciones o equiparlas desde un soporte de herramientas.
+
+# 3. Catálogo de partes y componentes desmontables
+
+Para construir muchos objetos sin programar cada uno desde cero, necesitamos una biblioteca de componentes reutilizables.
+
+## 3.1 Componentes estructurales
+
+| Código | Componente          | Cómo se retira       | Qué produce           |
+| ------ | ------------------- | -------------------- | --------------------- |
+| P01    | Tornillo pequeño    | Destornillador       | Fijación reutilizable |
+| P02    | Perno mediano       | Llave                | Fijación metálica     |
+| P03    | Perno industrial    | Pistola de impacto   | Metal                 |
+| P04    | Panel plástico      | Tornillos o palanca  | Plástico              |
+| P05    | Panel metálico      | Pernos o palanca     | Hierro/aluminio       |
+| P06    | Bisagra             | Tornillos o corte    | Metal                 |
+| P07    | Soldadura           | Amoladora            | Chatarra metálica     |
+| P08    | Soporte estructural | Corte                | Hierro                |
+| P09    | Tubería             | Desconexión o sierra | Metal                 |
+| P10    | Cristal             | Desmontaje o rotura  | Vidrio                |
+
+Los tornillos pequeños no deberían convertirse en decenas de objetos físicos. Se representan como fijaciones interactivas y, al retirarlos, se contabilizan automáticamente como material cuando corresponda.
+
+## 3.2 Componentes mecánicos
+
+| Código | Componente      | Acceso necesario             | Recuperación                  |
+| ------ | --------------- | ---------------------------- | ----------------------------- |
+| P11    | Motor eléctrico | Retirar carcasa y fijaciones | Pieza completa o cobre/hierro |
+| P12    | Compresor       | Desconectar conexiones       | Pieza completa o materiales   |
+| P13    | Tambor          | Retirar soportes             | Metal                         |
+| P14    | Engranaje       | Abrir transmisión            | Pieza o hierro                |
+| P15    | Alternador      | Desconectar cableado         | Pieza o cobre                 |
+| P16    | Radiador        | Retirar fijaciones           | Aluminio                      |
+| P17    | Bomba           | Desconectar tuberías         | Pieza o metal                 |
+| P18    | Ventilador      | Retirar cubierta             | Pieza o plástico              |
+| P19    | Transmisión     | Liberar soportes             | Pieza o metal                 |
+| P20    | Amortiguador    | Retirar fijaciones           | Metal                         |
+
+## 3.3 Componentes eléctricos
+
+| Código | Componente        | Interacción               | Material principal   |
+| ------ | ----------------- | ------------------------- | -------------------- |
+| P21    | Cableado          | Desconectar o cortar      | Cobre                |
+| P22    | Placa electrónica | Desatornillar             | Electrónica          |
+| P23    | Transformador     | Retirar soportes          | Cobre/hierro         |
+| P24    | Interruptor       | Soltar conectores         | Electrónica/plástico |
+| P25    | Pantalla          | Separar marco             | Vidrio/electrónica   |
+| P26    | Sensor            | Desconectar               | Electrónica          |
+| P27    | Batería           | Desconectar y transportar | Pieza especial       |
+| P28    | Conector          | Soltar o cortar           | Cobre/plástico       |
+
+Las baterías y componentes con fluidos se manejan como objetos de riesgo ficticios y simplificados. No necesitamos enseñar procedimientos reales de manipulación de sustancias peligrosas.
+
+## 3.4 Componentes de vehículos
+
+| Código | Componente          | Operación                    |
+| ------ | ------------------- | ---------------------------- |
+| P29    | Rueda               | Retirar fijaciones           |
+| P30    | Puerta              | Liberar bisagras             |
+| P31    | Capó                | Liberar soportes             |
+| P32    | Asiento             | Retirar pernos               |
+| P33    | Volante             | Desconectar fijación         |
+| P34    | Paragolpes          | Soltar soportes              |
+| P35    | Escape              | Cortar o desconectar         |
+| P36    | Motor de combustión | Liberar soportes y usar grúa |
+| P37    | Depósito            | Retirar conexiones ficticias |
+| P38    | Chasis              | Cortar o compactar           |
+
+## 3.5 Estados y calidad
+
+Cada componente tiene:
+
+- Integridad: 0–100.
+- Calidad recuperable: 0–100.
+- Estado de fijación.
+- Herramientas compatibles.
+- Dependencias.
+- Peso de transporte.
+- Materiales obtenibles.
+- Valor de venta.
+- Efectos y sonidos.
+
+Integridad indica cuánto daño soporta. Calidad indica cuánto vale al recuperarlo. Son variables distintas: un motor puede estar bien sujeto pero deteriorado desde el inicio.
+
+# 4. Materiales recuperables
+
+Los materiales son la base de la economía. Deben tener usos distintos, no limitarse a ser seis monedas con nombres diferentes.
+
+[Rusty Scrap Props - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/xqqPOx-oo2ulE-8Fhi14VM0iz4Snjb2mPkLEVTZFn6GFEMjyI47pr_5F0KP33wundamFumYN-xxlJ_lffRCO-5_n0VBXvxaNdEG6Q_k4yN6kZu20uLyv9rJXGFWHQ1GaRQ-pkBvSVe91tqMaG_szyjxxb3xNUYZqjRxVx47py_8?purpose=inline)
+
+M01 · Hierro y acero
+
+El material más abundante. Se obtiene de carcasas, chasis, soportes y estructuras.
+
+Uso: venta por peso, contratos de volumen y compactación. Valor base: $2 por unidad.
+
+[Scrap metal (lowpoly) - Download Free 3D model by Zuckergelee (@knorke) \[439ed4e\] - Sketchfab](https://images.openai.com/static-rsc-4/NXcFZ1cdZxAPZdtdBRgnrBwPiFbw-B2OoBAnH07zNPilBst4VvQ7KwQfY9a_dA-rXVW2IiQTZV6qRC_ijxuX5srgYNTgfJxkKwdQutUku7Go2BHNVJJmyl9nIPoLHv6XJ_UfB72FZzylrNfHdMBb_NM0R-UcfNpWFiuOmb8V9kk?purpose=inline)
+
+M02 · Aluminio
+
+Procede de radiadores, paneles ligeros, carcasas y algunas piezas mecánicas.
+
+Uso: contratos de recuperación selectiva. Valor base: $5 por unidad.
+
+[Is Copper an Element on the Periodic Table? Cu Facts and Uses - MetalStudy Forge](https://images.openai.com/static-rsc-4/zdAEbPywL_f_G2CYs2MgjNo8vlVe0m9Us-I9-y5o_g5hiSjYQK8H4NIDdDLECB4EHP8iIizb-1ccyeDF5ncwgCw-VuvVMUZ2ArG_y7jUgdVBse1xrJmiN19y0uLDps5peljKWbXx8lRsM_TUWAGpdBR0o34CKEl8hm9mCQ2h43Q?purpose=inline)
+
+M03 · Cobre
+
+Se recupera de cables, motores, transformadores y alternadores.
+
+Uso: material de alto valor. Extraerlo cuidadosamente produce mayor rendimiento. Valor base: $12 por unidad.
+
+[Low poly Garbage Pack | Premium Unity Assets - Ultimate Unity Assets](https://images.openai.com/static-rsc-4/2mnLBOQNfP24NqEQRyUHbFGZXShMUCz7tdz3G5StkhQ6kSnSc2PE9vp1BpY1z6z5qgpKy7PMWPbjJ_FnDPKlktiC8veFnO1PLQvZAeNhzsjZgntW1T8uob_4lGqpuqfAkZFpJGJpwZ5csiZCrph5DrcrZ71uzVEYylw1lK93TTw?purpose=inline)
+
+M04 · Plástico
+
+Procede de carcasas, interiores, paneles y accesorios.
+
+Uso: venta en lotes y contratos de clasificación. Valor base: $1 por unidad.
+
+[Tethys tumbler 520 ml - light blue – Domus Artis](https://images.openai.com/static-rsc-4/-Zpyy3W5Q5Cy3YWt7NwR5MAQAcx2CNkWMk7OGIKS0PrrEUSwjIBddbDq6MgZ1lGRVdx0efEQUzq7LNqtOaACkvHuGbvN8ZV72Qbzh4fKijBj1PGy_GYNaSfN8Hm5ntw7RNec25tYrxAN3PZHXE9cBja63XZnxB1MoD5kLOm3bGw?purpose=inline)
+
+M05 · Vidrio
+
+Se obtiene de pantallas, ventanas y cubiertas.
+
+Uso: venta por volumen. Valor base: $1,5 por unidad.
+
+[LOW POLY MICROCHIP CITY](https://images.openai.com/static-rsc-4/4KtEsDmREpU8HbqAqrkfIvOjAFxyYFPoYCseUXVOlja66WuahSIMBtOI6_vBmA3KosnSlGMa5MsdGLt909_hSOAIbQGlBClf4rkguLLwBEWu2sp0ffhu0T7wTPdlMuKciFfz74yZ2EcL3uSLsC5ZPa3w42ggHHWNbT1NZt7iym4?purpose=inline)
+
+M06 · Electrónica
+
+Placas, sensores y circuitos que no pueden venderse completos.
+
+Uso: contratos especializados y venta de alto valor. Valor base: $15 por unidad.
+
+## 4.1 Materiales especiales
+
+Agregaría tres categorías que no se venden como chatarra común:
+
+| Material             | Procedencia                        | Uso                               |
+| -------------------- | ---------------------------------- | --------------------------------- |
+| Componentes intactos | Motores, compresores, alternadores | Venta premium y contratos         |
+| Residuos especiales  | Baterías y fluidos ficticios       | Entrega a estación de tratamiento |
+| Piezas misteriosas   | Contratos de campaña               | Progresión narrativa              |
+
+Los residuos especiales no se pueden tirar a la compactadora. Deben depositarse en un contenedor específico; hacerlo correctamente paga una pequeña bonificación.
+
+## 4.2 Clasificación
+
+Los materiales se venden mediante contenedores identificados por nombre, símbolo y color.
+
+Si un jugador deposita un material incorrecto, el sistema lo rechaza y lo devuelve a la bandeja de clasificación. No desaparece ni provoca una penalización permanente.
+
+Los objetos completos pueden venderse en una estación distinta, con precio según calidad.
+
+# 5. Maquinaria industrial
+
+La maquinaria debe modificar realmente la forma de trabajar. No quiero máquinas que solo den bonificaciones invisibles.
+
+## 5.1 Compactadora
+
+[Junkyard Empire Simulator on Steam](https://images.openai.com/static-rsc-4/Ol6PPSw2vjaVEXpH3_G7UU2LT_ddcJvHfnTSKjQF6qp0oEUERe8tONpzHnu3pSUl-Vty0NnBcM2XzSOWBsq-ZUNv5RN68sKkDu32RkuZTfA4h4Q5UVMtPt1nQ3Cc0vvQK1lXthsZWh3udrHT9jfMusUPHcyubQM6rPH70F1hUfQ?purpose=inline)
+
+[store.steampowered.com](https://store.steampowered.com/app/3281630/Junkyard_Empire_Simulator/?utm_source=chatgpt.com)
+
+Función: convertir chatarra suelta en bloques de material.
+
+Operación:
+
+1. Cargar piezas compatibles.
+2. Cerrar la compuerta.
+3. Activar el botón.
+4. Ver la animación de compactación.
+5. Retirar el bloque terminado.
+
+Beneficio: agrupa materiales, libera espacio y facilita la venta por volumen.
+
+Incidente cómico: si alguien introduce un objeto decorativo, la máquina lo rechaza y muestra «ESTO TIENE VALOR SENTIMENTAL».
+
+Desbloqueo: capítulo 3, tras reparar el taller.
+
+## 5.2 Grúa de pórtico
+
+[Junkyard - Low-Poly 3D Models Pack - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/HWqYs2SbXk-vsgk0uagcDiGbFU7sBTZlZlAMHIOreaCnkTDnfLDQAXoPDYh_X9AhCc2ulwccOrQz_ixquWSMDs7z49KZy_r7d_7QoO6wvitcdXUdNUk4_U20t2_697vPts7LceYCuGa_Bof_Yc_AZ3k7JhqJsXMvlivIiq-qh6c?purpose=inline)
+
+[superhivemarket.com](https://superhivemarket.com/products/junkyard?utm_source=chatgpt.com)
+
+Función: levantar motores, carrocerías y componentes pesados.
+
+Operación: seleccionar un punto de enganche, mover el carro mediante controles simples y depositar la carga en una zona válida.
+
+No simularía cables flexibles complejos. La carga se mueve siguiendo posiciones controladas.
+
+Beneficio: permite recuperar piezas grandes intactas.
+
+Incidente: ocasionalmente reproduce una advertencia exagerada por una carga diminuta.
+
+Desbloqueo: capítulo 3, antes de aceptar vehículos completos.
+
+## 5.3 Cinta clasificadora
+
+[Recycling Center Simulator on Steam](https://images.openai.com/static-rsc-4/EZHRSjzzGlgXzWzUOB5zf1gLgjX7fiX_drs-3PKQFuQ3J2BSSYrOyOek_wilNKm-xuY4NRzc9Uep0Vmk7p48PKuw9bpEfv8FtHHcy6jWdbavyPLSF1S1IeMF1jH-tYEIUg7MKEI3PmgzoqFPtJrC_8hsyE7oYLP2JJj04RSS4Ak?purpose=inline)
+
+[store.steampowered.com](https://store.steampowered.com/app/2928520/Recycling_Center_Simulator/?utm_source=chatgpt.com)
+
+Función: transportar materiales desde el patio hasta la zona de clasificación.
+
+Operación: colocar piezas en la entrada y elegir su salida mediante botones.
+
+Beneficio: permite trabajar en paralelo y reduce viajes.
+
+Incidente: el sistema anuncia «OBJETO DESCONOCIDO» al recibir un patito de goma.
+
+Desbloqueo: capítulo 3, después de la compactadora.
+
+## 5.4 Banco de desmontaje
+
+Función: sujetar objetos pequeños y medianos para trabajarlos con precisión.
+
+Operación: colocar una pieza, fijarla y utilizar herramientas compatibles.
+
+Beneficio: reduce el riesgo de daño y permite recuperar electrónica delicada.
+
+Desbloqueo: disponible desde el inicio en versión básica; se mejora en capítulo 2.
+
+## 5.5 Mesa de inspección
+
+Función: evaluar el estado y valor de componentes.
+
+Operación: colocar una pieza y activar el escáner.
+
+Beneficio: revela calidad, valor estimado y posibles contratos relacionados.
+
+Desbloqueo: capítulo 2.
+
+## 5.6 Separador de cableado
+
+Función: convertir conjuntos de cables en cobre y plástico.
+
+Operación: cargar un paquete de cableado y activar un ciclo corto.
+
+Beneficio: mejora el rendimiento económico del cobre recuperado.
+
+Desbloqueo: capítulo 2.
+
+## 5.7 Estación de residuos especiales
+
+Función: procesar baterías y recipientes de residuos ficticios.
+
+Operación: colocar el objeto en el receptáculo correcto.
+
+Beneficio: completa objetivos de seguridad y paga bonificaciones.
+
+Desbloqueo: capítulo 2, antes de recibir objetos que la requieran.
+
+## 5.8 Prensa hidráulica
+
+Función: deformar o separar componentes grandes de bajo valor.
+
+Operación: colocar la pieza, ajustar la posición y activar la prensa.
+
+Beneficio: acelera contratos de destrucción.
+
+Incidente: el sistema puede mostrar «RESULTADO: MÁS PLANO».
+
+Desbloqueo: capítulo 4.
+
+## 5.9 Montacargas guiado
+
+Función: mover palés y contenedores grandes.
+
+Operación: elegir origen y destino en un panel. El vehículo realiza un recorrido predefinido.
+
+Beneficio: reduce el trabajo manual en contratos grandes.
+
+Desbloqueo: capítulo 4.
+
+No sería un vehículo conducible en la versión inicial. Eso reduciría considerablemente la complejidad.
+
+## 5.10 Máquina reconstructora
+
+Función: maquinaria especial de campaña que reconstruye objetos.
+
+Operación: se desbloquea al final de la historia. Recibe componentes y genera versiones reconstruidas de determinados objetos.
+
+Beneficio: modo libre, encargos especiales y nuevas recompensas.
+
+Desbloqueo: final del capítulo 5.
+
+Esta máquina es excepcional y no forma parte de la economía normal durante los primeros capítulos.
+
+# 6. Catálogo completo de objetos que recibe la chatarrería
+
+Un arquetipo es un tipo de objeto con su propio modelo, piezas y lógica de desmontaje. Un contrato utiliza uno o varios arquetipos, con objetivos y condiciones diferentes.
+
+Para la versión comercial definiría 12 arquetipos: ocho habituales y cuatro especiales. Así tendremos variedad sin tener que programar una mecánica distinta para cada objeto.
+
+## 6.1 Objetos habituales
+
+[3D model Retro TV VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/TpcgbK_HRJeZkURfeTgJFX5J_O1oMZncRJPncqJaohkXElb_XlWHJz6dPkCnKBP84qJ7L8B_Zhr9LLu05IVTcVfkbhYOOEKR2CSK02gGZA67keD5pLsdVMvqpL-pS1Qn7eXJnW-G0OXLOL7fNsvVtTU-VKFBuxNTljK1cXBfhFY?purpose=inline)
+
+O01 · Televisor antiguo
+
+Nivel 1 · 6 componentes · 5–8 min
+
+Piezas: carcasa, pantalla, placa, transformador, cableado y soportes.
+
+Secuencia: abrir carcasa, retirar conexiones, extraer electrónica y separar materiales.
+
+Decisión: recuperar la placa intacta o destruir el aparato rápidamente.
+
+Particularidad: algunos televisores muestran mensajes extraños antes de desmontarlos.
+
+[3d Rusted Washing Machine](https://images.openai.com/static-rsc-4/sEpxbtPj6Xb0I3EKqoxm8uikg02eMFcEdVlP4lZARs902_u9EfrqW6sPgmwCEqZ1AfHDkp8Q9FX8ysDVMFOZAj3TuqcGZWpzaaNCOla8zgZlPe0eZ1he31AzBuCnUA__4FQVwf0qGd2LPxpB5AMXIBWEdDkGiw7BHYxbx35TBfo?purpose=inline)
+
+O02 · Lavadora
+
+Nivel 1 · 10 componentes · 8–12 min
+
+Piezas: paneles, tambor, motor, bomba, cableado, interruptores y carcasa.
+
+Secuencia: retirar paneles, desconectar cableado, liberar motor y extraer tambor.
+
+Decisión: vender motor y tambor completos o procesarlos como materiales.
+
+Particularidad: puede vibrar cómicamente si alguien activa el interruptor de prueba.
+
+[3D model Stylized Fridge VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/dTTQ-HgDFXIVsoNTrLpTni_BlKc-_dbkSUEkcUMq7dvBpYSLWHP_s2Lz8U2y7IyhWq6-OcENgie0TCizHrjvCbuRvRcDMScaQI-zlAsdpzR0sGMRJgXcSMA42Rmu9YLTMo5GXhYWYUzlvN1xXR85WP-rk46wtvLAiENQRe6RUXM?purpose=inline)
+
+O03 · Heladera
+
+Nivel 1–2 · 11 componentes · 10–15 min
+
+Piezas: puertas, estantes, carcasa, compresor, cableado, ventilador y módulo sellado.
+
+Secuencia: retirar accesorios, paneles y componentes eléctricos; entregar el módulo sellado a la estación correspondiente.
+
+Decisión: recuperar compresor y accesorios o procesar la carcasa.
+
+Particularidad: puede contener objetos olvidados por su antiguo dueño.
+
+El circuito frigorífico se trata como un módulo cerrado: el juego no enseña a perforarlo ni liberar refrigerante.
+
+[Post-Generator – Download Free 3D Model | Meshy](https://images.openai.com/static-rsc-4/VzOjxpjBq5JSxL7Q7o5ViIu7NfVO8_Lj5gCOIOm_lpRg9oewIU5PZfTDVue3WWXgT9nqlwUb11gFnFYu3sKAkA0qa2R6b2sCYSi3WFkCoOoJdyRlqQqLska2lnmZ3j_81_02EArDedpRfMz8OnRpexIt5wwfCErxxeIV9e-U0XI?purpose=inline)
+
+O04 · Generador
+
+Nivel 2 · 13 componentes · 12–18 min
+
+Piezas: cubierta, motor, bobinas, ventilador, controles, depósito sellado y estructura.
+
+Secuencia: retirar cubierta, aislar módulos, liberar soportes y extraer bobinas.
+
+Decisión: vender módulos completos o recuperar cobre.
+
+Particularidad: al pulsar «PROBAR» puede encender las luces del taller durante tres segundos y apagarse.
+
+[Post-Apocalyptic Survival Urban City Props and Road Signs Pack - 135 3d Models](https://images.openai.com/static-rsc-4/-iam-87ypJbbL3zy3gGEUJ6EfD6AUzWZWaSingxrsmPiLc8ok0h-2OgUzRCJrF3oHJfUjfoYlZrNZm8gJxu3RtchR3J45_pXR0zBiE-j97ElWmQq7ZHDagDN4m4NaYs22XtSjZ2MhtxJM3wnr46StuBy21x0TxkTkpwIAHZZ7DM?purpose=inline)
+
+O05 · Motocicleta
+
+Nivel 2 · 15 componentes · 12–20 min
+
+Piezas: ruedas, asiento, tanque sellado, escape, motor, batería, luces y chasis.
+
+Secuencia: retirar accesorios, ruedas, conexiones y motor.
+
+Decisión: conservar motor y ruedas o vender todo como chatarra.
+
+Particularidad: la bocina puede seguir funcionando inexplicablemente.
+
+[HL2 Hatchback Remade - 3D model by Renafox (@kryik1023) \[3abf8e9\] - Sketchfab](https://images.openai.com/static-rsc-4/hEPPCEpFvBg9W38GX5GO1_SmTGWfBkMqvL9jSHeSFMq5IG4VafpRUspc4fyCHJNUygRjdfoR04Uc6xT3UlDEShRmUXkjthWTKqueNi3s01htnIcmo_jjQ9LYaEzKi3blGosWCOEXD4LjedACjuD_fyFrMeJByAUWviOMdZoHRAs?purpose=inline)
+
+O06 · Auto compacto
+
+Nivel 3 · 24 componentes · 20–30 min
+
+Piezas: puertas, capó, ruedas, asientos, batería, alternador, radiador, motor y carrocería.
+
+Secuencia: retirar exteriores, recuperar componentes, liberar motor y procesar chasis.
+
+Decisión: desmontaje cuidadoso para vender piezas completas o destrucción rápida.
+
+Particularidad: algunos autos llegan con objetos escondidos en la guantera.
+
+[3d Old Rusty Pickup Truck](https://images.openai.com/static-rsc-4/hiIUTlAzPVcElbZNndAXVAq6oiUBgogRi8hiDOfEqO9LYoE9xTIPfO1pF8XEvduzqXiypFZGrWyy5vpjqDMPSb8lSaZ4rnQFVOL41qMOfQ6rJjZZhos1CnzBLKHH54FJnaX8YdZhqdsKGnHNh6C07GwqN-2iSRPiCbM7NN4c-4M?purpose=inline)
+
+O07 · Camioneta
+
+Nivel 3 · 27 componentes · 25–35 min
+
+Piezas: similares al auto, pero con chasis reforzado, caja de carga y componentes pesados.
+
+Secuencia: desmontar exteriores, liberar componentes pesados y utilizar la grúa.
+
+Decisión: recuperar piezas de alto valor o priorizar volumen de materiales.
+
+Particularidad: puede traer carga inesperada en la caja.
+
+[Hydraulic Press — The Bazaar Item | Bazaardex](https://images.openai.com/static-rsc-4/s3Dj520jJ9kp-_sJoc7YuQzp0cy4nvV-4nEF56O8Vn7nBDw0RYZAtfypLptF7wBW5EXggzw4-QEvjqN-23Ga9wkK4S7tw3OyoXoa0pukHZmeJ6XLbeIdng37ZcRGsgLCPNVyxRFRVW72LPOqhAXx0MQRM27i9Itd8TEqvKsrXe4?purpose=inline)
+
+O08 · Máquina industrial
+
+Nivel 4 · 30 componentes · 30–45 min
+
+Piezas: estructura, paneles, motor, engranajes, bomba, controles y soportes industriales.
+
+Secuencia: inspeccionar, liberar paneles, desmontar módulos y retirar piezas pesadas.
+
+Decisión: vender módulos especializados o recuperar materiales.
+
+Particularidad: sus indicadores muestran mensajes sin sentido.
+
+## 6.2 Objetos especiales de campaña
+
+[Tele 5 | CapeRock](https://images.openai.com/static-rsc-4/ESwof3I94eOKoXgamtxOVwPfmj4f9U1mVZn5IrtHNnjOpsQwdsRDkmEOKnqIorHZM5qqE1mhaoaKp9axs7JOEXpQJgfz2suhYndxAU7gQYbiyvViBGM6HoqoNq-XhbSRJyiDbV3Vcqj5k2we2gRAcmDRj-AZnUIdQPozKpR5ZxI?purpose=inline)
+
+O09 · El televisor que no se apaga
+
+Versión especial del televisor con placa oculta y mensajes narrativos. Introduce la primera pista sobre Ernesto.
+
+[Mechanic Simulator: Car Repair — play on Playgama (by MK-Play)](https://images.openai.com/static-rsc-4/hwFDNC2Smuwot9GVLtWUv9pZlO43_6nqJXv2Az2memWHb7oY2tsB_62RsPVPJetyZpzZAM05Oqighd_DzpUggHfLetn2Mk_24OBw5s4E2h9NKcedqZm4t6y3xjpjp8N822ASVafO3KlSDNv28AMru13uBVje29bi-5wKyHjIjuU?purpose=inline)
+
+O10 · El auto de Ernesto
+
+Contiene documentos, una caja escondida y un componente que conecta con la instalación desconocida.
+
+[Voodoo Detective | Adventure Game Hotspot](https://images.openai.com/static-rsc-4/7zylLJCnlOspWDiEKnCFIaoFIvG6pNyjHPqU_grLBml7s1JHigZtOP8IroqXry3_R463nEHtXmpwJvfdh3KFTaHyenqD-blzhKzwiLtFlJ_tLEK0C1WVA9Ue5g44LFtb6eWRjp81EUJzjZDRhf5VJT1I8rW2rTtpAnE3LRdJQII?purpose=inline)
+
+O11 · La máquina sin fabricante
+
+Tiene componentes incompatibles entre sí y reacciona a cada módulo retirado. Su desmontaje funciona como un pequeño acertijo industrial.
+
+[Автор Dishonored и Prey анонсировал новую игру. Рафаэль Колантонио делает immersive sim в альтернативной Америке 1900-х](https://images.openai.com/static-rsc-4/9v0rt490LBjCrS9Kp2wSeRH3o7ihEqNrCD5dt2chvVVz4Fron9t2GLxLv9jg_evt7fqK0fNNkeigkcnMbcfeKYuYZvorDoe7Q6fsOQcPt783OfTtqYBeykD4FkuSss-nMD05Cl9wY0AJZwpduooabfTvD6L_7gjPDx_QuSpQcRI?purpose=inline)
+
+O12 · El último encargo
+
+Gran proyecto final que requiere todas las herramientas y varias máquinas. Su resolución desbloquea la reconstructora y el final de campaña.
+
+## 6.3 Variantes del catálogo
+
+Cada objeto habitual puede aparecer en cuatro condiciones.
+
+| Variante   | Cambios jugables                                                         |
+| ---------- | ------------------------------------------------------------------------ |
+| Normal     | Todas las piezas presentes y accesibles según sus dependencias           |
+| Oxidado    | Algunas fijaciones requieren palanca o corte                             |
+| Dañado     | Menor calidad inicial; conviene procesar materiales                      |
+| Incompleto | Faltan componentes; hay que inspeccionar antes de aceptar una extracción |
+
+También puede incluir un modificador especial: pieza de colección, componente de alto valor, objeto perdido o contrato urgente.
+
+Esto permite reutilizar los 8 arquetipos sin que todos los encargos sean idénticos.
+
+# 7. Tipos de encargo
+
+Definiría seis tipos, cada uno con reglas y recompensas propias.
+
+## T01 · Recuperación general
+
+Objetivo: desmontar un objeto y procesar un porcentaje mínimo de su valor recuperable.
+
+El jugador decide qué piezas vender intactas y cuáles convertir en materiales.
+
+Éxito: procesar el objeto y cerrar el encargo.
+
+Recompensa: tarifa fija más valor de venta.
+
+Ejemplo: recibir una lavadora, recuperar motor y cobre, compactar la carcasa.
+
+## T02 · Extracción de precisión
+
+Objetivo: recuperar una pieza específica por encima de una calidad mínima.
+
+Éxito: entregar la pieza solicitada en el mostrador.
+
+Recompensa: pago elevado por el componente, más materiales secundarios.
+
+Ejemplo: extraer un alternador con calidad mínima de 80.
+
+Si la pieza se daña, el encargo puede completarse con pago reducido o sustituirse por otro; no debe bloquear la campaña.
+
+## T03 · Destrucción controlada
+
+Objetivo: procesar rápidamente un objeto cuyo valor principal está en sus materiales.
+
+Éxito: alcanzar la cantidad de material solicitada.
+
+Recompensa: pago fijo y materiales recuperados.
+
+Ejemplo: destruir una carcasa oxidada y compactar el hierro.
+
+Este contrato justifica utilizar mazo, sierra y prensa.
+
+## T04 · Clasificación por lote
+
+Objetivo: procesar varios objetos o un contenedor mixto.
+
+Éxito: entregar cantidades específicas de materiales.
+
+Recompensa: bonificación por clasificación correcta y volumen.
+
+Ejemplo: separar 20 unidades de hierro, 8 de aluminio y 5 de cobre.
+
+Debe ser útil cuando varios jugadores quieran trabajar en paralelo.
+
+## T05 · Restauración parcial
+
+Objetivo: conservar un conjunto de componentes y comprobar que el módulo recuperado funciona dentro de la lógica ficticia del juego.
+
+Éxito: recuperar el módulo completo, colocarlo en la mesa de inspección y superar la comprobación.
+
+Recompensa: pago premium.
+
+Ejemplo: recuperar el motor de un generador sin destruir sus bobinas.
+
+No introduciría un sistema general de reparación pieza por pieza; sería una inspección y recuperación cuidadosa.
+
+## T06 · Encargo especial
+
+Objetivo: cumplir una secuencia narrativa única.
+
+Puede combinar desmontaje, inspección, transporte, maquinaria y exploración.
+
+Éxito: completar los hitos específicos del contrato.
+
+Recompensa: desbloqueos, documentos, instalaciones o capítulos.
+
+Estos encargos no se generan aleatoriamente y no pueden repetirse durante la misma campaña.
+
+# 8. Los 12 contratos principales
+
+Estos serían los contratos diseñados manualmente para la campaña. Además existirían trabajos repetibles basados en los arquetipos habituales.
+
+| Código | Contrato                           | Tipo          | Capítulo | Recompensa base |
+| ------ | ---------------------------------- | ------------- | -------- | --------------- |
+| C01    | El primer desastre                 | Recuperación  | 1        | $150            |
+| C02    | Lavado de dinero (literalmente no) | Recuperación  | 1        | $280            |
+| C03    | La heladera del vecino             | Extracción    | 1        | $350            |
+| C04    | Señal interrumpida                 | Especial      | 1        | $400            |
+| C05    | Energía de segunda mano            | Restauración  | 2        | $650            |
+| C06    | Dos ruedas, demasiados problemas   | Recuperación  | 2        | $850            |
+| C07    | Cobre para todos                   | Clasificación | 2        | $950            |
+| C08    | Auto con historia                  | Especial      | 3        | $1.500          |
+| C09    | La camioneta del municipio         | Destrucción   | 3        | $1.800          |
+| C10    | Inventario imposible               | Clasificación | 4        | $2.400          |
+| C11    | Sin fabricante                     | Especial      | 4        | $3.500          |
+| C12    | La última entrega                  | Especial      | 5        | $6.000          |
+
+Las recompensas son propuestas iniciales, adicionales a las ventas de materiales cuando corresponda.
+
+## 8.1 Desarrollo de cada contrato
+
+C01 — El primer desastre
+
+Llega un televisor roto. El jugador aprende a inspeccionar, desatornillar, separar carcasa, recuperar placa y vender materiales.
+
+Giro: el cliente exige recuperar el control remoto, que no estaba incluido.
+
+Desbloquea: tablero de contratos y venta de materiales.
+
+C02 — Lavado de dinero (literalmente no)
+
+Una lavadora con motor recuperable. Enseña dependencias entre paneles y componentes internos.
+
+Giro: la máquina vibra cuando alguien pulsa el botón de prueba.
+
+Desbloquea: banco de desmontaje mejorado.
+
+C03 — La heladera del vecino
+
+Hay que extraer un compresor sin dañar el módulo sellado y clasificar los accesorios.
+
+Giro: aparece un objeto coleccionable dentro.
+
+Desbloquea: estación de residuos especiales y acceso a encargos de nivel 2.
+
+C04 — Señal interrumpida
+
+Un televisor que muestra mensajes incluso estando desconectado. Deben retirar su placa intacta.
+
+Giro: aparece por primera vez el nombre Reutilizaciones Integrales S.A.
+
+Desbloquea: primera pista narrativa y capítulo 2.
+
+C05 — Energía de segunda mano
+
+Recuperar el módulo principal de un generador.
+
+Giro: el sistema de prueba enciende brevemente luces de todo el patio.
+
+Desbloquea: herramientas eléctricas y mesa de inspección.
+
+C06 — Dos ruedas, demasiados problemas
+
+Desmontar una motocicleta conservando ruedas y motor.
+
+Giro: su bocina suena sola durante la inspección.
+
+Desbloquea: contratos de vehículos y nuevos soportes.
+
+C07 — Cobre para todos
+
+Recibir tres equipos pequeños y recuperar un lote de cobre.
+
+Giro: una caja está etiquetada «COBRE» y contiene únicamente tornillos.
+
+Desbloquea: separador de cableado y capítulo 3.
+
+C08 — Auto con historia
+
+Llega el antiguo auto de Ernesto. Deben retirar componentes sin destruir el compartimento oculto.
+
+Giro: encuentran documentos que contradicen la versión oficial de su desaparición.
+
+Desbloquea: llave del archivo del galpón.
+
+C09 — La camioneta del municipio
+
+Encargo de destrucción que obliga a utilizar grúa y compactadora.
+
+Giro: la documentación dice «DEVOLVER EN PERFECTO ESTADO» pese a ser un contrato de chatarra.
+
+Desbloquea: prensa hidráulica y capítulo 4.
+
+C10 — Inventario imposible
+
+Clasificar un lote mixto con piezas de distintos equipos.
+
+Giro: aparece un componente con un código que no corresponde a ningún objeto del catálogo.
+
+Desbloquea: acceso al galpón del fondo.
+
+C11 — Sin fabricante
+
+Desmontar una máquina desconocida siguiendo pistas encontradas en el archivo.
+
+Giro: cada módulo retirado activa un sistema diferente del galpón.
+
+Desbloquea: capítulo 5 y la orden del último encargo.
+
+C12 — La última entrega
+
+Recibir una máquina gigantesca. Hay que inspeccionar, separar blindajes, transportar módulos, utilizar grúa y preparar la reconstructora.
+
+Giro: la máquina comienza a reconstruir objetos cuando los jugadores creen haber terminado.
+
+Desbloquea: final de campaña, reconstructora y modo libre.
+
+## 8.2 Contratos repetibles
+
+El tablero ofrece tres contratos repetibles por renovación de jornada: uno sencillo, uno del nivel actual y uno opcionalmente difícil.
+
+Se generan seleccionando:
+
+`Arquetipo + Estado + Tipo de encargo + Objetivo + Recompensa`
+
+Ejemplo: `Motocicleta + Oxidada + Extracción + Motor calidad ≥75 + $780`.
+
+El generador debe validar que el objetivo sea posible con el estado del objeto y las herramientas disponibles. Nunca debe pedir recuperar una pieza ausente.
+
+# 9. Mapa completo y desbloqueo de áreas
+
+La chatarrería es un único recinto persistente, no una colección de niveles separados.
+
+El jugador empieza en una pequeña zona funcional. Al comprar ampliaciones se abren portones, se retiran escombros y aparecen instalaciones nuevas.
+
+### Plano funcional propuesto
+
+Esquema de zonas y desbloqueos. No representa dimensiones ni recorridos definitivos.
+
+## 9.1 Zonas detalladas
+
+| Zona                        | Función                                     | Disponible |
+| --------------------------- | ------------------------------------------- | ---------- |
+| A. Oficina                  | Contratos, compras, historia, estadísticas  | Inicio     |
+| B. Patio central            | Desmontaje principal                        | Inicio     |
+| C. Muelle de descarga       | Recepción de objetos y contenedores         | Inicio     |
+| D. Venta y clasificación    | Entrega de materiales y piezas              | Inicio     |
+| E. Taller                   | Herramientas eléctricas, inspección y banco | Cap. 2     |
+| F. Almacén                  | Guardar piezas y objetos coleccionables     | Cap. 2     |
+| G. Patio de maquinaria      | Grúa, compactadora y cinta                  | Cap. 3     |
+| H. Galpón del fondo         | Investigación y encargos misteriosos        | Cap. 4     |
+| I. Cámara de reconstrucción | Proyecto final y máquina especial           | Cap. 5     |
+
+### Oficina
+
+Contiene un tablero de contratos, terminal de mejoras, libro de inventario, pizarra de deudas y escritorio del antiguo dueño.
+
+Se amplía visualmente: de una oficina desordenada con una bombilla a un espacio equipado con archivadores, monitores y trofeos.
+
+### Patio central
+
+Es el área más grande y el corazón del juego. Tiene estaciones de trabajo, soportes de herramientas, zonas marcadas para objetos y espacio para transportar piezas.
+
+Debe permitir que siete jugadores trabajen sin bloquearse continuamente.
+
+### Muelle de descarga
+
+Recibe objetos mediante camiones guionizados. El objeto aparece en una plataforma de entrega y pasa al patio cuando hay espacio disponible.
+
+No se necesita simular conducción libre de camiones.
+
+### Venta y clasificación
+
+Contiene seis contenedores de materiales, báscula, mesa de piezas completas y terminal de despacho.
+
+En niveles superiores se conecta a la cinta clasificadora.
+
+### Taller
+
+Contiene bancos de trabajo, mesa de inspección, herramientas eléctricas y separador de cableado.
+
+Se desbloquea retirando escombros y pagando la reparación del techo y la instalación eléctrica.
+
+### Almacén
+
+Contiene estanterías con espacios de almacenamiento definidos. Los objetos se guardan como registros persistentes, aunque una representación visual simplificada aparece en las estanterías.
+
+No necesita mostrar físicamente cientos de piezas individuales.
+
+### Patio de maquinaria
+
+Incluye compactadora, grúa y cinta. Es una zona amplia con recorridos de carga y puntos de entrega claramente señalizados.
+
+### Galpón del fondo
+
+Empieza cerrado y visible desde el primer minuto. Tiene documentos, maquinaria antigua y un acceso a la cámara final.
+
+Debe despertar curiosidad desde el comienzo.
+
+### Cámara de reconstrucción
+
+Área especial que aparece en el último capítulo. Contiene la máquina de Ernesto y el proyecto final.
+
+Después de la campaña se convierte en una instalación opcional para contratos avanzados.
+
+# 10. Experiencia, niveles y progresión
+
+No utilizaría niveles de personaje basados en combate ni puntos de habilidad tradicionales.
+
+El progreso se dividiría en tres sistemas que se complementan:
+
+1. Reputación de la chatarrería: determina qué clientes confían en el negocio.
+2. Desarrollo de instalaciones: determina qué objetos y procesos podemos manejar.
+3. Experiencia individual: reconoce cómo juega cada persona y desbloquea cosméticos, sin dar ventajas excesivas.
+
+## 10.1 Reputación de la empresa
+
+La reputación se obtiene al completar contratos. No se pierde por bromas o pequeños errores.
+
+### Escalera de reputación
+
+## 1
+
+Chatarrero improvisado
+
+0 reputación acumulada · Electrodomésticos básicos
+
+## 2
+
+Recuperador autorizado
+
+300 reputación acumulada · Generadores, motocicletas y herramientas eléctricas
+
+## 3
+
+Desguace profesional
+
+900 reputación acumulada · Autos, camionetas y maquinaria pesada
+
+## 4
+
+Operador industrial
+
+1900 reputación acumulada · Máquinas industriales y contratos especializados
+
+## 5
+
+Leyenda del reciclaje
+
+3300 reputación acumulada · Último encargo y contratos avanzados
+
+### Cómo se gana reputación
+
+| Acción                                | Reputación |
+| ------------------------------------- | ---------- |
+| Contrato pequeño                      | +30        |
+| Contrato mediano                      | +60        |
+| Contrato grande                       | +100       |
+| Contrato especial                     | +150       |
+| Objetivo de calidad cumplido          | +15        |
+| Primer contrato perfecto de cada tipo | +20        |
+
+Estos valores son iniciales y deberán ajustarse al ritmo real de la campaña.
+
+Importante: la reputación no reemplaza los requisitos de capítulos. Para desbloquear un área importante se necesita tanto el progreso narrativo como la instalación correspondiente.
+
+## 10.2 Experiencia individual
+
+Cada jugador tiene un perfil local con experiencia por actividad:
+
+| Especialidad  | Cómo progresa                   | Qué desbloquea             |
+| ------------- | ------------------------------- | -------------------------- |
+| Desmontaje    | Retirar componentes             | Guantes y ropa de mecánico |
+| Recuperación  | Entregar piezas intactas        | Insignias de precisión     |
+| Procesamiento | Clasificar y compactar          | Cascos industriales        |
+| Maquinaria    | Operar grúa y máquinas          | Uniformes de operador      |
+| Exploración   | Encontrar documentos y secretos | Accesorios decorativos     |
+
+Cada especialidad tiene 10 rangos. Los primeros rangos se consiguen rápidamente y los últimos requieren más dedicación.
+
+No daría bonificaciones de velocidad por nivel personal. De lo contrario, un jugador nuevo sería menos útil que sus amigos veteranos.
+
+Las mejoras funcionales pertenecen a la chatarrería y benefician a todo el equipo.
+
+## 10.3 Cómo avanza una sesión
+
+Una sesión de 2–3 horas podría seguir esta estructura:
+
+Sesión cooperativa de ejemplo
+
+150 minutos objetivo
+
+| 0–30 min    | Elegir contratos, preparar patio y recibir objetos.      |
+| ----------- | -------------------------------------------------------- |
+| 30–70 min   | Desmontar, recuperar piezas y procesar materiales.       |
+| 70–120 min  | Completar trabajos más grandes y comprar mejoras.        |
+| 120–150 min | Contrato especial, exploración, reorganización y cierre. |
+
+No habría una pantalla que obligue a terminar después de 150 minutos. Es simplemente un ejemplo de cómo sostener una sesión larga mediante varios objetivos.
+
+## 10.4 Condiciones de desbloqueo
+
+La progresión combina dinero, reputación y contratos importantes.
+
+Por ejemplo, para comprar la grúa:
+
+- Haber completado C08 o el contrato de capacitación equivalente.
+- Tener reputación nivel 3.
+- Haber abierto el patio de maquinaria.
+- Pagar su precio.
+
+Los contratos especiales nunca deben bloquearse porque un jugador vendió accidentalmente una pieza única. Los objetos de misión se protegen mediante reglas específicas o alternativas de recuperación.
+
+# 11. Ampliaciones de la chatarrería
+
+Cada ampliación debe tener cuatro elementos: precio, requisito, transformación visual y beneficio funcional.
+
+Precios ficticios de balance inicial.
+
+| ID  | Ampliación                | Precio | Desbloqueo   |
+| --- | ------------------------- | ------ | ------------ |
+| A01 | Reparar iluminación       | $300   | Inicio       |
+| A02 | Banco de trabajo mejorado | $500   | C02          |
+| A03 | Taller cubierto           | $900   | Cap. 2       |
+| A04 | Mesa de inspección        | $650   | C05          |
+| A05 | Almacén pequeño           | $800   | Cap. 2       |
+| A06 | Separador de cableado     | $1.200 | C07          |
+| A07 | Estación de residuos      | $500   | C03          |
+| A08 | Patio de maquinaria       | $2.000 | Cap. 3       |
+| A09 | Grúa de pórtico           | $3.500 | C08          |
+| A10 | Compactadora              | $2.500 | Cap. 3       |
+| A11 | Cinta clasificadora       | $2.800 | Compactadora |
+| A12 | Almacén ampliado          | $1.600 | Cap. 3       |
+| A13 | Prensa hidráulica         | $4.000 | C09          |
+| A14 | Montacargas guiado        | $3.200 | Cap. 4       |
+| A15 | Restaurar galpón          | $5.000 | C10          |
+| A16 | Cámara reconstructora     | Misión | C12          |
+
+## 11.1 Qué cambia cada ampliación
+
+A01 — Iluminación: reemplaza focos averiados y permite trabajar cómodamente durante la noche. Mejora la visibilidad, no el valor de venta.
+
+A02 — Banco mejorado: permite fijar piezas medianas y reduce errores de manipulación durante desmontajes delicados.
+
+A03 — Taller cubierto: abre una nueva zona de trabajo, instala soportes para herramientas eléctricas y permite procesar piezas mientras el patio principal está ocupado.
+
+A04 — Mesa de inspección: identifica calidad y valor de componentes, ayudando a decidir si vender o descomponer.
+
+A05 — Almacén pequeño: incorpora 20 espacios de almacenamiento para piezas completas.
+
+A06 — Separador de cableado: convierte paquetes de cableado en materiales separados con mejor rendimiento económico.
+
+A07 — Residuos especiales: permite recibir determinados objetos y cobrar bonificaciones por procesarlos correctamente.
+
+A08 — Patio de maquinaria: abre físicamente la zona industrial y habilita los puntos de instalación de máquinas grandes.
+
+A09 — Grúa: permite recuperar motores y piezas pesadas intactas, desbloqueando contratos de vehículos completos.
+
+A10 — Compactadora: convierte chatarra en bloques y reduce el espacio ocupado.
+
+A11 — Cinta clasificadora: conecta el patio con los contenedores, permitiendo clasificación paralela.
+
+A12 — Almacén ampliado: aumenta la capacidad a 60 espacios y añade estanterías visibles.
+
+A13 — Prensa hidráulica: permite procesar piezas estructurales que serían lentas de destruir manualmente.
+
+A14 — Montacargas guiado: automatiza desplazamientos largos entre zonas de carga y descarga.
+
+A15 — Galpón: desbloquea documentos, contratos especiales y acceso a la cámara final.
+
+A16 — Reconstructora: desbloquea una nueva actividad de modo libre, no una mejora estadística.
+
+### Reglas de construcción
+
+Las ampliaciones aparecen mediante una animación corta de montaje o sustitución del escenario. No hace falta construir un sistema de colocación libre de edificios.
+
+Las máquinas tienen posiciones predeterminadas. Esto facilita navegación, rendimiento, guardado y sincronización multijugador.
+
+Las mejoras importantes son permanentes y no pueden venderse accidentalmente.
+
+# 12. Escalado cooperativo de 1 a 7 jugadores
+
+La dificultad no debería consistir en multiplicar por siete el número de tornillos.
+
+El principio es que más jugadores aumentan la capacidad de trabajar en paralelo, no el trabajo necesario para desmontar cada objeto.
+
+## 12.1 Reglas por tamaño del grupo
+
+| Jugadores | Contratos activos recomendados | Dinámica                                  |
+| --------- | ------------------------------ | ----------------------------------------- |
+| 1         | 1                              | Trabajo secuencial y maquinaria asistida  |
+| 2         | 1–2                            | Uno desmonta, otro transporta o clasifica |
+| 3–4       | 2                              | Equipos pequeños y tareas paralelas       |
+| 5–6       | 2–3                            | Especialización espontánea                |
+| 7         | 3                              | Operación simultánea de varias zonas      |
+
+El número de contratos activos depende también del espacio desbloqueado. No debe forzarse a aceptar tres trabajos solo por tener siete jugadores.
+
+## 12.2 Escalado económico
+
+Los ingresos por objeto no cambian según cuántas personas estén conectadas.
+
+Sí pueden variar moderadamente los gastos de jornada y los objetivos opcionales de productividad.
+
+Propuesta inicial:
+
+\\[ G(n)=G_1[1+0.12(n-1)] \\]
+
+Donde \\(G_1\\) es el gasto base y \\(n\\) el número de jugadores activos.
+
+Con siete jugadores, los gastos serían 1,72 veces los de una partida individual, mientras el grupo podría procesar varios objetos simultáneamente.
+
+Este multiplicador debe probarse. No se debe aplicar a la deuda de campaña ni aumentar artificialmente los precios de las herramientas.
+
+## 12.3 Ayuda cooperativa
+
+Algunos objetos admiten dos jugadores:
+
+- Uno sujeta una pieza mientras otro retira fijaciones.
+- Dos transportan un panel grande.
+- Uno maneja la grúa mientras otro prepara la carga.
+- Varios clasifican piezas de un mismo contrato.
+
+Pero cada actividad tiene alternativa individual.
+
+Por ejemplo, una persona sola puede colocar un panel pesado sobre un carro de transporte en vez de necesitar a otro jugador.
+
+## 12.4 Jugadores que entran tarde
+
+Un jugador que se conecta durante un contrato debe:
+
+1. Aparecer en la oficina o zona segura.
+2. Recibir el estado actualizado del mundo.
+3. Ver correctamente qué piezas ya se desmontaron.
+4. Poder utilizar las herramientas disponibles.
+5. Participar en el trabajo sin reiniciar el contrato.
+
+El dinero y los materiales pertenecen a la chatarrería, por lo que no se duplican ni se reparten automáticamente entre personajes.
+
+# 13. Interacciones físicas
+
+Este sistema determina cómo se sienten los objetos y cuánto caos puede surgir entre amigos.
+
+## 13.1 Categorías de objetos
+
+| Categoría  | Ejemplos                          | Interacción                        |
+| ---------- | --------------------------------- | ---------------------------------- |
+| Muy ligero | Tornillo decorativo, taza, patito | Agarrar y lanzar                   |
+| Ligero     | Placa, cable, herramienta         | Agarrar, transportar y lanzar      |
+| Mediano    | Motor pequeño, rueda, panel       | Transportar con velocidad reducida |
+| Pesado     | Motor de auto, puerta grande      | Carro, ayuda opcional o grúa       |
+| Industrial | Chasis, máquina completa          | Solo maquinaria o desmontaje       |
+
+Los objetos muy pequeños pueden agruparse visualmente en paquetes para evitar cientos de entidades físicas sincronizadas.
+
+## 13.2 Agarrar
+
+El jugador apunta al objeto y pulsa la tecla de interacción.
+
+El objeto pasa a un punto de sujeción frente al personaje. Si es grande, puede ocupar parcialmente la vista.
+
+El anfitrión registra quién lo transporta para evitar que dos clientes lo controlen simultáneamente.
+
+## 13.3 Soltar
+
+Al soltar, el objeto cae en una posición segura y recupera su física.
+
+Si queda atrapado en una pared o debajo del escenario, un sistema de recuperación lo devuelve a la última superficie válida.
+
+## 13.4 Lanzar
+
+Solo se pueden lanzar objetos ligeros.
+
+La fuerza depende de la categoría del objeto, no de cálculos físicos complejos.
+
+Los objetos arrojados pueden golpear superficies y producir sonidos, pero no matar jugadores ni destruir piezas de misión.
+
+## 13.5 Empujar y arrastrar
+
+Los objetos medianos pueden moverse por el suelo mediante una interacción de arrastre.
+
+Los grandes deben desmontarse o transportarse con maquinaria.
+
+No implementaría un sistema libre de empuje de vehículos completos en la primera versión.
+
+## 13.6 Colocar
+
+Los bancos, contenedores y máquinas tienen zonas de colocación.
+
+Cuando el jugador acerca un objeto compatible, aparece una silueta de destino.
+
+Al soltarlo dentro de la zona, el objeto encaja en una posición definida.
+
+Esto hace que la interacción sea satisfactoria y evita problemas de física.
+
+## 13.7 Colisiones entre jugadores
+
+Los personajes pueden estorbarse ligeramente, pero no deberían bloquear puertas o accesos críticos.
+
+La solución sería permitir un desplazamiento suave entre jugadores o reducir sus colisiones en espacios estrechos.
+
+No incluiría empujones violentos ni físicas de muñeco de trapo sincronizadas en la versión inicial.
+
+## 13.8 Interacciones cómicas
+
+Las acciones normales pueden tener consecuencias graciosas:
+
+- Lanzar una herramienta y que caiga dentro de un contenedor.
+- Soltar una rueda y verla rodar por el patio.
+- Accionar una bocina mientras otro intenta concentrarse.
+- Llenar una zona de humo visual con un extintor.
+- Activar una máquina con una pieza equivocada y recibir un mensaje absurdo.
+
+La regla es que el error produzca una reacción visible y recuperable, no que obligue a reiniciar el contrato.
+
+# 14. Sistema completo de incidentes cómicos
+
+Los incidentes se dividen en tres categorías.
+
+Reactivos: ocurren por una acción del jugador.
+
+Ambientales: suceden ocasionalmente durante el trabajo.
+
+Narrativos: aparecen una sola vez y forman parte de la campaña.
+
+## 14.1 Catálogo de incidentes
+
+| ID  | Incidente                   | Disparador                    | Consecuencia                        |
+| --- | --------------------------- | ----------------------------- | ----------------------------------- |
+| I01 | La lavadora bailarina       | Activar lavadora              | Vibra y se desplaza un poco         |
+| I02 | Bocina eterna               | Pulsar bocina varias veces    | Suena una melodía absurda           |
+| I03 | Alarma de productividad     | Inactividad prolongada        | Megafonía critica al equipo         |
+| I04 | Patito inesperado           | Abrir caja especial           | Aparece coleccionable               |
+| I05 | Error: éxito                | Colocar pieza equivocada      | Mensaje contradictorio              |
+| I06 | Grúa dramática              | Levantar pieza pequeña        | Alarma de carga extrema             |
+| I07 | Felicitación equivocada     | Vender pieza valiosa          | Premia verbalmente a otro           |
+| I08 | Máquina demasiado orgullosa | Compactar un objeto           | Fanfarria exagerada                 |
+| I09 | Apagón de tres segundos     | Probar generador              | Luces se apagan y vuelven           |
+| I10 | Manual inútil               | Abrir caja                    | Aparece manual de 800 páginas       |
+| I11 | Reclamación imposible       | Terminar contrato             | Cliente solicita objeto absurdo     |
+| I12 | Inspector invisible         | Primera infracción ficticia   | Advertencia sin penalización        |
+| I13 | Rueda fugitiva              | Soltar rueda en pendiente     | Rueda hasta un tope seguro          |
+| I14 | Objeto sentimental          | Intentar compactar decoración | Máquina rechaza objeto              |
+| I15 | Radio del pasado            | Encontrar radio               | Reproduce fragmento extraño         |
+| I16 | Contenedor confundido       | Clasificación incorrecta      | Devuelve pieza y protesta           |
+| I17 | Turno de noche              | Primer trabajo nocturno       | Megafonía cambia de tono            |
+| I18 | Máquina sin instrucciones   | Encargo C11                   | Paneles dan órdenes contradictorias |
+| I19 | Inventario imposible        | Encontrar pieza desconocida   | Sistema no puede clasificarla       |
+| I20 | Reconstrucción accidental   | Final de campaña              | Objetos empiezan a reaparecer       |
+
+## 14.2 Frecuencia
+
+Los incidentes reactivos se activan por acciones concretas, con un tiempo de espera para evitar abuso.
+
+Los ambientales deberían ocurrir aproximadamente cada 12–20 minutos, pero solo cuando no interfieran con otro acontecimiento importante.
+
+Los narrativos no se repiten durante la misma campaña.
+
+No utilizaría una probabilidad de incidente en cada golpe o cada tornillo. Eso produciría ruido constante y haría que las bromas perdieran gracia.
+
+## 14.3 Consecuencias
+
+Los incidentes pueden generar:
+
+- Animaciones.
+- Sonidos.
+- Mensajes.
+- Objetos coleccionables.
+- Pequeñas interrupciones.
+- Cambios temporales de iluminación.
+- Reacciones de maquinaria.
+
+No deben generar pérdidas irreversibles ni impedir completar contratos.
+
+## 14.4 Estadísticas humorísticas
+
+Al cerrar una jornada se muestran reconocimientos como:
+
+- Empleado del mes (sin premio): mayor valor recuperado.
+- Destructor profesional: más componentes rotos.
+- Manos de manteca: más objetos soltados.
+- Inspector de botones: más botones pulsados.
+- Chatarrero fantasma: menor actividad registrada.
+- Rey del cobre: mayor cantidad de cobre recuperado.
+- Operador sospechoso: más alarmas activadas.
+
+Estas estadísticas no afectan el reparto de dinero ni la reputación. Son un cierre cómico para el grupo.
+
+# 15. Historia completa de ¡ESO TODAVÍA SIRVE!
+
+La historia debe tener un misterio que avance mientras los jugadores trabajan, sin convertir el juego en una aventura narrativa que interrumpa constantemente la simulación.
+
+## 15.1 Antecedentes: Ernesto y la chatarrería
+
+Ernesto Valdés fundó Recuperaciones El Milagro treinta años antes de los acontecimientos del juego.
+
+Era conocido por comprar absolutamente cualquier objeto, incluso aquellos que parecían completamente inútiles.
+
+Su frase favorita era:
+
+> Eso todavía sirve.
+
+Durante años mantuvo un negocio modesto. Reparaba electrodomésticos, recuperaba motores y vendía metales.
+
+Pero una empresa llamada Reutilizaciones Integrales S.A. comenzó a enviarle encargos extraordinarios.
+
+No pedían recuperar materiales comunes. Solicitaban componentes concretos de máquinas aparentemente incompatibles entre sí.
+
+Ernesto descubrió que muchos de esos componentes tenían un mismo código grabado: R-0.
+
+Comenzó a guardar las piezas en un galpón cerrado.
+
+Un día desapareció.
+
+Semanas después, la chatarrería quedó abandonada y acumuló deudas.
+
+El jugador hereda el negocio junto con una nota:
+
+> Si vas a vender algo, revisalo primero. Y no abras el galpón hasta entender qué hay adentro.
+
+## 15.2 Capítulo 1 — Herencia dudosa
+
+[Mend & Remember — Repair, return, record](https://images.openai.com/static-rsc-4/eEb2iBktKiOHlkRhnE-gsvfiiz8XpSO05Qa7wH4Pef_0M9INvasMDFKH4dN_43FgNGkHWry_NkG3JOOj6DRT4Azjry7mDhBnIDWzkNhsO8ifKOvpgX_drwb6EFalBLnAtCDUUkNAYg5xyQGluK2VAOZvhMm-KFqoRuRnSJJwQ7Y?purpose=inline)
+
+[avenloom.studio](https://avenloom.studio/mend-and-remember/?utm_source=chatgpt.com)
+
+El jugador llega a la chatarrería y encuentra todo en mal estado.
+
+Una grabación de Ernesto explica cómo aceptar encargos y recuperar materiales, aunque contiene comentarios absurdos sobre los clientes.
+
+Durante los primeros contratos, el jugador aprende las actividades básicas.
+
+En C04 aparece el primer objeto inexplicable: un televisor que funciona sin estar conectado.
+
+Al retirar su placa, se encuentra el código R-0.
+
+El jugador descubre que Ernesto había guardado varios objetos similares.
+
+Cierre del capítulo: aparece una nueva factura de Reutilizaciones Integrales S.A., fechada después de la desaparición de Ernesto.
+
+## 15.3 Capítulo 2 — Negocio en marcha
+
+La chatarrería empieza a recuperarse.
+
+Los jugadores desbloquean el taller, nuevas herramientas y contratos más valiosos.
+
+Entre los documentos de Ernesto encuentran referencias a un proyecto llamado RECUPERACIÓN TOTAL.
+
+La empresa le pagaba por recuperar componentes que, aparentemente, no tenían ningún valor comercial.
+
+En C07 aparece una caja con una etiqueta:
+
+> MATERIAL RECUPERABLE. NO RECONSTRUIR.
+
+Los jugadores todavía no saben qué significa.
+
+Cierre del capítulo: un mensaje automático de la empresa anuncia que enviará un vehículo perteneciente al antiguo propietario.
+
+## 15.4 Capítulo 3 — Trabajo pesado
+
+[store.epicgames.com](https://store.epicgames.com/vi/news/the-best-fabrication-station-upgrades-in-pacific-drive?utm_source=chatgpt.com)
+
+Llega el auto de Ernesto.
+
+Durante el desmontaje, los jugadores encuentran una caja oculta en el interior.
+
+Contiene tres elementos:
+
+- Una llave del galpón.
+- Un plano incompleto de una máquina.
+- Una grabación de Ernesto.
+
+En la grabación, Ernesto dice:
+
+> Me dijeron que era una máquina para recuperar materiales. Pero no recupera materiales. Recupera las cosas.
+
+Los jugadores descubren que el proyecto R-0 no consistía en reciclar objetos, sino en reconstruirlos.
+
+La empresa había intentado desarrollar una máquina capaz de revertir el deterioro de cualquier objeto.
+
+Ernesto recibió piezas del prototipo para desmontarlas y evitar que volviera a funcionar.
+
+Pero no pudo resistirse a intentar repararlo.
+
+Cierre del capítulo: el galpón comienza a emitir sonidos mecánicos durante la noche.
+
+## 15.5 Capítulo 4 — El galpón cerrado
+
+[West Studio | The Long Dark](https://images.openai.com/static-rsc-4/OhGO2f4XuuVZkeEM5amnGOq4ORJrjEZNA3DfwG5SWVs_jd1vU-FlwNB0a2wtVxNzrVEY3xpxvgd7KvxADoTPzpJ78h6a3MJRTp5nTCbjfL-YVurKs3tCyeLRq785_oSV3l8CC9FTmlbWBX8T1sAJIqxp9BVpk_r4B7-vrQrfhx0?purpose=inline)
+
+[weststudio.com](https://www.weststudio.com/project/thelongdark?utm_source=chatgpt.com)
+
+Los jugadores abren el galpón.
+
+Dentro encuentran una enorme estructura parcialmente desmontada, rodeada de cajas, notas y maquinaria antigua.
+
+Los documentos revelan que Ernesto había conseguido reconstruir pequeños objetos.
+
+Primero una taza.
+
+Después un reloj.
+
+Luego un motor.
+
+Pero descubrió un problema: la máquina no distinguía entre un objeto que había sido destruido y uno que había sido vendido.
+
+Cuando reconstruía algo, generaba una nueva copia sin recuperar el objeto original.
+
+La empresa suspendió el proyecto al descubrir que podía producir cantidades ilimitadas de artículos.
+
+Ernesto continuó trabajando en secreto.
+
+En C11, los jugadores desmontan una máquina auxiliar y descubren que sus componentes forman parte del sistema de control de la reconstructora.
+
+Cierre del capítulo: una terminal se enciende y muestra:
+
+> PROYECTO R-0: RECONSTRUCCIÓN PENDIENTE.
+
+## 15.6 Capítulo 5 — Eso todavía sirve
+
+El último encargo llega en un contenedor industrial sin remitente.
+
+Contiene el módulo central de la máquina.
+
+Los jugadores deben utilizar todas las instalaciones principales para recuperar sus componentes.
+
+El contrato combina:
+
+- Inspección.
+- Desmontaje.
+- Transporte de piezas.
+- Recuperación de componentes delicados.
+- Operación de grúa.
+- Clasificación.
+- Activación de maquinaria.
+
+Cuando terminan, la terminal ofrece dos opciones:
+
+RECUPERAR y RECONSTRUIR.
+
+La primera devuelve materiales comunes.
+
+La segunda promete restaurar el objeto original.
+
+Los jugadores activan la reconstrucción.
+
+La máquina comienza a funcionar.
+
+Una lavadora rota aparece completamente nueva.
+
+Después un televisor.
+
+Después una motocicleta.
+
+Durante unos segundos parece que el proyecto fue un éxito.
+
+Entonces el sistema empieza a reconstruir todos los objetos que alguna vez pasaron por la chatarrería.
+
+El patio se llena de electrodomésticos.
+
+Aparecen vehículos.
+
+Las estanterías comienzan a desbordarse.
+
+La terminal muestra:
+
+> INVENTARIO ACTUAL: 14.832 OBJETOS.
+
+La megafonía anuncia:
+
+> Felicitaciones. Han resuelto el problema de la basura. Ahora tienen un problema de espacio.
+
+Aparecen los créditos.
+
+## 15.7 Qué ocurrió realmente con Ernesto
+
+Durante los créditos se reproduce una última grabación.
+
+Ernesto explica que, cuando la máquina comenzó a reconstruir objetos por primera vez, decidió ocultarse para evitar que la empresa confiscara el proyecto.
+
+No murió ni quedó atrapado en la máquina.
+
+Se fue a vivir a una pequeña casa lejos de la ciudad, convencido de que alguien terminaría encontrando la forma de utilizarla correctamente.
+
+La última frase de su grabación es:
+
+> Si están escuchando esto, significa que la hicieron funcionar. Por favor, no reconstruyan el tractor.
+
+En ese momento aparece un tractor gigantesco encima de la oficina.
+
+Pantalla negra.
+
+FIN DEL TURNO.
+
+## 15.8 Modo libre posterior
+
+Después de terminar la campaña, el jugador conserva la chatarrería y sus mejoras.
+
+Se desbloquean:
+
+- Contratos avanzados.
+- Objetos especiales.
+- Uso limitado de la reconstructora.
+- Nuevos coleccionables.
+- Mejoras cosméticas.
+- Estadísticas acumuladas.
+- Encargos de recuperación de alto valor.
+
+La reconstructora no genera dinero infinito. Su uso consume recursos especiales obtenidos en contratos avanzados y produce objetos definidos por el sistema.
+
+# 16. Integración de todos los sistemas
+
+Para evitar que cada mecánica funcione de manera aislada, todas deben conectarse a un mismo ciclo.
+
+Contrato
+
+Define objeto, objetivo y recompensa
+
+Objeto desmontable
+
+Contiene piezas, materiales, calidad y dependencias
+
+Herramientas
+
+Separan y recuperan
+
+Maquinaria
+
+Transporta y procesa
+
+Materiales y piezas
+
+Se clasifican, almacenan o venden
+
+Dinero + reputación + experiencia
+
+Permiten ampliar instalaciones y aceptar nuevos trabajos
+
+Nuevos contratos, objetos y posibilidades de juego
+
+La historia avanza mediante contratos especiales y exploración. Los incidentes cómicos acompañan las acciones, pero no reemplazan el gameplay.
+
+## 17. Reglas para mantener el alcance controlado
+
+Aunque hemos definido un juego bastante amplio, no deberíamos confundir una especificación de contenido con un proyecto ya implementado.
+
+Para que sea realizable, establecería estas restricciones:
+
+- Un solo mapa persistente y ampliable.
+- Doce arquetipos de objetos, reutilizando componentes.
+- Doce contratos principales y un generador controlado de trabajos repetibles.
+- Un único sistema de desmontaje para todos los objetos.
+- Un único sistema de interacción física.
+- Máquinas con estados y animaciones predeterminados.
+- Economía compartida sencilla.
+- Sin mundo abierto, conducción libre, NPC autónomos ni destrucción física completa.
+- Progresión guardada por el anfitrión.
+- Humor mediante interacciones y eventos específicos, no sistemas de IA complejos.
+
+Hay una decisión técnica que considero fundamental: los objetos grandes no deben ser una colección de cientos de rigidbodies conectados. Deben estar compuestos por piezas con estados definidos que puedan desprenderse. Eso es mucho más viable para un cooperativo de siete jugadores.
+
+## 18. Resumen del contenido definido
+
+# 12
+
+Herramientas
+
+# 38
+
+Componentes
+
+# 9
+
+Materiales y categorías
+
+# 10
+
+Máquinas y estaciones
+
+# 12
+
+Arquetipos de objetos
+
+# 6
+
+Tipos de encargo
+
+# 12
+
+Contratos principales
+
+# 9
+
+Áreas funcionales
+
+# 16
+
+Ampliaciones
+
+# 20
+
+Incidentes cómicos
+
+# 5
+
+Capítulos
+
+# 1–7
+
+Jugadores
+
+Con esto tenemos una definición funcional bastante extensa del juego completo, incluyendo contenido, sistemas, desbloqueos, economía inicial, cooperación e historia.
+
+Quedan por especificar para producción los valores exactos de cada componente, las dependencias de cada prefab, los tiempos y costes definitivos, las animaciones concretas, las interfaces de datos y los casos de prueba. Esas decisiones deben derivarse de prototipos y pruebas reales, no inventarse como si ya estuvieran balanceadas.
+
+Lo más importante es que ahora ¡Eso todavía sirve! tiene una identidad diferenciada:
+
+No es un juego de golpear objetos hasta destruirlos. Es un juego de descubrir qué vale la pena salvar, cómo desmontarlo, qué hacer con sus piezas y cómo convertir una chatarrería miserable en un negocio industrial absurdo, junto a tus amigos.

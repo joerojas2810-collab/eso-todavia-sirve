@@ -1,0 +1,1615 @@
+# ¡ESO TODAVÍA SIRVE!
+
+GDD 5.0 — Especificación lógica integral del juego
+
+Vamos a convertir los 18 sistemas que identificamos en una especificación funcional: reglas, estados, fórmulas, interacciones, restricciones, errores y comportamiento esperado.
+
+La intención es que estas definiciones sirvan tanto para diseñar el juego como para que Fable pueda implementarlo en Unity sin inventar reglas incompatibles.
+
+Trabajaremos sobre las siguientes decisiones:
+
+- Plataforma: PC, primera persona, Unity 6.
+- Jugadores: 1–7, cooperativo con economía y mundo compartidos.
+- Contenido: los 30 objetos previamente definidos.
+- Progresión: manual → herramientas asistidas → maquinaria → automatización.
+- Estructura: una chatarrería persistente, ampliable y con contratos.
+- Duración objetivo: campaña de unas 8–12 horas, con modo libre posterior.
+- Principio técnico: desmontaje modular, no destrucción física totalmente libre.
+
+Los números que siguen son parámetros iniciales de diseño, no valores probados. Los estableceremos de forma consistente para poder prototiparlos y ajustarlos después.
+
+# 1. Sistema de estados de objetos
+
+## 1.1 Estructura de un objeto
+
+Cada objeto recibido es una instancia única de una definición del catálogo.
+
+Por ejemplo, dos lavadoras pueden compartir modelo y componentes, pero tener diferente estado, calidad, origen y contrato.
+
+```
+ScrapObjectInstance
+  InstanceId
+  DefinitionId
+  ContractId
+  ReceptionCondition
+  CurrentLocation
+  ObjectState
+  Components[]
+  TotalWeight
+  RemainingRecoverableValue
+  SpecialFlags
+```
+
+`DefinitionId` identifica el modelo de lavadora. `InstanceId` identifica esa lavadora concreta y nunca se reutiliza durante la partida.
+
+## 1.2 Estados principales
+
+| Estado           | Significado                                              | Acciones permitidas       |
+| ---------------- | -------------------------------------------------------- | ------------------------- |
+| Pendiente        | Contrato aceptado, objeto no entregado                   | Programar entrega         |
+| Recibido         | Objeto en zona de descarga                               | Inspeccionar, transportar |
+| En inspección    | Se está identificando                                    | Inspeccionar y marcar     |
+| En desmontaje    | Al menos una operación iniciada                          | Desmontar, transportar    |
+| Desmontado       | No quedan componentes recuperables accesibles pendientes | Clasificar restos         |
+| En procesamiento | Restos en maquinaria                                     | Esperar, pausar           |
+| Finalizado       | Se resolvió el destino de todos los componentes          | Cerrar trabajo            |
+| Retirado         | Instancia eliminada del mundo tras cierre                | Ninguna                   |
+
+Además, cada objeto puede tener indicadores independientes de daño, inmovilización y reserva por contrato.
+
+Regla fundamental: `Desmontado` no significa que el objeto haya sido procesado completamente. Puede quedar una carcasa que deba enviarse a compactación.
+
+## 1.3 Transiciones
+
+- `Pendiente → Recibido`: se genera físicamente el objeto en una zona válida.
+- `Recibido → En inspección`: un jugador inicia la inspección.
+- `Recibido/En inspección → En desmontaje`: se modifica por primera vez un componente.
+- `En desmontaje → Desmontado`: no quedan componentes pendientes según la política de cierre.
+- `Desmontado → En procesamiento`: los restos entran en una máquina.
+- `En procesamiento → Finalizado`: se entregan los productos resultantes.
+- `Finalizado → Retirado`: se confirma que la instancia ya no contiene recursos ni piezas pendientes.
+
+Un objeto también puede terminar destruido sin ser desmontado cuidadosamente. En ese caso se calcula su rendimiento de chatarra, y las piezas recuperables que no fueron extraídas se pierden o se degradan.
+
+## 1.4 Reglas de integridad
+
+Nunca puede suceder que:
+
+- Un componente esté instalado y, simultáneamente, almacenado.
+- Una misma instancia pertenezca a dos contratos incompatibles.
+- Un objeto finalizado genere materiales nuevamente.
+- Un objeto sea eliminado mientras conserva componentes recuperables sin resolver.
+- Dos máquinas procesen la misma instancia a la vez.
+
+Para evitarlo, toda operación de extracción o procesamiento se confirma mediante una transacción autorizada por el anfitrión.
+
+# 2. Sistema de dependencias entre componentes
+
+Este sistema determina qué debe retirarse antes de acceder a otra pieza.
+
+## 2.1 Estructura de componente
+
+```
+ComponentDefinition
+  ComponentId
+  DisplayName
+  ParentAssemblyId
+  RequiredTools[]
+  Fasteners[]
+  BlockingComponents[]
+  RequiredOperations[]
+  BaseQuality
+  Weight
+  SalvageRecipe
+  IntactSaleValue
+  DamageRules
+```
+
+Cada componente tiene un conjunto de condiciones para liberarse.
+
+Ejemplo de motor de lavadora:
+
+```
+MotorLavadora
+  Requiere:
+    PanelTrasero = Extraído
+    CableMotor = Desconectado
+    PernosMotor = 0 pendientes
+
+  Permite:
+    ExtraerMotor
+```
+
+## 2.2 Tipos de dependencia
+
+| Tipo                | Ejemplo                         | Consecuencia                        |
+| ------------------- | ------------------------------- | ----------------------------------- |
+| Acceso              | Panel cubre un motor            | No puede interactuarse con el motor |
+| Fijación            | Cuatro pernos sujetan una pieza | No puede extraerse hasta liberarlos |
+| Conexión            | Cable unido a una placa         | Debe desconectarse o cortarse       |
+| Soporte             | Motor pesado suspendido         | Necesita apoyo antes de soltarlo    |
+| Secuencia           | Tambor bloquea otra pieza       | Requiere retirar el tambor          |
+| Herramienta         | Soldadura                       | Requiere herramienta de corte       |
+| Seguridad abstracta | Módulo sellado                  | Solo permite extracción como unidad |
+
+Las dependencias deben formar un grafo válido, sin ciclos imposibles.
+
+Si A requiere retirar B y B requiere retirar A, la definición se rechaza durante la validación del catálogo.
+
+## 2.3 Estados de componentes
+
+Bloqueado
+
+Accesible
+
+Liberado
+
+Extraído
+
+Desde accesible o liberado, una acción destructiva válida puede llevar el componente a Destruido. Desde extraído puede pasar a Almacenado, Vendido o Procesado.
+
+`Bloqueado` y `Accesible` son estados derivados de las dependencias; `Liberado`, `Extraído` y `Destruido` son estados persistentes. Esto evita contradicciones cuando otro jugador retira un panel.
+
+## 2.4 Interacciones simultáneas
+
+Dos jugadores pueden trabajar sobre tornillos diferentes de un mismo panel.
+
+No pueden retirar el mismo tornillo dos veces.
+
+Cada fijación tiene un identificador individual y un estado:
+
+`Fijado → En operación → Retirado`.
+
+La operación puede cancelarse y volver a `Fijado` si no se completó.
+
+## 2.5 Daño por extracción incorrecta
+
+Si el jugador intenta separar una pieza con fijaciones pendientes:
+
+- La acción normal se bloquea.
+- La interfaz muestra qué la mantiene sujeta.
+- Una herramienta destructiva puede permitir forzarla.
+- Si se fuerza, se dañan la pieza y sus uniones.
+- El daño puede afectar componentes conectados.
+
+Ejemplo: arrancar la puerta de una lavadora con una palanca antes de liberar las bisagras puede romper el conjunto y reducir su valor.
+
+Nunca debe producir un bloqueo irreversible de la partida. Si se destruye una fijación, debe existir una ruta destructiva para terminar de procesar el objeto.
+
+# 3. Sistema lógico de herramientas
+
+## 3.1 Modelo universal de acción
+
+Todas las herramientas utilizan un mismo sistema de operaciones.
+
+```
+ToolAction
+  ToolId
+  ActionType
+  TargetId
+  BaseDuration
+  Precision
+  DamagePotential
+  EnergyCost
+  ConsumableCost
+  RequiredAccess
+```
+
+Tipos de acción:
+
+| Acción        | Resultado                                      |
+| ------------- | ---------------------------------------------- |
+| Inspeccionar  | Revela información                             |
+| Desatornillar | Retira tornillos                               |
+| Aflojar       | Retira pernos                                  |
+| Desconectar   | Separa conexiones                              |
+| Hacer palanca | Separa piezas liberadas o fuerza uniones       |
+| Cortar        | Secciona uniones compatibles                   |
+| Golpear       | Aplica daño estructural                        |
+| Extraer       | Convierte componente instalado en pieza física |
+| Sujetar       | Estabiliza una pieza                           |
+| Transportar   | Cambia la ubicación                            |
+| Colocar       | Inserta una pieza en estación o almacenamiento |
+
+## 3.2 Compatibilidad
+
+Cada fijación o componente declara las acciones que acepta.
+
+Una herramienta puede ser:
+
+- Compatible: completa la operación normalmente.
+- Alternativa: completa con penalización de tiempo o calidad.
+- Destructiva: rompe la unión y puede dañar la pieza.
+- Incompatible: no puede iniciar la operación.
+
+No permitiremos que cualquier herramienta actúe sobre cualquier objeto.
+
+## 3.3 Tiempo de operación
+
+\\[ T=\max(T\_{\min},T_b \times M_h \times M_e \times M_c) \\]
+
+Donde:
+
+- \\(T_b\\): tiempo base.
+- \\(M_h\\): modificador de herramienta.
+- \\(M_e\\): modificador de estado de la fijación.
+- \\(M_c\\): modificador de competencia o mejora.
+- \\(T\_{\min}\\): duración mínima para que la interacción siga siendo perceptible.
+
+Ejemplo para un tornillo:
+
+| Herramienta             | Modificador | Tiempo sobre base de 3 s |
+| ----------------------- | ----------- | ------------------------ |
+| Destornillador          | 1,00        | 3,0 s                    |
+| Destornillador mejorado | 0,75        | 2,25 s                   |
+| Atornillador eléctrico  | 0,27        | 0,81 s                   |
+| Robot básico            | 0,15        | 0,45 s                   |
+
+El robot puede ejecutar secuencias sin intervención individual, pero el tiempo de carga y descarga de su estación se calcula aparte.
+
+## 3.4 Precisión y daño
+
+No utilizaría probabilidades de fallo aleatorias en cada tornillo normal.
+
+El daño debería depender principalmente de decisiones observables:
+
+- Herramienta incorrecta.
+- Exceso de fuerza.
+- Golpe sobre pieza delicada.
+- Corte fuera de una zona válida.
+- Caída.
+- Procesamiento inadecuado.
+
+Los fallos aleatorios quedarían reservados a incidentes especiales y se anunciarían con suficiente anticipación.
+
+## 3.5 Durabilidad
+
+Las herramientas manuales básicas no se rompen.
+
+Las eléctricas utilizan baterías y consumibles. Las industriales tienen condición y mantenimiento.
+
+Esto evita que la primera hora sea una sucesión de reparaciones.
+
+# 4. Recuperación de materiales
+
+## 4.1 Dos formas de aprovechar una pieza
+
+Cada componente puede tener dos destinos principales:
+
+Recuperación intacta: se conserva como unidad vendible, almacenable o utilizable en fabricación.
+
+Descomposición: se consume la pieza y se generan materiales según una receta.
+
+Ejemplo:
+
+Motor de lavadora
+
+Calidad 85 · Valor base $300
+
+Vender completo
+
+## $255
+
+Conserva identidad y calidad hasta venderse
+
+Descomponer
+
+6 acero
+
+3 cobre
+
+El motor desaparece y se generan materiales
+
+Las cantidades son unidades abstractas de inventario. No representan kilogramos reales.
+
+## 4.2 Rendimiento
+
+Cada receta indica una cantidad máxima por material.
+
+\\[ Y_i=\left\lfloor B_i \times E \times P_i\right\rfloor \\]
+
+- \\(B_i\\): rendimiento base.
+- \\(E\\): eficiencia del proceso.
+- \\(P_i\\): factor de conservación por daño.
+- \\(Y_i\\): cantidad recuperada.
+
+Para evitar que pequeñas cantidades desaparezcan por redondeo, los residuos fraccionarios pueden acumularse internamente por lote y redondearse al cerrar el procesamiento.
+
+## 4.3 Reglas de conservación
+
+- Los materiales se generan únicamente al completar un proceso válido.
+- El componente de origen se consume en la misma transacción.
+- Los materiales no pueden recuperarse nuevamente de una pieza ya procesada.
+- La chatarra residual conserva solo los materiales que no se extrajeron.
+- Los módulos especiales sellados no pueden procesarse en máquinas comunes.
+- Los componentes narrativos no pueden venderse ni descomponerse salvo autorización de la misión.
+
+# 5. Calidad, deterioro y daño
+
+La calidad determina el valor de una pieza recuperada y su elegibilidad para contratos exigentes.
+
+## 5.1 Escala
+
+| Calidad | Clasificación | Uso                                    |
+| ------- | ------------- | -------------------------------------- |
+| 90–100  | Excelente     | Contratos premium                      |
+| 70–89   | Buena         | Venta completa                         |
+| 40–69   | Regular       | Venta reducida o procesamiento         |
+| 1–39    | Mala          | Procesamiento recomendado              |
+| 0       | Irrecuperable | Solo materiales residuales compatibles |
+
+## 5.2 Causas de pérdida
+
+| Evento                            | Penalización orientativa             |
+| --------------------------------- | ------------------------------------ |
+| Retirar una unión incorrectamente | −5 a −15                             |
+| Golpe directo                     | −5 a −20                             |
+| Caída moderada                    | −3 a −10                             |
+| Caída fuerte                      | −10 a −30                            |
+| Corte que afecta la pieza         | −15 a −40                            |
+| Trituración                       | Destruye condición de pieza completa |
+
+La calidad no puede bajar de cero ni superar la calidad inicial mediante desmontaje.
+
+## 5.3 Propagación del daño
+
+El daño se aplica principalmente al componente impactado.
+
+Solo se propaga a componentes conectados cuando la definición del objeto lo permite.
+
+Por ejemplo, un golpe fuerte sobre la carcasa de una computadora puede afectar una placa interna. Pero golpear una rueda de bicicleta no debería reducir la calidad del asiento.
+
+## 5.4 Daño visual
+
+Cada componente tiene umbrales:
+
+- 75: arañazos.
+- 50: abolladuras o grietas.
+- 25: deformación visible.
+- 0: versión destruida.
+
+Los cambios visuales se realizan mediante materiales, deformaciones predefinidas o modelos alternativos. No necesitamos fractura física universal.
+
+# 6. Sistema económico completo
+
+La economía debe recompensar tres habilidades: recuperar piezas valiosas, trabajar eficientemente y decidir cuándo invertir.
+
+No queremos que la mejor estrategia sea siempre destruir todo ni que automatizar sea automáticamente más rentable.
+
+## 6.1 Moneda y recursos económicos
+
+Usaremos una moneda ficticia denominada créditos ($).
+
+La economía tendrá cinco elementos:
+
+| Elemento                | Función                                                |
+| ----------------------- | ------------------------------------------------------ |
+| Dinero disponible       | Comprar herramientas, máquinas y ampliaciones          |
+| Valor de inventario     | Piezas y materiales todavía no vendidos                |
+| Gastos operativos       | Electricidad, combustible, consumibles y reparaciones  |
+| Reputación              | Desbloquear clientes y contratos                       |
+| Experiencia tecnológica | Desbloquear mejoras por uso de herramientas y máquinas |
+
+La reputación y la experiencia no pueden convertirse directamente en dinero.
+
+## 6.2 Precios base de materiales
+
+| Material            | Precio por unidad |
+| ------------------- | ----------------- |
+| Acero               | $4                |
+| Aluminio            | $9                |
+| Cobre               | $18               |
+| Plástico            | $2                |
+| Vidrio              | $2                |
+| Electrónica         | $14               |
+| Caucho/mixtos       | $1                |
+| Residuos especiales | −$5               |
+
+Los residuos especiales tienen un coste de gestión. En determinados contratos, el cliente cubre ese coste.
+
+Los precios permanecen estables durante los primeros contratos. Más adelante pueden aparecer bonificaciones comerciales temporales, pero evitaría un mercado financiero complejo.
+
+## 6.3 Valor de componentes completos
+
+\\[ V=V_b\times(Q/100)\times M_c \\]
+
+Donde \\(M_c\\) representa el modificador comercial.
+
+| Componente                | Valor base |
+| ------------------------- | ---------- |
+| Motor pequeño             | $90        |
+| Motor de electrodoméstico | $300       |
+| Bomba pequeña             | $160       |
+| Placa electrónica común   | $110       |
+| Procesador                | $180       |
+| Alternador                | $420       |
+| Motor de motocicleta      | $650       |
+| Motor de automóvil        | $1.400     |
+| Motor industrial          | $1.800     |
+
+Estos precios se utilizan como referencia para construir el catálogo completo.
+
+Una misma pieza no debería cambiar de precio arbitrariamente según el objeto del que proviene. Puede haber variantes de tamaño, potencia o rareza, cada una con su definición.
+
+## 6.4 Ingresos por contratos
+
+Un contrato puede pagar:
+
+\\[ R=R_b+B_q+B_t+B_e-P \\]
+
+- \\(R_b\\): recompensa fija.
+- \\(B_q\\): bonificación de calidad.
+- \\(B_t\\): bonificación por plazo, cuando exista.
+- \\(B_e\\): objetivos adicionales.
+- \\(P\\): penalizaciones.
+
+Importante: hay que distinguir contratos donde el cliente conserva las piezas de aquellos donde el jugador adquiere la chatarra.
+
+En un contrato de servicio, el jugador cobra por el trabajo y solo conserva lo expresamente autorizado. En un contrato de compra de chatarra, paga o recibe el objeto y obtiene la propiedad de sus componentes.
+
+Esto evita cobrar por extraer un motor y luego vender ese mismo motor cuando el contrato exigía devolverlo.
+
+## 6.5 Gastos operativos
+
+Los gastos se producen por actividad, no simplemente porque transcurra tiempo.
+
+- Electricidad: por consumo de máquinas.
+- Combustible: por uso del generador y equipos específicos.
+- Consumibles: por operaciones completadas.
+- Reparaciones: al consumir kits.
+- Entregas especiales: por solicitar transporte extraordinario.
+- Almacenamiento adicional: inversión fija, no alquiler diario obligatorio.
+
+No incluiría salarios de empleados NPC en la primera versión.
+
+## 6.6 Protección contra quiebra irreversible
+
+Si el jugador se queda sin dinero:
+
+- Conserva las herramientas manuales.
+- Puede aceptar encargos básicos sin coste de entrada.
+- Puede vender materiales almacenados que sean de su propiedad.
+- Puede utilizar una entrega gratuita de recuperación económica.
+- No pierde la chatarrería ni reinicia la campaña.
+
+La mala administración debe retrasar la expansión, no destruir una partida de diez horas.
+
+## 6.7 Condición de balance
+
+Para cada objeto debemos comparar:
+
+\\[ \text{Beneficio neto por minuto}= \frac{\text{Ingresos}-\text{Gastos}}{\text{Tiempo total}} \\]
+
+El tiempo total incluye recepción, desmontaje, transporte, procesamiento y entrega.
+
+La estrategia manual debe ser viable. La automatización debe superar su rendimiento por hora cuando existe volumen suficiente para justificar la inversión.
+
+# 7. Sistema de contratos
+
+Los contratos son el motor que decide qué recibe la chatarrería y por qué los jugadores deben trabajar de determinada manera.
+
+## 7.1 Tipos definitivos
+
+| Tipo                   | Objetivo                          | Ejemplo                           |
+| ---------------------- | --------------------------------- | --------------------------------- |
+| Recuperación general   | Aprovechar materiales y piezas    | Desmontar tres lavadoras          |
+| Extracción específica  | Recuperar un componente           | Obtener un alternador             |
+| Destrucción controlada | Procesar un objeto                | Compactar dos carcasas            |
+| Clasificación          | Entregar cantidades de materiales | Conseguir 20 acero                |
+| Restauración parcial   | Conservar un conjunto de piezas   | Recuperar un motor en calidad 80+ |
+| Proyecto especial      | Completar varias etapas           | Desmontar un autobús              |
+
+La restauración parcial no implica reparar internamente un motor: consiste en recuperarlo intacto, inspeccionarlo y prepararlo para entrega. Un sistema de reparación de piezas sería una ampliación independiente.
+
+## 7.2 Datos de un contrato
+
+```
+ContractInstance
+  ContractId
+  ContractType
+  ClientId
+  OwnershipPolicy
+  Objectives[]
+  RequiredObjects[]
+  OptionalObjectives[]
+  Reward
+  Penalties
+  TimeLimit
+  CurrentState
+  DeliveryState
+  AssignedWorkArea
+```
+
+Cada objetivo debe tener un criterio verificable.
+
+Ejemplo:
+
+```
+Objetivo:
+  Recuperar motor de lavadora
+
+Condiciones:
+  ComponentType = WashingMachineMotor
+  Quality >= 75
+  Quantity = 1
+  OriginContractId = C-104
+  Destination = DeliveryStorage
+```
+
+## 7.3 Generación de contratos
+
+El generador solo selecciona combinaciones compatibles con:
+
+- Capítulo desbloqueado.
+- Herramientas disponibles.
+- Maquinaria operativa o alternativas manuales.
+- Capacidad física del patio.
+- Componentes que realmente existen.
+- Recursos requeridos.
+- Número de jugadores, para ajustar volumen.
+- Contratos ya activos.
+
+El generador debe comprobar que existe al menos una ruta válida para completar los objetivos.
+
+## 7.4 Estados
+
+`Disponible → Aceptado → Entrega pendiente → En ejecución → Entregable → Completado`.
+
+Estados alternativos: `Cancelado`, `Fallido` y `Suspendido`.
+
+Un contrato puede estar en ejecución mientras su objeto todavía se encuentra en recepción, si ya existen actividades preparatorias.
+
+## 7.5 Capacidad de trabajo
+
+Propuesta inicial:
+
+| Ampliación        | Contratos activos | Objetos grandes simultáneos |
+| ----------------- | ----------------- | --------------------------- |
+| Patio inicial     | 2                 | 0                           |
+| Taller ampliado   | 3                 | 1                           |
+| Patio profesional | 4                 | 2                           |
+| Planta industrial | 6                 | 3                           |
+
+Los objetos pequeños pueden agruparse en estanterías o palés y no ocupan necesariamente una bahía completa.
+
+## 7.6 Fallos y recuperación
+
+Si el jugador destruye la pieza solicitada:
+
+- El objetivo se marca como irrecuperable para esa instancia.
+- Puede usar una pieza sustituta solo si el contrato lo permite.
+- Puede completar objetivos secundarios que sigan siendo válidos.
+- Puede cancelar o entregar parcialmente cuando corresponda.
+- Nunca queda atrapado con un contrato imposible de cerrar.
+
+Los contratos de historia tienen alternativas específicas de recuperación para no bloquear la campaña.
+
+## 7.7 Entrega y liquidación
+
+Al pulsar «Entregar»:
+
+1. El servidor verifica los objetivos.
+2. Reserva las piezas exigidas.
+3. Calcula bonificaciones y penalizaciones.
+4. Consume o transfiere las piezas entregadas.
+5. Acredita dinero y reputación.
+6. Marca el contrato como completado.
+7. Guarda el resultado en el historial.
+
+Todo ocurre en una única operación lógica para evitar duplicaciones.
+
+# 8. Inventario y almacenamiento
+
+El inventario tendrá tres formas diferentes.
+
+## 8.1 Inventario personal
+
+Cada jugador puede llevar:
+
+- Una herramienta activa.
+- Un conjunto limitado de herramientas equipadas.
+- Una pieza pequeña en las manos.
+- Consumibles personales, cuando corresponda.
+
+No permitiría llevar una lavadora completa en un inventario invisible.
+
+## 8.2 Almacén compartido
+
+Contiene recursos apilables:
+
+- Acero.
+- Cobre.
+- Aluminio.
+- Plástico.
+- Vidrio.
+- Electrónica.
+- Caucho y mixtos.
+- Consumibles.
+- Kits de reparación.
+
+Los materiales se almacenan como cantidades numéricas después de procesarlos.
+
+## 8.3 Almacén de componentes
+
+Las piezas completas conservan información individual.
+
+```
+StoredPart
+  PartInstanceId
+  DefinitionId
+  OriginObjectId
+  OriginContractId
+  Quality
+  Weight
+  Ownership
+  Reservation
+```
+
+Dos motores del mismo modelo pueden tener calidades distintas y valores distintos.
+
+## 8.4 Reservas
+
+Los recursos pueden reservarse para:
+
+- Contratos.
+- Fabricación.
+- Mantenimiento.
+- Construcciones.
+
+Una reserva no consume inmediatamente el recurso, pero impide que otro proceso lo utilice sin autorización.
+
+Ejemplo: si un contrato requiere un motor de calidad 80, el jugador puede reservarlo para evitar venderlo accidentalmente.
+
+## 8.5 Capacidad
+
+El almacén tiene límites físicos por categoría:
+
+- Piezas pequeñas: espacios de estantería.
+- Piezas medianas: espacios de palé.
+- Piezas grandes: posiciones de suelo.
+- Materiales procesados: capacidad de contenedores.
+
+No establecería un peso global abstracto para todo el almacén. Resulta más claro ver físicamente cuándo una zona está llena.
+
+## 8.6 Objetos perdidos
+
+Si una pieza cae fuera del mapa o queda inaccesible:
+
+- Se detecta que está fuera de una zona válida.
+- Se marca para recuperación.
+- Se devuelve al punto seguro más cercano cuando no está siendo manipulada.
+- Conserva calidad, propietario y contrato.
+- No se duplica.
+
+La recuperación no repara daño previo.
+
+# 9. Fabricación y construcción
+
+La fabricación transforma recursos recuperados en herramientas, consumibles y maquinaria.
+
+## 9.1 Tipos de fabricación
+
+| Tipo        | Ejemplo                | Resultado                   |
+| ----------- | ---------------------- | --------------------------- |
+| Consumible  | Punta reforzada        | Recurso apilable            |
+| Repuesto    | Kit mecánico           | Recurso apilable            |
+| Herramienta | Atornillador eléctrico | Equipamiento                |
+| Máquina     | Robot desatornillador  | Instalación                 |
+| Ampliación  | Nuevo galpón           | Cambio permanente del mapa  |
+| Mejora      | Robot nivel 2          | Modificación de instalación |
+
+## 9.2 Reglas
+
+Toda receta define:
+
+- Recursos requeridos.
+- Dinero requerido.
+- Instalación necesaria.
+- Tecnología desbloqueada.
+- Tiempo de fabricación.
+- Resultado.
+- Espacio de salida.
+
+Los recursos se consumen cuando se confirma la fabricación, no al abrir el menú.
+
+Si la fabricación es instantánea, se crea el resultado en esa misma transacción. Si tarda tiempo, se crea una orden persistente con recursos ya comprometidos.
+
+## 9.3 Fabricación de maquinaria
+
+Una máquina requiere una posición válida en el mapa.
+
+No se puede construir si:
+
+- La zona está bloqueada.
+- Se superpone con otra instalación.
+- Impide una ruta obligatoria.
+- Falta potencia eléctrica.
+- No existen los recursos requeridos.
+
+La potencia puede verificarse como requisito de instalación o como límite operativo, pero ambas reglas deben mostrarse claramente.
+
+## 9.4 Mejoras
+
+Las mejoras se aplican a una máquina concreta.
+
+Un robot de nivel 3 conserva:
+
+- Su identificador.
+- Su ubicación.
+- Su historial.
+- Sus trabajos pendientes, si son compatibles.
+
+Las mejoras que alteren su capacidad pueden exigir vaciar previamente la estación.
+
+# 10. Automatización y robots
+
+Este sistema necesita reglas más estrictas que las herramientas manuales porque funciona sin intervención continua.
+
+## 10.1 Estados de una máquina
+
+| Estado        | Significado                        |
+| ------------- | ---------------------------------- |
+| Apagada       | No consume energía operativa       |
+| Inactiva      | Encendida y disponible             |
+| Reservada     | Tiene un trabajo asignado          |
+| Cargando      | Recibe objeto o componente         |
+| Validando     | Comprueba compatibilidad           |
+| Procesando    | Ejecuta operaciones                |
+| Descargando   | Entrega resultados                 |
+| Pausada       | Espera energía, espacio o recursos |
+| Mantenimiento | No acepta trabajos                 |
+| Averiada      | Requiere reparación                |
+
+## 10.2 Orden de trabajo
+
+```
+MachineJob
+  JobId
+  MachineId
+  InputIds[]
+  RequestedOperation
+  Priority
+  ExpectedOutputs[]
+  CurrentStep
+  Progress
+  ReservedResources[]
+  Status
+```
+
+Cada trabajo tiene un identificador único.
+
+La máquina nunca puede crear resultados si la entrada correspondiente no fue consumida o modificada correctamente.
+
+## 10.3 Asignación de prioridades
+
+Tres modos:
+
+Rápido: elige el trabajo compatible con menor tiempo estimado.
+
+Preciso: elige operaciones con mayor riesgo de pérdida de valor y utiliza parámetros conservadores.
+
+Contrato: prioriza componentes requeridos por contratos activos.
+
+Los tres modos respetan reservas, dependencias y límites de capacidad.
+
+## 10.4 Compatibilidad por objeto
+
+El robot desatornillador no necesita una regla completamente distinta para cada lavadora, heladera o computadora.
+
+Cada componente declara si admite operaciones automáticas.
+
+Ejemplo:
+
+```
+PanelTraseroLavadora
+  Automation:
+    Supported = true
+    StationType = ScrewRobot
+    RequiredProgram = StandardPanel
+    RequiresManualLoading = true
+```
+
+Los programas se desbloquean mediante inspección, investigación o mejoras.
+
+## 10.5 Límites de automatización
+
+- No puede procesar piezas narrativas protegidas.
+- No puede ignorar dependencias.
+- No puede extraer piezas fuera de su área de alcance.
+- No puede producir materiales infinitos.
+- No puede completar contratos automáticamente sin verificar objetivos.
+- No puede trabajar si la salida está llena.
+- No puede continuar una operación sin recursos.
+
+## 10.6 Colas y bloqueos
+
+Cada máquina mantiene una cola limitada.
+
+Si una cinta intenta enviar un objeto a una estación ocupada, espera en un espacio intermedio.
+
+Para evitar bloqueos circulares, cada línea debe tener:
+
+- Capacidad de entrada.
+- Capacidad de salida.
+- Espacio de espera.
+- Ruta de rechazo o devolución.
+- Botón de cancelación.
+
+Una máquina nunca debe mantener una pieza bloqueada indefinidamente sin informar el motivo.
+
+## 10.7 Trabajo en paralelo
+
+Dos robots pueden trabajar sobre componentes distintos de un mismo objeto solo si:
+
+- Las operaciones no se interfieren.
+- Los componentes están accesibles.
+- El objeto está inmovilizado.
+- Ninguna operación depende de la finalización de la otra.
+
+El sistema debe reservar el componente y no necesariamente todo el objeto.
+
+# 11. Energía y combustible
+
+## 11.1 Modelo eléctrico
+
+Cada máquina define:
+
+```
+PowerProfile
+  IdleDemand
+  ActiveDemand
+  PeakDemand
+  Priority
+  CanPause
+```
+
+La demanda total se calcula sumando las máquinas activas.
+
+\\[ P\_{\text{total}}=\sum P\_{\text{máquinas}} \\]
+
+La capacidad disponible proviene de la red y de los generadores auxiliares.
+
+## 11.2 Prioridades
+
+| Prioridad           | Equipos                                      |
+| ------------------- | -------------------------------------------- |
+| 1 — Esencial        | Guardado, iluminación funcional e interfaces |
+| 2 — Trabajo crítico | Grúa con carga, estaciones en operación      |
+| 3 — Producción      | Robots, compactadoras y cintas               |
+| 4 — Secundaria      | Cargadores y equipos opcionales              |
+
+La iluminación esencial no debe apagarse completamente, para evitar que el juego se vuelva injugable.
+
+Si falta potencia, el sistema pausa primero las cargas de menor prioridad que admiten pausa.
+
+## 11.3 Generador
+
+El generador auxiliar:
+
+- Consume combustible por unidad de energía suministrada.
+- Tiene potencia máxima.
+- Puede encenderse manualmente.
+- Puede configurarse para activación automática.
+- Requiere mantenimiento.
+- No produce combustible ni energía gratuita.
+
+## 11.4 Baterías
+
+Las baterías tienen carga entre 0 y 100 %.
+
+Una herramienta no puede iniciar una operación si no tiene suficiente energía para completarla, salvo que admita interrupción y reanudación.
+
+Los cargadores consumen capacidad eléctrica y disponen de espacios limitados.
+
+## 11.5 Cortes de energía
+
+Cuando se interrumpe la alimentación:
+
+- La operación se pausa.
+- El progreso se conserva.
+- Las entradas siguen reservadas.
+- No se generan salidas parciales incorrectas.
+- La máquina reanuda cuando vuelve la energía y sus condiciones siguen siendo válidas.
+
+# 12. Desgaste, mantenimiento y reparación
+
+## 12.1 Condición
+
+Cada máquina tiene condición de 0 a 100.
+
+El desgaste depende de operaciones completadas, no del simple paso del tiempo.
+
+\\[ C\_{\text{nueva}}=\max(0,C\_{\text{actual}}-D\_{\text{operación}}) \\]
+
+## 12.2 Tipos de desgaste
+
+| Tipo       | Causa                       |
+| ---------- | --------------------------- |
+| Mecánico   | Ciclos de movimiento        |
+| Corte      | Material procesado          |
+| Precisión  | Operaciones de calibración  |
+| Transporte | Carga y distancia           |
+| Energético | Uso intensivo del generador |
+
+Para simplificar la interfaz, estos factores pueden combinarse en una sola condición visible, conservando el tipo de repuesto necesario.
+
+## 12.3 Reparación
+
+Una reparación sigue cuatro pasos:
+
+1. Detener la máquina de manera segura.
+2. Identificar el componente de mantenimiento.
+3. Consumir el kit correspondiente.
+4. Completar una interacción corta.
+
+La reparación normal restaura condición, pero no modifica la calidad de los objetos procesados.
+
+## 12.4 Mantenimiento preventivo
+
+Si la máquina tiene más de 30 puntos de condición, puede realizar mantenimiento preventivo.
+
+Ejemplo:
+
+- Consume un kit básico.
+- Restaura 35 puntos.
+- Requiere 10 segundos.
+- No puede superar 100.
+
+Una reparación desde condición cero puede requerir un kit adicional y más tiempo.
+
+## 12.5 Averías
+
+No utilizaría averías totalmente aleatorias.
+
+Las máquinas se detienen cuando su condición llega a cero, y pueden presentar eventos cómicos o pequeñas interrupciones anunciadas cuando están en estado crítico.
+
+## 12.6 Centro de mantenimiento automático
+
+El centro:
+
+- Consulta la condición de máquinas conectadas.
+- Programa trabajos cuando están inactivas.
+- Reserva kits.
+- Ejecuta reparaciones compatibles.
+- Registra costes.
+- Informa qué máquinas requieren intervención manual.
+
+No fabrica repuestos gratuitamente.
+
+# 13. Transporte, peso y física
+
+El transporte debe ser una mecánica importante durante la etapa inicial y convertirse progresivamente en un problema logístico que el jugador aprende a resolver.
+
+## 13.1 Clasificación de peso
+
+En lugar de simular capacidades humanas exactas, utilizaremos categorías jugables.
+
+| Clase           | Ejemplo            | Manipulación                     |
+| --------------- | ------------------ | -------------------------------- |
+| P1 — Ligera     | Placa electrónica  | Una persona, sin penalización    |
+| P2 — Media      | Motor pequeño      | Una persona, movimiento reducido |
+| P3 — Pesada     | Tambor de lavadora | Carro o dos jugadores            |
+| P4 — Muy pesada | Motor de automóvil | Polipasto o grúa                 |
+| P5 — Industrial | Chasis, bancada    | Maquinaria especializada         |
+
+Las clases son propiedades de cada componente, no solamente del objeto completo.
+
+## 13.2 Sistema de agarre
+
+Al recoger una pieza:
+
+1. El jugador apunta a un punto válido.
+2. El servidor comprueba disponibilidad y peso.
+3. La pieza queda reservada para ese jugador.
+4. Se activa su modo de transporte.
+5. Se sincroniza su posición con el resto de jugadores.
+6. Al soltarla, vuelve a la simulación física.
+
+No debe permitirse que dos jugadores controlen independientemente la misma pieza.
+
+## 13.3 Transporte cooperativo
+
+Las piezas P3 pueden ofrecer dos puntos de agarre.
+
+Si participan dos jugadores:
+
+- Ambos deben confirmar la sujeción.
+- La velocidad se limita al jugador más lento.
+- La pieza se mueve mediante un punto de referencia compartido.
+- Si uno la suelta, se activa una transición controlada para evitar impulsos físicos extremos.
+
+Un jugador solo puede mover esas piezas con un carro o equipo auxiliar.
+
+Esto evita que el cooperativo sea obligatorio para avanzar.
+
+## 13.4 Daño por caída
+
+La caída puede reducir calidad según:
+
+- Altura.
+- Velocidad de impacto.
+- Fragilidad.
+- Superficie.
+- Protección de la pieza.
+
+No calcularía daños a partir de fuerzas físicas totalmente realistas. Utilizaría umbrales controlados para obtener resultados consistentes.
+
+## 13.5 Grúas
+
+La grúa tiene cuatro operaciones principales:
+
+- Posicionar gancho.
+- Sujetar carga.
+- Elevar y trasladar.
+- Depositar.
+
+Solo puede levantar objetos con puntos de sujeción compatibles.
+
+No debe poder levantar el mapa, otras máquinas instaladas ni componentes reservados por una operación incompatible.
+
+## 13.6 Recuperación de objetos
+
+Cada pieza física conserva su última ubicación válida.
+
+Si cae fuera del escenario, queda atrapada en una colisión o se mueve a una velocidad imposible, el servidor puede devolverla a una zona segura.
+
+La recuperación debe registrar el motivo y conservar el estado de la pieza.
+
+## 13.7 Optimización de rendimiento
+
+Para siete jugadores:
+
+- Los componentes instalados permanecen estáticos.
+- Solo las piezas desprendidas utilizan física dinámica.
+- Las piezas en almacenamiento pueden pasar a representación estática.
+- Los materiales procesados son cantidades, no cientos de objetos físicos.
+- Los fragmentos pequeños de destrucción son cosméticos y locales.
+- Los objetos lejanos utilizan simulación simplificada.
+
+Así podemos tener una chatarrería visualmente llena sin sincronizar miles de rigidbodies.
+
+# 14. Multijugador y autoridad
+
+El cooperativo debe permitir que varias personas trabajen en el mismo objeto, en objetos diferentes o en distintas estaciones.
+
+## 14.1 Modelo de red
+
+Para la primera versión utilizaremos anfitrión autoritativo.
+
+El anfitrión controla:
+
+- Estados de objetos.
+- Fijaciones.
+- Componentes.
+- Inventario.
+- Economía.
+- Contratos.
+- Máquinas.
+- Construcciones.
+- Guardado.
+
+Los clientes envían solicitudes de interacción y reciben resultados confirmados.
+
+## 14.2 Ejemplo: dos jugadores y un tornillo
+
+Jugador A
+
+Solicita retirar F-001
+
+Jugador B
+
+Solicita retirar F-001
+
+Anfitrión
+
+Comprueba y reserva la fijación para la primera solicitud válida
+
+Operación autorizada
+
+Fijación ocupada
+
+La segunda solicitud no genera materiales, progreso ni desgaste.
+
+## 14.3 Reglas de interacción simultánea
+
+| Situación                                      | Comportamiento           |
+| ---------------------------------------------- | ------------------------ |
+| Dos jugadores, tornillos diferentes            | Ambos trabajan           |
+| Dos jugadores, mismo tornillo                  | Uno obtiene reserva      |
+| Dos jugadores, mismo motor                     | Solo uno puede extraerlo |
+| Jugador desmonta mientras otro inspecciona     | Permitido                |
+| Robot y jugador sobre la misma fijación        | Reserva exclusiva        |
+| Dos jugadores venden la misma pieza            | Una única venta          |
+| Jugador intenta mover objeto en máquina activa | Bloqueado                |
+
+## 14.4 Entrada tardía
+
+Un jugador que se incorpora recibe una fotografía del estado actual:
+
+- Mapa.
+- Máquinas.
+- Objetos y componentes.
+- Contratos.
+- Inventario.
+- Progresión.
+- Posiciones relevantes.
+
+Después recibe las modificaciones ocurridas desde esa fotografía.
+
+No se deben recrear los objetos desde su estado inicial y reproducir manualmente cada acción de la sesión.
+
+## 14.5 Desconexiones
+
+Si un jugador se desconecta:
+
+- Su herramienta activa deja de operar.
+- Se cancelan interacciones incompletas.
+- Las piezas que transportaba se depositan en una ubicación segura.
+- Las reservas temporales se liberan.
+- Los trabajos de máquinas continúan.
+- El inventario y el progreso compartidos permanecen.
+
+## 14.6 Desconexión del anfitrión
+
+Para la primera versión:
+
+1. Se intenta guardar el estado.
+2. Se informa a los clientes.
+3. La sesión se cierra.
+4. El anfitrión puede reabrir la partida.
+
+No prometería migración de anfitrión hasta que el guardado y la sincronización estén probados.
+
+## 14.7 Escalado de trabajo
+
+El número de jugadores no modifica mágicamente la resistencia de los objetos.
+
+| Jugadores | Contratos sugeridos        | Actividad                          |
+| --------- | -------------------------- | ---------------------------------- |
+| 1         | Un objeto principal        | Herramientas y estaciones de apoyo |
+| 2         | Uno o dos objetos          | División de operaciones            |
+| 3–4       | Dos o tres objetos         | Trabajo paralelo                   |
+| 5–7       | Varios objetos y proyectos | Especialización y logística        |
+
+La cantidad de objetos ofrecidos puede crecer, pero el jugador conserva el control de cuántos contratos acepta.
+
+## 14.8 Distribución de recompensas
+
+El dinero, la reputación de la empresa y las instalaciones son compartidos.
+
+No se divide el pago entre jugadores.
+
+Esto evita que jugar con siete personas reduzca los ingresos individuales de la chatarrería.
+
+Las estadísticas personales pueden registrar contribuciones, pero no deben convertirse en una competición por apropiarse de piezas.
+
+# 15. Progresión y desbloqueos
+
+La progresión debe combinar historia, capacidad técnica y expansión del negocio.
+
+No utilizaría únicamente un nivel numérico de personaje.
+
+## 15.1 Tres ejes
+
+Reputación comercial
+
+Se obtiene completando contratos. Desbloquea clientes, objetos y proyectos más valiosos.
+
+Desarrollo tecnológico
+
+Se obtiene mediante uso de equipos, recuperación de planos y fabricación. Desbloquea herramientas y automatización.
+
+Infraestructura
+
+Depende de dinero, materiales y espacio. Permite operar equipos y recibir objetos grandes.
+
+## 15.2 Niveles comerciales
+
+| Nivel | Nombre                    | Desbloqueos principales                        |
+| ----- | ------------------------- | ---------------------------------------------- |
+| 1     | Recuperador improvisado   | Electrodomésticos básicos                      |
+| 2     | Taller reconocido         | Equipos medianos y motocicletas                |
+| 3     | Desguace profesional      | Automóviles, motores industriales              |
+| 4     | Recuperación industrial   | Autobuses, maquinaria pesada                   |
+| 5     | Referente de recuperación | Contratos especiales y automatización completa |
+
+## 15.3 Investigación tecnológica
+
+La experiencia tecnológica se obtiene al completar operaciones relevantes.
+
+Ejemplos:
+
+- Desatornillar: tecnología de fijaciones.
+- Recuperar motores: tecnología mecánica.
+- Clasificar materiales: tecnología de separación.
+- Operar grúas: tecnología logística.
+- Reparar máquinas: tecnología de mantenimiento.
+
+No daría experiencia ilimitada por repetir una acción sin producir resultados.
+
+Solo las operaciones válidas sobre componentes reales generan progreso, con rendimientos decrecientes para tareas triviales cuando el jugador ya domina esa tecnología.
+
+## 15.4 Árbol tecnológico
+
+Taller manual
+
+Herramientas eléctricas
+
+Almacenamiento ampliado
+
+Maquinaria industrial
+
+Procesamiento de materiales
+
+Robótica y automatización
+
+Planta optimizada
+
+Las ramas deben permitir especialización.
+
+Un jugador puede priorizar herramientas de precisión y vender piezas premium, mientras otro puede invertir antes en trituración y procesamiento de grandes volúmenes.
+
+Ambas rutas deben ser viables.
+
+## 15.5 Protección contra bloqueos
+
+Ninguna tecnología obligatoria para la historia debe depender de una única pieza que pueda perderse permanentemente.
+
+Si se requiere un motor para construir una máquina esencial, debe existir una fuente repetible de motores.
+
+# 16. Guardado y persistencia
+
+El guardado es especialmente importante porque el jugador puede tener varios objetos parcialmente desmontados, máquinas trabajando y piezas repartidas por el mapa.
+
+## 16.1 Datos persistentes
+
+| Categoría      | Información                             |
+| -------------- | --------------------------------------- |
+| Empresa        | Dinero, reputación, estadísticas        |
+| Historia       | Capítulos, documentos, decisiones       |
+| Mapa           | Áreas y ampliaciones                    |
+| Objetos        | Instancias, componentes y estados       |
+| Piezas         | Calidad, origen, ubicación              |
+| Inventario     | Materiales, repuestos, reservas         |
+| Herramientas   | Compras, equipamiento y baterías        |
+| Máquinas       | Nivel, condición, configuración         |
+| Automatización | Colas, trabajos y progreso              |
+| Contratos      | Estados, objetivos y entregas           |
+| Energía        | Generadores, combustible, configuración |
+
+## 16.2 Cuándo guardar
+
+- Al completar un contrato.
+- Al comprar una ampliación.
+- Al terminar una construcción.
+- Al cerrar una sesión.
+- Periódicamente mediante autoguardado.
+- Manualmente cuando no existe una operación crítica incompatible.
+
+## 16.3 Guardado seguro
+
+El sistema debe crear una instantánea consistente del mundo.
+
+No debe guardar el dinero después de una venta y la pieza antes de desaparecer, porque eso permitiría duplicarla al cargar.
+
+Propuesta técnica:
+
+1. El servidor establece un punto lógico de consistencia.
+2. Termina o pausa la confirmación de transacciones pendientes.
+3. Captura los datos persistentes.
+4. Escribe un archivo temporal.
+5. Verifica su integridad.
+6. Sustituye el guardado anterior.
+7. Conserva una copia de respaldo.
+
+## 16.4 Restauración
+
+Al cargar:
+
+- Se reconstruye el mapa.
+- Se crean las máquinas.
+- Se restauran objetos y componentes.
+- Se restauran inventarios.
+- Se recuperan contratos.
+- Se revalidan colas de automatización.
+- Se reanudan operaciones compatibles.
+
+Las interacciones manuales incompletas pueden cancelarse sin penalización.
+
+Las operaciones industriales persistentes deben restaurarse desde su último paso confirmado.
+
+## 16.5 Versionado
+
+Cada archivo tendrá una versión de esquema.
+
+Si una actualización modifica componentes o recetas, el juego necesita reglas de migración.
+
+Por ejemplo, si una lavadora pasa de ocho a nueve componentes, una partida antigua no debe recibir automáticamente un componente nuevo dentro de un objeto ya procesado.
+
+Las instancias existentes deben conservar una versión compatible o migrarse mediante reglas explícitas.
+
+# 17. Eventos e incidentes cómicos
+
+El humor debe aparecer como consecuencia del trabajo, no como interrupciones arbitrarias.
+
+## 17.1 Categorías
+
+| Categoría | Ejemplo                                      | Consecuencia          |
+| --------- | -------------------------------------------- | --------------------- |
+| Ambiental | Megafonía absurda                            | Ninguna               |
+| Física    | Una pieza rueda por el patio                 | Recuperable           |
+| Mecánica  | Lavadora vibra exageradamente                | Movimiento controlado |
+| Cliente   | Pedido con descripción ridícula              | Variación de contrato |
+| Máquina   | Robot coloca una pieza en bandeja equivocada | Corrección sencilla   |
+| Narrativa | Televisor muestra un mensaje                 | Avance de historia    |
+
+## 17.2 Estructura de evento
+
+```
+IncidentDefinition
+  IncidentId
+  Trigger
+  Preconditions
+  Probability
+  Cooldown
+  Duration
+  AffectedObjects[]
+  GameplayConsequences
+  NetworkPolicy
+  RepeatPolicy
+```
+
+## 17.3 Frecuencia
+
+No deberían ocurrir incidentes constantemente.
+
+Propuesta:
+
+- Ambientales: ocasionales.
+- Físicos: principalmente derivados de acciones reales.
+- Mecánicos: poco frecuentes.
+- Narrativos: momentos determinados.
+- Incidentes mayores: uno por contrato especial como máximo, salvo diseño específico.
+
+## 17.4 Protección de progreso
+
+Un incidente cómico no puede:
+
+- Destruir una pieza única de historia.
+- Borrar inventario.
+- Duplicar materiales.
+- Bloquear permanentemente una máquina.
+- Lanzar objetos fuera del mapa sin recuperación.
+- Cancelar contratos sin advertencia.
+
+## 17.5 Ejemplo: robot confundido
+
+Condición: robot de nivel 1 procesando módulos similares.
+
+Evento: deposita un panel en una bandeja de salida equivocada.
+
+Consecuencia: el jugador debe mover el panel a la bandeja correcta.
+
+Limitación: no ocurre si la estación tiene reconocimiento inteligente instalado.
+
+Humor: la pantalla muestra «OPERACIÓN COMPLETADA CON CONFIANZA INJUSTIFICADA».
+
+Este tipo de incidente tiene sentido porque se relaciona con una mejora tecnológica.
+
+# 18. IA operativa y gestión de trabajos
+
+No necesitamos inteligencia artificial generativa para controlar los robots.
+
+Necesitamos un sistema determinista de planificación de tareas.
+
+## 18.1 Planificador
+
+Cada estación informa:
+
+- Qué operaciones puede ejecutar.
+- Qué entradas tiene disponibles.
+- Qué recursos necesita.
+- Cuánto tardará.
+- Qué resultados producirá.
+- Si está libre.
+- Qué mantenimiento requiere.
+
+El planificador utiliza esa información para asignar trabajos.
+
+## 18.2 Selección de trabajos
+
+Cada trabajo recibe una puntuación interna:
+
+\\[ S=w_pP+w_vV-w_tT-w_rR \\]
+
+Donde:
+
+- \\(P\\): prioridad de contrato.
+- \\(V\\): valor recuperable.
+- \\(T\\): tiempo estimado.
+- \\(R\\): riesgo de pérdida.
+- \\(w\\): pesos según el modo seleccionado.
+
+En modo preciso, el riesgo recibe mayor importancia.
+
+En modo rápido, el tiempo tiene más peso.
+
+En modo contrato, la prioridad contractual domina.
+
+Los valores se normalizan antes de combinarlos para que una escala monetaria grande no anule todas las demás.
+
+## 18.3 Restricciones
+
+El planificador nunca puede asignar:
+
+- Una pieza reservada a otro trabajo.
+- Un componente bloqueado.
+- Una operación incompatible.
+- Un trabajo sin energía.
+- Una tarea sin espacio de salida.
+- Una operación que destruiría una pieza protegida.
+
+## 18.4 Supervisión humana
+
+Los jugadores pueden:
+
+- Cambiar prioridades.
+- Pausar trabajos.
+- Cancelar trabajos pendientes.
+- Mover piezas.
+- Reconfigurar estaciones.
+- Reparar máquinas.
+- Inspeccionar resultados.
+- Reservar componentes valiosos.
+
+No deberían tener que aprobar manualmente cada tornillo retirado por un robot avanzado.
+
+## 18.5 Automatización de líneas
+
+Una línea avanzada puede conectar:
+
+Recepción → Inspección → Desatornillado → Separación → Clasificación → Almacenamiento.
+
+Cada etapa tiene una cola y una capacidad.
+
+Si una estación está llena, las anteriores deben detenerse de forma controlada.
+
+Esto evita que las máquinas creen piezas en posiciones ocupadas o las acumulen infinitamente.
+
+# 19. Reglas transversales que todos los sistemas deben cumplir
+
+Además de los 18 sistemas, necesitamos reglas comunes para evitar contradicciones.
+
+## 19.1 Identidad única
+
+Cada objeto, pieza, contrato, máquina y trabajo debe tener un identificador único y persistente.
+
+## 19.2 Propiedad
+
+Cada recurso tiene un propietario lógico: la empresa, un cliente o una misión.
+
+Los jugadores pueden manipular recursos compartidos, pero eso no cambia automáticamente su propiedad.
+
+## 19.3 Transacciones
+
+Toda acción que crea o consume recursos debe confirmarse una sola vez.
+
+Esto incluye ventas, fabricación, extracción, procesamiento y recompensas.
+
+## 19.4 Acciones reversibles
+
+Las operaciones que todavía no han consumido o destruido recursos pueden cancelarse.
+
+Las operaciones ya confirmadas no deben revertirse simplemente porque un jugador cierre un menú.
+
+## 19.5 Información clara
+
+Cuando una acción falla, el juego debe explicar por qué:
+
+- «Quedan dos pernos».
+- «Necesitás una grúa».
+- «La salida está ocupada».
+- «Falta electricidad».
+- «Pieza reservada para contrato».
+- «Herramienta incompatible».
+
+No debemos depender de que el jugador adivine las reglas.
+
+## 19.6 Accesibilidad
+
+Las interacciones repetitivas deben ofrecer alternativas a mantener botones pulsados constantemente.
+
+El juego debería permitir ajustar sensibilidad, remapear controles, modificar volumen por categoría y distinguir componentes mediante iconos además de colores.
+
+# 20. Casos límite obligatorios
+
+Estos son algunos escenarios que Fable deberá probar antes de considerar estable el núcleo del juego.
+
+| Caso                                           | Resultado esperado                                         |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| Dos jugadores extraen la misma pieza           | Una sola extracción                                        |
+| Se corta la luz durante el procesamiento       | Trabajo pausado y recuperable                              |
+| Se vende una pieza reservada                   | Operación bloqueada                                        |
+| Se destruye una pieza de contrato              | Objetivo marcado como irrecuperable                        |
+| Un jugador se desconecta llevando un motor     | Motor depositado en lugar seguro                           |
+| Una pieza cae fuera del mapa                   | Recuperación sin duplicación                               |
+| El almacén está lleno                          | Se bloquea la entrega de nuevos recursos                   |
+| Una máquina se avería con carga                | Conserva carga y progreso                                  |
+| Se cancela una fabricación                     | Reembolso según estado de ejecución                        |
+| Se guarda durante una venta                    | Estado consistente antes o después, nunca intermedio       |
+| Se carga una partida antigua                   | Migración o compatibilidad explícita                       |
+| Un robot y un jugador usan el mismo componente | Reserva exclusiva                                          |
+| Se destruyen todas las piezas valiosas         | El objeto puede cerrarse como chatarra                     |
+| Se agota el dinero                             | Siguen disponibles trabajos básicos                        |
+| Juega una sola persona                         | Todos los contratos obligatorios siguen siendo realizables |
+| Entran siete jugadores                         | No se multiplican recompensas ni recursos                  |
+
+# 21. Cómo implementar esta lógica sin crear 18 sistemas aislados
+
+La arquitectura debería organizarse alrededor de cinco núcleos compartidos.
+
+Estado autoritativo del mundo
+
+Identidades, objetos, jugadores, tiempo y persistencia
+
+Interacciones
+
+Herramientas, componentes, daño y físicas
+
+Recursos
+
+Inventario, economía, recuperación y fabricación
+
+Producción
+
+Máquinas, energía, mantenimiento y automatización
+
+Progresión
+
+Contratos, reputación, historia y desbloqueos
+
+Interfaz, red y guardado
+
+Presentan y sincronizan los resultados confirmados
+
+Las definiciones de los 30 objetos, herramientas y máquinas deben ser datos que utilizan estos núcleos, no treinta implementaciones independientes.
+
+# 22. Orden real de desarrollo
+
+Aunque ya tenemos el diseño de todos los sistemas, no conviene intentar programarlos simultáneamente.
+
+| Fase | Qué se construye                    | Prueba de aceptación                                   |
+| ---- | ----------------------------------- | ------------------------------------------------------ |
+| 1    | Un objeto, componentes y fijaciones | Desmontar una lavadora completa                        |
+| 2    | Herramientas, daño y calidad        | Comparar desmontaje cuidadoso y destructivo            |
+| 3    | Materiales, inventario y venta      | Recuperar, procesar y vender sin duplicaciones         |
+| 4    | Contratos y recepción               | Completar un encargo de principio a fin                |
+| 5    | Herramientas eléctricas             | Demostrar una mejora perceptible de velocidad          |
+| 6    | Primera máquina automática          | Procesar componentes sin intervención constante        |
+| 7    | Energía y mantenimiento             | Pausar, reparar y reanudar trabajos                    |
+| 8    | Multijugador                        | Dos jugadores desmontan simultáneamente sin conflictos |
+| 9    | Guardado                            | Restaurar una partida parcialmente desmontada          |
+| 10   | Escalado y contenido                | Validar cinco objetos y hasta siete jugadores          |
+| 11   | Progresión industrial               | Desbloquear y construir nuevas instalaciones           |
+| 12   | Catálogo completo e historia        | Integrar los 30 objetos y contratos narrativos         |
+
+## 23. Qué queda por cerrar después de esta especificación
+
+Hemos establecido el comportamiento general de los 18 sistemas, pero todavía faltan los datos definitivos que utilizará el juego:
+
+- Las dependencias exactas de cada componente de los 30 objetos.
+- La compatibilidad de cada herramienta con cada tipo de fijación.
+- Las recetas completas de recuperación y fabricación.
+- Los precios y costes de todas las máquinas.
+- Los requisitos específicos del árbol tecnológico.
+- Los objetivos y condiciones exactas de cada contrato.
+- Los tiempos de operación y rendimientos por objeto.
+- Las posiciones de trabajo y conexiones de cada estación.
+- Los controles, pantallas y señales visuales.
+- Las pruebas automáticas para validar cada regla.
+
+Estos datos deben mantenerse en catálogos estructurados para poder modificarlos sin reescribir código.
+
+La decisión más importante es que todos los sistemas compartan las mismas reglas de identidad, propiedad, dependencias y transacciones. Si resolvemos eso correctamente, podremos incorporar los 30 objetos, las herramientas avanzadas y los robots sin reinventar la lógica cada vez.
+
+Con esta especificación tenemos una base funcional coherente para comenzar el prototipo. Todavía no es una especificación técnica cerrada ni un balance validado: el siguiente paso de producción sería convertirla en esquemas de datos, tablas de contenido y pruebas ejecutables, empezando por una lavadora completamente funcional.

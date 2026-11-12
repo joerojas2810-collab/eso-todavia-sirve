@@ -1,0 +1,975 @@
+# ¡ESO TODAVÍA SIRVE!
+
+GDD 3.0 · Catálogo maestro de objetos, clasificación y componentes
+
+Vamos a definir 30 objetos desmontables para el lanzamiento, cada uno con una estructura concreta, componentes recuperables, materiales, herramientas, dependencias y particularidades.
+
+La idea es que Fable pueda construirlos reutilizando un mismo sistema de desmontaje, pero que desarmar una heladera no se sienta igual que desarmar una motocicleta.
+
+## 1. Sistema de clasificación
+
+Cada objeto tendrá cuatro clasificaciones simultáneas: familia, tamaño, complejidad y estado.
+
+### Familias
+
+| Código | Familia           | Objetos |
+| ------ | ----------------- | ------- |
+| E      | Electrodomésticos | 01–08   |
+| EL     | Electrónica       | 09–13   |
+| M      | Motores y equipos | 14–18   |
+| V      | Vehículos         | 19–24   |
+| I      | Industrial        | 25–28   |
+| X      | Especiales        | 29–30   |
+
+### Tamaño y manipulación
+
+| Clase | Descripción          | Transporte                            |
+| ----- | -------------------- | ------------------------------------- |
+| S     | Pequeño              | Una persona                           |
+| M     | Mediano              | Una persona, con penalización si pesa |
+| L     | Grande               | Carro o despiece                      |
+| XL    | Muy grande           | Grúa o desmontaje estructural         |
+| XXL   | Proyecto excepcional | Área dedicada y maquinaria            |
+
+### Complejidad
+
+- D1 — Básica: tornillos, tapas, extracción y clasificación.
+- D2 — Intermedia: componentes internos y dependencias.
+- D3 — Avanzada: conexiones, cortes y piezas pesadas.
+- D4 — Industrial: varias etapas, maquinaria y subensamblajes.
+- D5 — Especial: combina sistemas y objetivos narrativos.
+
+### Estados de recepción
+
+Todo objeto puede llegar en estado normal, oxidado, dañado o incompleto. El estado altera fijaciones, calidad y componentes presentes, pero no debe crear contratos imposibles.
+
+## 2. Cómo se construye un objeto desmontable
+
+Cada objeto tendrá un árbol de componentes. Por ejemplo:
+
+### Ejemplo: lavadora
+
+Lavadora
+
+Exterior
+
+Tapa, puerta, panel trasero, controles
+
+Interior
+
+Motor, tambor, bomba, cableado
+
+Piezas completas o materiales
+
+Acero · Cobre · Plástico · Electrónica
+
+Las fijaciones se cuentan como puntos de interacción, no como objetos físicos independientes. Una pieza puede tener cuatro tornillos y seguir siendo un único componente desmontable.
+
+Convención del catálogo: `C` indica componente; `F` indica fijaciones o uniones. Los rendimientos materiales se definen por componente, no se generan automáticamente al golpear cualquier superficie.
+
+# 3. Catálogo de 30 objetos
+
+## Familia E — Electrodomésticos
+
+[3D model Dirty microwave oven VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/GCB_PJMH_3DYEfLc4Hf5jC-59gk1Gxo5uT8IGKbLgXxbHJxbUJKlXumTSTaIRYzdscWazjfbrD1rXNvRShRAnCASiAqqgSD3zqnR9wEMHhwdzbS0rxXb2QJCC8ZdNGV4aKLO9uW9xhSgMzCexUrBzK8WkTlW3tmRoqI3k2SdfaM?purpose=inline)
+
+### 01 · Microondas
+
+E · M · D1 · Capítulo 1 · 6 componentes
+
+Objeto introductorio para desmontaje de carcasas y clasificación de electrónica.
+
+| Componente               | Fijación / extracción | Resultado        |
+| ------------------------ | --------------------- | ---------------- |
+| Carcasa metálica         | 4 tornillos           | Acero            |
+| Puerta                   | 2 bisagras            | Vidrio, plástico |
+| Panel de control         | 3 tornillos           | Electrónica      |
+| Plato giratorio          | Extracción directa    | Vidrio           |
+| Motor de giro            | 2 tornillos           | Motor pequeño    |
+| Módulo eléctrico sellado | 4 fijaciones          | Residuo especial |
+
+Secuencia: abrir carcasa → retirar controles y plato → extraer motor → entregar módulo sellado → procesar estructura.
+
+Particularidad: el reloj puede mostrar horas imposibles. Los componentes eléctricos de riesgo se representan como módulos sellados, sin procedimientos reales de apertura.
+
+[Old washing machine](https://images.openai.com/static-rsc-4/YkGfliss03-gG9WQqT0OYOqQit9R5MwpDsMs52Vd8FLgnDHBKkzK_M4c9KRGh7OFKBOIhSU0tECKIItsZkgX-anrGdC_ZnhhUR4u7a4J55THoaTE91WVOIRWrtQ3ML2WSaInhQpEuTR9lg68bJUivd5-c4ImsT1w_YfPZsweZ_kBFg5-kOhEczMc7QsuTdaf?purpose=inline)
+
+### 02 · Lavadora
+
+E · L · D2 · Capítulo 1 · 9 componentes
+
+Introduce dependencias mecánicas y extracción de motores.
+
+| Componente       | Fijación / extracción | Resultado        |
+| ---------------- | --------------------- | ---------------- |
+| Tapa superior    | 4 tornillos           | Acero            |
+| Panel trasero    | 6 tornillos           | Acero            |
+| Puerta           | 2 bisagras            | Vidrio, plástico |
+| Panel de control | 3 tornillos           | Electrónica      |
+| Tambor           | 4 pernos              | Acero            |
+| Motor            | 4 pernos              | Motor completo   |
+| Bomba            | 2 fijaciones          | Bomba pequeña    |
+| Cableado         | 3 conectores          | Cobre            |
+| Carcasa          | Compactación          | Acero            |
+
+Secuencia: abrir paneles → desconectar cableado → retirar bomba y motor → liberar tambor → procesar carcasa.
+
+Particularidad: al activar la prueba, vibra y hace ruido. El motor puede venderse intacto por una bonificación.
+
+[3D model Stylized Fridge VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/dTTQ-HgDFXIVsoNTrLpTni_BlKc-_dbkSUEkcUMq7dvBpYSLWHP_s2Lz8U2y7IyhWq6-OcENgie0TCizHrjvCbuRvRcDMScaQI-zlAsdpzR0sGMRJgXcSMA42Rmu9YLTMo5GXhYWYUzlvN1xXR85WP-rk46wtvLAiENQRe6RUXM?purpose=inline)
+
+### 03 · Heladera
+
+E · L · D2 · Capítulo 1 · 9 componentes
+
+Enseña a recuperar accesorios y manejar módulos especiales.
+
+| Componente                 | Fijación / extracción | Resultado        |
+| -------------------------- | --------------------- | ---------------- |
+| Puerta superior            | 2 bisagras            | Acero, plástico  |
+| Puerta inferior            | 2 bisagras            | Acero, plástico  |
+| Estantes                   | Extracción directa    | Vidrio           |
+| Cajones                    | Extracción directa    | Plástico         |
+| Panel posterior            | 4 tornillos           | Acero            |
+| Termostato                 | 2 tornillos           | Electrónica      |
+| Ventilador                 | 3 tornillos           | Motor pequeño    |
+| Módulo frigorífico sellado | 4 fijaciones          | Residuo especial |
+| Carcasa                    | Procesamiento         | Acero, plástico  |
+
+Secuencia: retirar accesorios → puertas → panel → electrónica → módulo sellado → carcasa.
+
+Particularidad: puede contener objetos perdidos. El módulo frigorífico no se abre ni perfora.
+
+[DRYER - 3D model by ELLS WAKE (@ELLSWAKE) \[b0998a8\] - Sketchfab](https://images.openai.com/static-rsc-4/FNgj8lEpsCSdhoPTMg017QvmuvcV83kOfabGYCchMf2c5p0dg0aTPmfl3hZDprz8APLZL5KksXWCXbTs35e6J75Hf5x9qdv8m06csHERZL9-vtEpFdtZjJSknCY68W7eLHeC0CmSRCNNJ1hqomL_67bianN3EzajF55GsjZgtZA?purpose=inline)
+
+### 04 · Secadora de ropa
+
+E · L · D2 · Capítulo 2 · 8 componentes
+
+Similar a la lavadora, pero introduce conductos y ventilación.
+
+| Componente          | Fijación / extracción | Resultado      |
+| ------------------- | --------------------- | -------------- |
+| Tapa                | 4 tornillos           | Acero          |
+| Panel frontal       | 6 tornillos           | Acero          |
+| Tambor              | 4 pernos              | Acero          |
+| Motor               | 4 pernos              | Motor completo |
+| Ventilador          | 3 tornillos           | Motor pequeño  |
+| Conducto            | 2 abrazaderas         | Aluminio       |
+| Control electrónico | 3 tornillos           | Electrónica    |
+| Carcasa             | Procesamiento         | Acero          |
+
+Secuencia: abrir exterior → retirar controles → liberar conducto y motor → retirar tambor → procesar.
+
+Particularidad: puede expulsar una nube cómica de pelusa al abrir el conducto.
+
+[Oven 3D Models for Free Download - Meshy](https://images.openai.com/static-rsc-4/g-fhtER9kno5u4MQfn7k235K23AJKNxplT5vvnbldAR32G0J3XGWHq3rkaNwVDxCaJaRUYhd4MqOYyIxJg07stsMd2KANx9yQgRuDiFbPrY7RIcCaM1ewytjqkZFLTZHTB-YvRyEDQVrEtKuFFYfWEgf_hXlmnhPtTxN4HlVmVg?purpose=inline)
+
+### 05 · Cocina con horno
+
+E · L · D2 · Capítulo 2 · 8 componentes
+
+Introduce desmontaje de estructuras metálicas y módulos de control.
+
+| Componente                     | Fijación / extracción | Resultado        |
+| ------------------------------ | --------------------- | ---------------- |
+| Parrillas                      | Extracción            | Acero            |
+| Quemadores ficticios           | Extracción            | Acero            |
+| Tapa superior                  | 4 tornillos           | Acero            |
+| Puerta del horno               | 2 bisagras            | Vidrio, acero    |
+| Perillas                       | Extracción            | Plástico         |
+| Panel de control               | 3 tornillos           | Electrónica      |
+| Módulo de alimentación sellado | 4 fijaciones          | Residuo especial |
+| Carcasa                        | Procesamiento         | Acero            |
+
+Secuencia: retirar accesorios → abrir paneles → recuperar controles → retirar módulo sellado → procesar estructura.
+
+Particularidad: una perilla puede estar etiquetada «MODO TURBO INEXPLICABLE».
+
+[Dishwasher Game Ready PBR Model - TurboSquid 2007118](https://images.openai.com/static-rsc-4/kc0l4xOM2DxVRpLP0RxRJSx_r1aY6nKWhMRNYAwotnIBPpsN97rARq2JjeSA7-v3NtuRQnOp5I9Ub1O4Du_TXCTBWJPSvtyY9GKNv8vGqpc_VQIFSc2NKEf0_QvM5DBSR1JQ-CC7I4Hr538x82nGRl7XWPa1hoJBZAdJ4ZGhhQA?purpose=inline)
+
+### 06 · Lavavajillas
+
+E · L · D2 · Capítulo 2 · 9 componentes
+
+Se centra en bandejas, bombas y conexiones.
+
+| Componente        | Fijación / extracción | Resultado      |
+| ----------------- | --------------------- | -------------- |
+| Puerta            | 2 bisagras            | Acero          |
+| Bandeja superior  | Extracción            | Acero          |
+| Bandeja inferior  | Extracción            | Acero          |
+| Brazos giratorios | 2 fijaciones          | Plástico       |
+| Panel de control  | 3 tornillos           | Electrónica    |
+| Bomba             | 4 pernos              | Bomba completa |
+| Motor             | 3 pernos              | Motor          |
+| Cableado          | 2 conectores          | Cobre          |
+| Carcasa           | Procesamiento         | Acero          |
+
+Secuencia: retirar bandejas → abrir carcasa → desconectar controles → extraer bomba y motor.
+
+Particularidad: puede aparecer una cuchara de oro falsa como coleccionable.
+
+[3D model Old Vacuum Cleaner  VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/gohcebDHMAcvSdkVopaioAXKTIrBRnj7Ini1aukXuAIpRf4yRQu9ltHHqd5wbDBl-uvCubW4yZ9akvIiGJoXC7z4z6kE_2mQh0dLZ6Mu1QZQEC0kA7q--U4ckdxDE6p1_IyG6Q7IGtWxurJysEh1rBN8uGs3lEQrBW4g0FAQnKw?purpose=inline)
+
+### 07 · Aspiradora
+
+E · M · D1 · Capítulo 1 · 7 componentes
+
+Contrato rápido para recuperar plástico, motor y cobre.
+
+| Componente | Fijación / extracción | Resultado     |
+| ---------- | --------------------- | ------------- |
+| Tubo       | Extracción            | Plástico      |
+| Cabezal    | 2 clips               | Plástico      |
+| Depósito   | Extracción            | Plástico      |
+| Filtro     | Extracción            | Residuo común |
+| Carcasa    | 5 tornillos           | Plástico      |
+| Motor      | 3 tornillos           | Motor pequeño |
+| Cableado   | 2 conectores          | Cobre         |
+
+Secuencia: retirar accesorios → abrir carcasa → recuperar motor → clasificar.
+
+Particularidad: al abrirla puede liberar una nube de polvo exagerada.
+
+[3d Vintage Electric Fan](https://images.openai.com/static-rsc-4/GQD2Irl9CWzQn2okVKs8cncMFAc_J8ohNhNTWSZw3O97Y-VSwkSi8STWg5ynik6xhiNCF9DvWthYhNJA1HNTiHRbezFo5MgiPNbcGd3ohCd1bFcUYm2-kow8bMcUVFGuTbNouHH7o1t9lwMLd6hkfhlvK2InWnDiHO7cS5mY4jE?purpose=inline)
+
+### 08 · Ventilador
+
+E · M · D1 · Capítulo 1 · 6 componentes
+
+Objeto básico que enseña fijaciones y extracción de motor.
+
+| Componente      | Fijación / extracción | Resultado     |
+| --------------- | --------------------- | ------------- |
+| Rejilla frontal | 3 clips               | Acero         |
+| Aspas           | 1 fijación            | Plástico      |
+| Rejilla trasera | 3 clips               | Acero         |
+| Motor           | 4 tornillos           | Motor pequeño |
+| Base            | 2 pernos              | Acero         |
+| Cableado        | 2 conectores          | Cobre         |
+
+Secuencia: retirar rejillas → aspas → motor → base.
+
+Particularidad: las aspas pueden girar brevemente después de retirar la rejilla.
+
+## Familia EL — Electrónica
+
+[Retro Rusty TV - Vintage Old Television 3D Model 3D - TurboSquid 2487381](https://images.openai.com/static-rsc-4/5EvWOmyTjMv9IesDpDNuFcQ7lJ22Ji2Wnl_U_q1WkMsLOdyEmaN4YEqRBc3WMmcKq6FNwTRB1IAYsyLS7r_F_YpQ1OfS20AAtvdtg0Ekuzb0yLqRCIZmHNkyHgcY5T3wOtNyhzaT88HQGVl3tuwHTynJbqA6yosnONg4fRgoW4k?purpose=inline)
+
+### 09 · Televisor antiguo
+
+EL · M · D1 · Capítulo 1 · 6 componentes
+
+Introduce recuperación de electrónica delicada.
+
+| Componente                 | Fijación / extracción | Resultado        |
+| -------------------------- | --------------------- | ---------------- |
+| Carcasa                    | 6 tornillos           | Plástico         |
+| Botonera                   | 2 tornillos           | Electrónica      |
+| Placa principal            | 4 tornillos           | Electrónica      |
+| Altavoz                    | 2 tornillos           | Componente       |
+| Cableado                   | 2 conectores          | Cobre            |
+| Módulo de pantalla sellado | 4 fijaciones          | Residuo especial |
+
+Secuencia: abrir carcasa → retirar controles y placa → extraer pantalla sellada.
+
+Particularidad: algunas unidades muestran mensajes en la pantalla.
+
+[Vintage PC Tower Case Low Poly | Fab](https://images.openai.com/static-rsc-4/J_N0qHMwlVIdwip31nojM2qRu8TB0-lpBsQTNntzReW2TGLQ7HWnBcMmHREZlP6CDqIc6yT-AxRUWqKOTpjb8JNlrTDAclXxfPaFCCBUpBEgA3SDNkSu5Ykyz-dMXNDFHtAbhamnGFOjkQ4I_xOJa3jioJWbbVItto6HqGNnDog?purpose=inline)
+
+### 10 · Computadora de escritorio
+
+EL · M · D2 · Capítulo 1 · 9 componentes
+
+Enseña recuperación selectiva de piezas completas.
+
+| Componente     | Fijación / extracción | Resultado       |
+| -------------- | --------------------- | --------------- |
+| Panel lateral  | 2 tornillos           | Acero           |
+| Fuente sellada | 4 tornillos           | Módulo especial |
+| Placa madre    | 6 tornillos           | Electrónica     |
+| Procesador     | Seguro simplificado   | Pieza premium   |
+| Memoria RAM    | 2 clips               | Pieza premium   |
+| Almacenamiento | 4 tornillos           | Pieza           |
+| Ventilador     | 4 tornillos           | Motor pequeño   |
+| Cableado       | 4 conectores          | Cobre           |
+| Gabinete       | Procesamiento         | Acero           |
+
+Secuencia: abrir gabinete → desconectar cables → retirar módulos → placa madre → procesar gabinete.
+
+Particularidad: puede contener un archivo ficticio de Ernesto.
+
+[Vintage CRT Monitor 3D - TurboSquid 2189368](https://images.openai.com/static-rsc-4/_tOxDbfBXhsXZrBkoTCRoxLcGU8AKNNwxYG_TFJjEHxSQwX1KUdciS1q6AXIHCduuXhGfRwmNEj1IlQP1ihUsJswRzFA1S2LCxo0_wlf_vaRF6vOHdrdP5lR7s50NuhVgH_BWj0REAVs7ayLZ9FiqrDviE0Zdxfvx6Zg0uUFzyY?purpose=inline)
+
+### 11 · Monitor
+
+EL · M · D1 · Capítulo 1 · 6 componentes
+
+Recuperación de placa y panel delicado.
+
+| Componente        | Fijación / extracción | Resultado       |
+| ----------------- | --------------------- | --------------- |
+| Base              | 2 tornillos           | Plástico, metal |
+| Marco             | 4 clips               | Plástico        |
+| Panel de pantalla | 4 fijaciones          | Pieza delicada  |
+| Placa principal   | 3 tornillos           | Electrónica     |
+| Botonera          | 2 clips               | Electrónica     |
+| Cableado          | 2 conectores          | Cobre           |
+
+Secuencia: retirar base → marco → desconectar placa → extraer panel.
+
+Particularidad: el panel se rompe visualmente si recibe golpes.
+
+[3d Model Hp Printer](https://images.openai.com/static-rsc-4/FvqT3IQQxHPrPqox2yo_Z4J4WNKUZbR_SZPah-MRZj8YguVPIPdF5Qf7gPIkHKWXsCAajqqutcODdlnxcQSeOYcP_FthlOZA1hYCZmpljgkFfUPybKWUXnVZGjMvLKUKev2Xc9l2-vTToqyRHsVy2jcM3uEqYSzD4z7TjxVVrEA?purpose=inline)
+
+### 12 · Impresora
+
+EL · M · D2 · Capítulo 2 · 8 componentes
+
+Introduce piezas móviles y cartuchos.
+
+| Componente         | Fijación / extracción | Resultado        |
+| ------------------ | --------------------- | ---------------- |
+| Bandeja            | Extracción            | Plástico         |
+| Tapa               | 2 bisagras            | Plástico         |
+| Cartuchos          | Extracción            | Residuo especial |
+| Carro de impresión | 3 fijaciones          | Pieza            |
+| Motor              | 3 tornillos           | Motor pequeño    |
+| Rodillos           | 2 fijaciones          | Plástico         |
+| Placa              | 4 tornillos           | Electrónica      |
+| Carcasa            | Procesamiento         | Plástico         |
+
+Secuencia: abrir tapa → retirar cartuchos → liberar carro y rodillos → recuperar motor y placa.
+
+Particularidad: imprime una hoja que dice «ERROR: FALTA IMPRESORA».
+
+[HiFi Classic Stereo Stack | Sansar Store — Sansar](https://images.openai.com/static-rsc-4/rVZJVf7ccHnXE-ugVOj_TU_9pWAhtahyyCG50MDdcirLSxCP2WZt3HgCcOHUczZTBFFpztpAw4qfIOqyA9zk1-uR2zrvhbHVtMAKNQN6f8nv26_bTC1S8AKfWTsg2azZZRiGvuCTnPGnLcAPl9hOC67xJ7Iv6gLSOKB2IMfDx1M?purpose=inline)
+
+### 13 · Equipo de sonido
+
+EL · M · D2 · Capítulo 2 · 8 componentes
+
+Recuperación de altavoces, electrónica y transformador.
+
+| Componente        | Fijación / extracción | Resultado   |
+| ----------------- | --------------------- | ----------- |
+| Carcasa           | 6 tornillos           | Plástico    |
+| Altavoz izquierdo | 4 tornillos           | Pieza       |
+| Altavoz derecho   | 4 tornillos           | Pieza       |
+| Amplificador      | 4 tornillos           | Electrónica |
+| Transformador     | 3 pernos              | Cobre       |
+| Pantalla          | 2 clips               | Electrónica |
+| Botonera          | 2 clips               | Electrónica |
+| Cableado          | 3 conectores          | Cobre       |
+
+Secuencia: abrir carcasa → retirar altavoces → desconectar transformador → recuperar placas.
+
+Particularidad: puede reproducir una transmisión misteriosa, no música comercial.
+
+## Familia M — Motores y equipos
+
+[Generator 3D Models for Free Download - Meshy](https://images.openai.com/static-rsc-4/mV-hkTnndMNNBvj8eC89C5SQQJ5AcpRcEyTy5L4AZVSiPKfJJ53NArKpkIxTU1yihZb6dDNGxTkZb538FO3QB6_3qNw4R3FTVZM8VZ8w_AGhKMUqqoqlIKwfEyDbBWLo_tKvZo2sI9U5puOFjWZ8QX3yb-N6haM0xs-WziqzgKY?purpose=inline)
+
+### 14 · Generador portátil
+
+M · L · D2 · Capítulo 2 · 9 componentes
+
+Introduce bobinas, soportes y módulos pesados.
+
+| Componente                    | Fijación / extracción | Resultado        |
+| ----------------------------- | --------------------- | ---------------- |
+| Bastidor                      | 4 pernos              | Acero            |
+| Cubierta                      | 6 tornillos           | Acero            |
+| Panel de control              | 4 tornillos           | Electrónica      |
+| Motor                         | 4 pernos              | Motor            |
+| Alternador                    | 4 pernos              | Pieza premium    |
+| Ventilador                    | 2 tornillos           | Plástico         |
+| Módulo de combustible sellado | 3 fijaciones          | Residuo especial |
+| Cableado                      | 3 conectores          | Cobre            |
+| Soportes                      | 4 pernos              | Acero            |
+
+Secuencia: retirar cubierta → controles → módulo sellado → liberar motor y alternador.
+
+Particularidad: puede iluminar el taller brevemente durante una prueba ficticia.
+
+[Air Compressor - 3D Model by Holy360](https://images.openai.com/static-rsc-4/4FNhC6VORQ-5PR0sTpHDzyXbldYYbi786mmak3o-5Rei01EN-EpMvfQYFp-lzwXrwpcBVCOAFMxezsVUBg5GZ71gZTEWsbeHEFgaaVlORmRBuN-qhJKJQMmC-TfUWvww7BzbLyOWCvIsRkXDqZGqF_b5MtGFSu6b2hT5dnUTK6A?purpose=inline)
+
+### 15 · Compresor de aire
+
+M · L · D2 · Capítulo 2 · 8 componentes
+
+Introduce depósito y conexiones.
+
+| Componente              | Fijación / extracción | Resultado   |
+| ----------------------- | --------------------- | ----------- |
+| Cubierta                | 4 tornillos           | Plástico    |
+| Motor                   | 4 pernos              | Motor       |
+| Bomba                   | 4 pernos              | Bomba       |
+| Depósito despresurizado | 4 soportes            | Acero       |
+| Ruedas                  | 2 fijaciones          | Plástico    |
+| Panel de control        | 3 tornillos           | Electrónica |
+| Tuberías                | 3 conexiones          | Metal       |
+| Bastidor                | Procesamiento         | Acero       |
+
+Secuencia: retirar cubierta → controles y tuberías → motor y bomba → depósito.
+
+Particularidad: emite un silbido cómico de presión ficticia. El depósito llega despresurizado y no se simulan maniobras reales de riesgo.
+
+[Free 3D Models | Industrial | Water Pumps | RenderHub](https://images.openai.com/static-rsc-4/PyQlIMKIJxPV5AG3e9PcUTxUC77z16czncaVzQcfI6Hr05IBd_SssZnORp8OnuFT5Lzmf6RRam64eJpwdCr3dYiwB_D-w0Qg5zPLQArxt62zNlBOuXnwTNxbH1IxeDkeBEpJbeBaTDmzlABWxce6eiPPu93TA8YHzNHOoiYIkRk?purpose=inline)
+
+### 16 · Bomba de agua
+
+M · M · D2 · Capítulo 2 · 7 componentes
+
+Recuperación de motor y piezas mecánicas.
+
+| Componente | Fijación / extracción | Resultado |
+| ---------- | --------------------- | --------- |
+| Carcasa    | 4 pernos              | Hierro    |
+| Motor      | 4 pernos              | Motor     |
+| Impulsor   | 1 fijación            | Metal     |
+| Tapa       | 4 tornillos           | Metal     |
+| Conectores | 2 fijaciones          | Metal     |
+| Cableado   | 2 conectores          | Cobre     |
+| Base       | 2 pernos              | Hierro    |
+
+Secuencia: abrir tapa → retirar conectores → liberar motor e impulsor.
+
+Particularidad: puede expulsar una pequeña salpicadura visual de agua residual.
+
+[Old Lawn Mower](https://images.openai.com/static-rsc-4/ppMAwm-g0Hyt1CKZjnqD3dweWFqemSKRUw9jb4VnOG5NEAyQKH1oNG7ZUe5Da3LncDHv3KAi3YIck78kIIUbNwbruKaHs6cH3xtDyCK8nqOJWB5ss8SdAb9Kpcravqsiazvn_qtnp3JzVuSQYI3Wg1IgA_lHjP7RGF4Vmn7FJncxep_Pg8jLisQU-qsHXOfS?purpose=inline)
+
+### 17 · Cortadora de césped
+
+M · L · D2 · Capítulo 2 · 8 componentes
+
+Introduce cuchillas como piezas recuperables simplificadas.
+
+| Componente         | Fijación / extracción | Resultado        |
+| ------------------ | --------------------- | ---------------- |
+| Manillar           | 4 pernos              | Acero            |
+| Ruedas             | 4 fijaciones          | Plástico         |
+| Cubierta           | 6 tornillos           | Acero            |
+| Motor              | 4 pernos              | Motor            |
+| Cuchilla bloqueada | 1 fijación            | Acero            |
+| Depósito sellado   | 2 fijaciones          | Residuo especial |
+| Cableado           | 2 conectores          | Cobre            |
+| Chasis             | Procesamiento         | Acero            |
+
+Secuencia: retirar manillar y ruedas → cubierta → motor → cuchilla bloqueada.
+
+Particularidad: aparece una nota: «No cortar césped artificial».
+
+[Пошук та усунення поширених проблем з електродвигуном: покрокова інструкція](https://images.openai.com/static-rsc-4/qHElbfa6lj2ggvixtTC4k6d5gQtSVO9GNmzi_hhxLzNOcSToFuMAHll9NRgzPTvfaIi88ADrX0Osh7StPhnB2S1fQSMY6QMfCXHnBAs5pnukImwYdedo7blwRzigG8WnMPMX8g3bpjCVUDZ4fq45yLoqLhkGtVElETxMODBHNKc?purpose=inline)
+
+### 18 · Motor industrial independiente
+
+M · L · D3 · Capítulo 3 · 9 componentes
+
+Objeto enfocado en extracción de cobre y componentes mecánicos.
+
+| Componente         | Fijación / extracción  | Resultado   |
+| ------------------ | ---------------------- | ----------- |
+| Carcasa            | 8 pernos               | Hierro      |
+| Tapa frontal       | 4 pernos               | Hierro      |
+| Tapa trasera       | 4 pernos               | Hierro      |
+| Rotor              | Extracción con soporte | Metal       |
+| Estator            | 4 fijaciones           | Cobre       |
+| Ventilador         | 2 tornillos            | Plástico    |
+| Eje                | Extracción             | Acero       |
+| Caja de conexiones | 3 tornillos            | Electrónica |
+| Base               | 4 pernos               | Acero       |
+
+Secuencia: abrir carcasa → liberar tapas → retirar rotor y estator → separar materiales.
+
+Particularidad: el rotor puede requerir un soporte de extracción del taller.
+
+## Familia V — Vehículos
+
+[modelo 3d bicicleta dañada - TurboSquid 1870829](https://images.openai.com/static-rsc-4/PNTGXZzSBDn9CDgS3EmuxrKgjnxg2qFVeNUYHIev0qqmEWo5Ihiiy-hM6insLqmVXM_h25J2ulrBnY1HwttNg8snFKzR73rVrOgxGdEFpUBme9IjeyTUfO_Wjhy9Erjpxa-iqvNn2G3cyQOkkXzJVqjFBsNKtaM7TlYX-XptYiM?purpose=inline)
+
+### 19 · Bicicleta
+
+V · L · D1 · Capítulo 1 · 8 componentes
+
+Primer vehículo desmontable, sin maquinaria pesada.
+
+| Componente      | Fijación / extracción | Resultado      |
+| --------------- | --------------------- | -------------- |
+| Rueda delantera | 1 fijación            | Metal, caucho  |
+| Rueda trasera   | 1 fijación            | Metal, caucho  |
+| Manillar        | 2 pernos              | Metal          |
+| Asiento         | 1 perno               | Pieza          |
+| Pedales         | 2 fijaciones          | Metal          |
+| Cadena          | Extracción            | Acero          |
+| Frenos          | 4 fijaciones          | Metal          |
+| Cuadro          | Procesamiento         | Acero/aluminio |
+
+Secuencia: retirar ruedas → accesorios → transmisión → procesar cuadro.
+
+Particularidad: puede encontrarse una bicicleta con tres timbres.
+
+[Old Rusty Scooter - 3D Model by HikkiJack](https://images.openai.com/static-rsc-4/6DFzlCQxBL09QxX9KD4DyGLG7Pnb8wLQkhPg-v-ofCNjI-WxKU6PnAlReP5pDwm73i9pKAy_CuuHjhO5fPCUnkO7bg-veQmlHGStd4boeIAq8vOhsa6kyxMoP7PmDr5d4crlgJSSlich5cAaTGqe7JEgTK141RhLVmSPZGOKUVM?purpose=inline)
+
+### 20 · Scooter
+
+V · L · D2 · Capítulo 2 · 11 componentes
+
+Introduce carrocería ligera y componentes motorizados.
+
+| Componente              | Fijación / extracción | Resultado        |
+| ----------------------- | --------------------- | ---------------- |
+| Panel frontal           | 4 tornillos           | Plástico         |
+| Panel lateral izquierdo | 3 tornillos           | Plástico         |
+| Panel lateral derecho   | 3 tornillos           | Plástico         |
+| Ruedas                  | 2 fijaciones          | Metal, caucho    |
+| Asiento                 | 2 pernos              | Pieza            |
+| Motor                   | 4 pernos              | Motor            |
+| Escape                  | 2 soportes            | Metal            |
+| Batería                 | 2 fijaciones          | Residuo especial |
+| Faro                    | 2 tornillos           | Electrónica      |
+| Cableado                | 3 conectores          | Cobre            |
+| Chasis                  | Procesamiento         | Acero            |
+
+Secuencia: retirar paneles → accesorios → conexiones → motor → chasis.
+
+Particularidad: el claxon suena como un juguete.
+
+[3D model Rusted Scavenged Motorcycle Wreck 3D Model - Abandoned Bike VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/_oEzRJVaCUOWaW3bNHeEmU_4ZM7SOo4v_ibUf0e6XnLTrXogxZlDKM74AZBiF8pgY6rl0JMjiVER4gWMAxS6K3-zOZZYBd-hzuyTojoCM--RDrx15HzLFH1KMSyyirUBashy1ECKuNY_l1afJhVAjwejyVoV6CB8847MwWGTeDk?purpose=inline)
+
+### 21 · Motocicleta
+
+V · L · D3 · Capítulo 2 · 14 componentes
+
+Desmontaje mecánico más completo.
+
+| Componente           | Fijación / extracción | Resultado        |
+| -------------------- | --------------------- | ---------------- |
+| Rueda delantera      | 2 fijaciones          | Metal, caucho    |
+| Rueda trasera        | 2 fijaciones          | Metal, caucho    |
+| Manillar             | 4 pernos              | Metal            |
+| Asiento              | 2 pernos              | Pieza            |
+| Tanque sellado       | 3 fijaciones          | Residuo especial |
+| Motor                | 6 pernos              | Motor            |
+| Escape               | 3 soportes            | Metal            |
+| Batería              | 2 fijaciones          | Residuo especial |
+| Faro                 | 2 tornillos           | Electrónica      |
+| Suspensión delantera | 4 pernos              | Metal            |
+| Suspensión trasera   | 4 pernos              | Metal            |
+| Transmisión          | 3 fijaciones          | Metal            |
+| Cableado             | 4 conectores          | Cobre            |
+| Chasis               | Procesamiento         | Acero            |
+
+Secuencia: retirar accesorios → ruedas → conexiones → motor y suspensión → chasis.
+
+Particularidad: la bocina puede activarse sola.
+
+[HL2 Hatchback Remade - 3D model by Renafox (@kryik1023) \[3abf8e9\] - Sketchfab](https://images.openai.com/static-rsc-4/hEPPCEpFvBg9W38GX5GO1_SmTGWfBkMqvL9jSHeSFMq5IG4VafpRUspc4fyCHJNUygRjdfoR04Uc6xT3UlDEShRmUXkjthWTKqueNi3s01htnIcmo_jjQ9LYaEzKi3blGosWCOEXD4LjedACjuD_fyFrMeJByAUWviOMdZoHRAs?purpose=inline)
+
+### 22 · Auto compacto
+
+V · XL · D3 · Capítulo 3 · 20 grupos de componentes
+
+Primer vehículo que requiere grúa para recuperar el motor completo.
+
+| Grupo      | Componentes internos         | Extracción         |
+| ---------- | ---------------------------- | ------------------ |
+| Frente     | Capó, paragolpes, faros      | Pernos             |
+| Laterales  | 4 puertas, espejos           | Bisagras           |
+| Rodaje     | 4 ruedas                     | Pistola de impacto |
+| Interior   | 2 asientos, tablero, volante | Pernos             |
+| Motor      | Motor, alternador, radiador  | Grúa               |
+| Eléctrico  | Batería, cableado            | Conectores         |
+| Escape     | Tubo, silenciador            | Corte              |
+| Estructura | Chasis, paneles              | Corte/compactación |
+
+Secuencia: desmontar exteriores → interior → conexiones → liberar motor → retirar chasis.
+
+Particularidad: objetos perdidos en guantera o baúl. Los grupos se expanden en piezas concretas al inspeccionar.
+
+[3d Old Rusty Pickup Truck](https://images.openai.com/static-rsc-4/hiIUTlAzPVcElbZNndAXVAq6oiUBgogRi8hiDOfEqO9LYoE9xTIPfO1pF8XEvduzqXiypFZGrWyy5vpjqDMPSb8lSaZ4rnQFVOL41qMOfQ6rJjZZhos1CnzBLKHH54FJnaX8YdZhqdsKGnHNh6C07GwqN-2iSRPiCbM7NN4c-4M?purpose=inline)
+
+### 23 · Camioneta
+
+V · XL · D4 · Capítulo 3 · 24 grupos de componentes
+
+Introduce cargas grandes y estructura reforzada.
+
+| Grupo       | Componentes internos        | Extracción   |
+| ----------- | --------------------------- | ------------ |
+| Cabina      | Puertas, asientos, tablero  | Pernos       |
+| Frente      | Capó, parrilla, faros       | Pernos       |
+| Caja        | Portón, paneles, soportes   | Pernos/corte |
+| Rodaje      | 4 ruedas, suspensión        | Impacto      |
+| Motor       | Motor, alternador, radiador | Grúa         |
+| Eléctrico   | Batería, cableado           | Conectores   |
+| Transmisión | Caja, eje                   | Grúa         |
+| Estructura  | Chasis reforzado            | Corte        |
+
+Secuencia: retirar carga → carrocería → rodaje → motor y transmisión → estructura.
+
+Particularidad: puede contener cajas inesperadas.
+
+[Abandoned School Bus - 3D Model by MSWoodvine](https://images.openai.com/static-rsc-4/VMoDqg9Wrt2XFr1fGt3q6oVejcRD9sr7WmzdRo0nJhrWDDviW5UZZN7QxKl-bYnV2GWghq_EZPUc8_6nC5XPSgWOLtkOYLOb4ofGfdN-5JlewH0zRRgKeKrnQhO9TN38oNFRe82fE820TazKQDdq2S-iThmeRoqPp1SY6Pi4aWE?purpose=inline)
+
+### 24 · Autobús pequeño
+
+V · XXL · D4 · Capítulo 4 · 28 grupos de componentes
+
+Proyecto de desmontaje grande, pensado para varios trabajadores en paralelo.
+
+| Grupo       | Componentes internos      | Extracción |
+| ----------- | ------------------------- | ---------- |
+| Cabina      | Tablero, volante, asiento | Pernos     |
+| Pasajeros   | 8 asientos modulares      | Pernos     |
+| Ventanas    | 8 módulos                 | Separación |
+| Puertas     | 2 módulos                 | Bisagras   |
+| Ruedas      | 6 ruedas                  | Impacto    |
+| Motor       | Motor y auxiliares        | Grúa       |
+| Transmisión | Caja y eje                | Grúa       |
+| Carrocería  | Paneles laterales y techo | Corte      |
+| Chasis      | Estructura principal      | Maquinaria |
+
+Secuencia: vaciar interior → retirar ventanas y paneles → ruedas → motor → estructura.
+
+Particularidad: el sistema de megafonía puede anunciar paradas inexistentes.
+
+## Familia I — Maquinaria industrial
+
+[1K62 Lathe Machine Tool Model - TurboSquid 2182369](https://images.openai.com/static-rsc-4/r5LNXA4Vy3B5cMe6W9u7Q4Ian4wtOzvKWUMcD-7FAPn4T3A6ws3JYKSN5NQeBj2scZCiKzv4eVRbFca1SSujL_bqszAIk41HYFkGk56xKS0U-LPzhoxa7UvPTk1WuIfpHrI0A7k3dVAKkk_YDYq7nBPupEIfD5NhmEWGUP4ROjo?purpose=inline)
+
+### 25 · Torno industrial
+
+I · XL · D4 · Capítulo 4 · 12 componentes
+
+Recuperación de motor, engranajes y bancada.
+
+| Componente                       | Fijación / extracción | Resultado        |
+| -------------------------------- | --------------------- | ---------------- |
+| Cubiertas                        | 6 tornillos           | Acero            |
+| Panel de control                 | 4 tornillos           | Electrónica      |
+| Motor                            | 6 pernos              | Motor            |
+| Transmisión                      | 4 pernos              | Engranajes       |
+| Plato                            | 3 fijaciones          | Acero            |
+| Carro                            | 4 pernos              | Pieza            |
+| Guías                            | 4 pernos              | Acero            |
+| Cableado                         | 4 conectores          | Cobre            |
+| Bancada                          | Grúa                  | Hierro           |
+| Soportes                         | 4 pernos              | Acero            |
+| Sistema de refrigeración sellado | 3 fijaciones          | Residuo especial |
+| Carcasa                          | Procesamiento         | Acero            |
+
+Secuencia: retirar controles y cubiertas → liberar transmisión → motor → bancada.
+
+Particularidad: su panel muestra «PRECISIÓN: APROXIMADAMENTE».
+
+[Prensa hidráulica para cutelaria - Expresso Industrial](https://images.openai.com/static-rsc-4/hldbg9CsRVTk6omz7nyJtgm4YLf2C816GQ5qXb3dv2eA9yiOlhqsI3xbzY6wfhESsJmmhzr0e0Bo5iNUxZl9-1kD-R4Wh5LpT3ZGXF-03uW4lsW1mCcZHEvRENlusdP1yZva1JwCA-w4-y9gazOdpv0er4XiORN5nKtExIlWHAw?purpose=inline)
+
+### 26 · Prensa industrial averiada
+
+I · XL · D4 · Capítulo 4 · 11 componentes
+
+Desmontaje de estructura pesada y módulos hidráulicos sellados.
+
+| Componente        | Fijación / extracción | Resultado        |
+| ----------------- | --------------------- | ---------------- |
+| Panel de control  | 4 tornillos           | Electrónica      |
+| Cubiertas         | 6 tornillos           | Acero            |
+| Motor             | 4 pernos              | Motor            |
+| Bomba             | 4 pernos              | Bomba            |
+| Cilindro sellado  | 4 soportes            | Módulo especial  |
+| Plataforma        | 6 pernos              | Acero            |
+| Guías             | 4 pernos              | Acero            |
+| Tuberías selladas | 3 conexiones          | Residuo especial |
+| Cableado          | 3 conectores          | Cobre            |
+| Bastidor          | Corte industrial      | Acero            |
+| Base              | Grúa                  | Hierro           |
+
+Secuencia: retirar controles → aislar módulos → extraer motor y bomba → separar estructura.
+
+Particularidad: un indicador permanece en «PRESIÓN EMOCIONAL ALTA».
+
+[Recycler in 99 Nights: Uses & How to Get](https://images.openai.com/static-rsc-4/R7MHe-aUb6AozUhwQQQSqMFYXuW98IMkm93pYHHNwLQExM_XOilf375GzVZree4eQ0uSYkHOJY9E_AoLzthgFfzOHo-8yoEq3tlO7YNnl8YkyLNgwD_EyF5jafx4N8x287qkA_ifMEBGTLM2v4xFj2Weu0K7VUXH8hHBEfJuDb8?purpose=inline)
+
+### 27 · Cinta transportadora averiada
+
+I · XL · D3 · Capítulo 3 · 10 componentes
+
+Enseña desmontaje de módulos repetidos.
+
+| Componente       | Fijación / extracción | Resultado      |
+| ---------------- | --------------------- | -------------- |
+| Motor            | 4 pernos              | Motor          |
+| Reductor         | 4 pernos              | Engranajes     |
+| Rodillo 1        | 2 fijaciones          | Acero          |
+| Rodillo 2        | 2 fijaciones          | Acero          |
+| Rodillo 3        | 2 fijaciones          | Acero          |
+| Banda            | Extracción            | Material mixto |
+| Panel de control | 4 tornillos           | Electrónica    |
+| Cableado         | 3 conectores          | Cobre          |
+| Soportes         | 6 pernos              | Acero          |
+| Bastidor         | Procesamiento         | Acero          |
+
+Secuencia: retirar panel → desconectar motor → liberar rodillos y banda → desmontar bastidor.
+
+Particularidad: puede transportar un objeto absurdo durante la prueba.
+
+[3D Old And Rusty Forklift Model - TurboSquid 2062004](https://images.openai.com/static-rsc-4/H9ubp3MWgYK3dE4Tc0-GGae4w8Q4pCEO_abwuyPmCr7jUqGDmZeiaJPPNoCSmGgoXB1X_6AhP3CjhkREdgV7rrKj39DtdhlxJtTfP0jWiTcNl7H8k1DLFmVJVR1O6_pgIsAgiMgdyo3ZK4nvAdn6Y2Cvo0UrmW_h16OO_7CPneQ?purpose=inline)
+
+### 28 · Montacargas averiado
+
+I · XL · D4 · Capítulo 4 · 15 componentes
+
+Combina vehículo y maquinaria industrial.
+
+| Componente                          | Fijación / extracción | Resultado          |
+| ----------------------------------- | --------------------- | ------------------ |
+| Asiento                             | 4 pernos              | Pieza              |
+| Volante                             | 1 fijación            | Pieza              |
+| Panel de control                    | 4 tornillos           | Electrónica        |
+| Ruedas                              | 4 fijaciones          | Caucho, metal      |
+| Motor                               | 6 pernos              | Motor              |
+| Batería o módulo energético sellado | 4 fijaciones          | Residuo especial   |
+| Mástil                              | Grúa                  | Acero              |
+| Horquillas                          | 4 pernos              | Acero              |
+| Cilindros sellados                  | 4 soportes            | Módulos especiales |
+| Contrapeso                          | Grúa                  | Hierro             |
+| Cubiertas                           | 6 tornillos           | Acero              |
+| Cableado                            | 4 conectores          | Cobre              |
+| Ejes                                | 4 pernos              | Acero              |
+| Transmisión                         | 4 pernos              | Pieza              |
+| Chasis                              | Procesamiento         | Acero              |
+
+Secuencia: retirar controles y cubiertas → módulos energéticos → motor → mástil → contrapeso → chasis.
+
+Particularidad: su bocina dice «BIP» mediante una voz humana.
+
+## Familia X — Proyectos especiales
+
+[The Artifactory game revenue and stats on Steam – Steam Marketing Tool](https://images.openai.com/static-rsc-4/wMv-yAaH_ScRld9CiyN_blqXqQ_vrZRPkl30YYF2NKI1Acgl2GsKOiCwrHYA3ZvWpB-DHQItovpQP7y4IdKizU46SIimfMH7vF5qZiRIi5J3efzPjQmQNSxrRcPaxyI4hs-vOX2PcDd5rrhTCETOhWRqbilTsL03gBM1HOwZO_g?purpose=inline)
+
+### 29 · Máquina sin fabricante
+
+X · XL · D5 · Capítulo 4
+
+12 módulos principales: blindaje exterior, panel de códigos, tres unidades de control, dos motores, módulo de refrigeración sellado, transmisión, cámara central, cableado, base y núcleo R-0.
+
+Secuencia: inspeccionar códigos → retirar blindaje → recuperar controles → liberar transmisión → extraer núcleo.
+
+Particularidad: cada módulo activa una reacción narrativa. El núcleo no puede venderse ni destruirse.
+
+[Industrial Warehouse Goldberg's Dream](https://images.openai.com/static-rsc-4/POSdx3gdRxi_I1d3DQF-Q5Nv-7KDNQADzMxSpfVXxwIHlai6BBNsl8IKuPmNyG8XrBM5656Oo-k1qYBzojPjZD1xnVmPe7M8frly_UbB52o64SxTJ59AvGRd12B18fBLtRe50Ou2rsFiQHVV1bWyn4Bo8lFlBBug57MGpAQNBpI?purpose=inline)
+
+### 30 · Reconstructora R-0
+
+X · XXL · D5 · Capítulo 5
+
+16 módulos principales: cuatro paneles de blindaje, dos sistemas de alimentación, tres soportes estructurales, cámara de reconstrucción, consola, dos estabilizadores, sistema de transporte, núcleo R-0 y unidad de control central.
+
+Secuencia: retirar blindajes → recuperar módulos → utilizar grúa → instalar núcleo → conectar controles → ejecutar prueba.
+
+Particularidad: es el proyecto final. Su activación provoca la reconstrucción masiva de objetos y el desenlace de campaña.
+
+# 4. Clasificación de materiales y piezas recuperadas
+
+No todo lo que se retira debe convertirse automáticamente en dinero. Cada componente tiene un destino.
+
+| Código | Categoría                | Ejemplos                       | Destino                |
+| ------ | ------------------------ | ------------------------------ | ---------------------- |
+| MAT-01 | Acero/hierro             | Chasis, tornillos, carcasas    | Contenedor metálico    |
+| MAT-02 | Aluminio                 | Radiadores, paneles            | Contenedor aluminio    |
+| MAT-03 | Cobre                    | Cableado, bobinas              | Contenedor cobre       |
+| MAT-04 | Plástico                 | Carcasas, tapas                | Contenedor plástico    |
+| MAT-05 | Vidrio                   | Ventanas, estantes             | Contenedor vidrio      |
+| MAT-06 | Electrónica              | Placas, controles              | Contenedor electrónico |
+| MAT-07 | Caucho y mixtos          | Ruedas, bandas                 | Contenedor mixto       |
+| MAT-08 | Residuos especiales      | Módulos sellados, baterías     | Estación especial      |
+| PIE-01 | Motores                  | Motores eléctricos             | Almacén/venta premium  |
+| PIE-02 | Bombas                   | Bombas completas               | Almacén/venta premium  |
+| PIE-03 | Componentes mecánicos    | Transmisiones, engranajes      | Almacén/venta          |
+| PIE-04 | Componentes electrónicos | Procesadores, memorias         | Almacén/venta premium  |
+| PIE-05 | Componentes de vehículos | Ruedas, alternadores, asientos | Almacén/venta          |
+| MIS-01 | Piezas de misión         | Núcleo R-0, documentos         | Inventario de campaña  |
+
+Esta tabla amplía los seis materiales originales para incluir caucho y residuos especiales. Los materiales mixtos no se venden al precio de un material puro.
+
+## 4.1 Decisiones de clasificación
+
+Al retirar un motor, el jugador puede:
+
+- Venderlo completo: recibe un valor determinado por su calidad.
+- Almacenarlo: conserva el motor para un contrato futuro.
+- Descomponerlo: obtiene cobre y hierro, pero pierde la posibilidad de vender el motor completo.
+
+El juego debe mostrar una estimación de valor para evitar decisiones completamente a ciegas.
+
+## 4.2 Calidad de componentes
+
+La calidad inicial depende del estado de recepción.
+
+| Estado     | Calidad inicial orientativa |
+| ---------- | --------------------------- |
+| Normal     | 80–100                      |
+| Oxidado    | 55–85                       |
+| Dañado     | 25–70                       |
+| Incompleto | Variable según pieza        |
+
+Los errores de desmontaje reducen calidad. Las herramientas de precisión ayudan a conservarla.
+
+No se debe permitir recuperar una pieza con calidad superior a la que tenía al recibir el objeto, salvo que exista un sistema explícito de restauración.
+
+# 5. Distribución por capítulos
+
+Los 30 objetos no aparecen todos desde el comienzo.
+
+| Capítulo              | Objetos nuevos                                                                                                            | Total disponible |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 1 — Herencia dudosa   | Microondas, lavadora, heladera, aspiradora, ventilador, televisor, PC, monitor, bicicleta                                 | 9                |
+| 2 — Negocio en marcha | Secadora, cocina, lavavajillas, impresora, equipo de sonido, generador, compresor, bomba, cortadora, scooter, motocicleta | 20               |
+| 3 — Trabajo pesado    | Motor industrial, auto, camioneta, cinta averiada                                                                         | 24               |
+| 4 — Galpón cerrado    | Autobús, torno, prensa, montacargas, máquina sin fabricante                                                               | 29               |
+| 5 — Última entrega    | Reconstructora R-0                                                                                                        | 30               |
+
+El catálogo puede desbloquear objetos antes de que aparezcan en contratos narrativos, pero los especiales permanecen reservados a la campaña.
+
+# 6. Cómo se genera un contrato con estos objetos
+
+Un contrato repetible combina un objeto del catálogo con una condición y un objetivo válido.
+
+### Generador conceptual de contratos
+
+ObjetoLavadora
+
+Estado
+
+Normal
+
+Oxidado
+
+Dañado
+
+Incompleto
+
+Tipo de encargo
+
+RecuperaciónExtracciónDestrucción
+
+Orden de trabajo
+
+Generado
+
+## Lavadora — normal
+
+Desmontá el objeto y recuperá materiales y piezas aprovechables.
+
+Recompensa base estimada
+
+## $280
+
+&#x20;Copiar contratoSimulador ilustrativo de diseño. No representa un generador implementado ni una economía balanceada.
+
+En la implementación real, el generador debe validar que las piezas solicitadas existan, estén presentes y puedan recuperarse con las herramientas desbloqueadas.
+
+# 7. Cómo evitar que 30 objetos se sientan iguales
+
+Este es el aspecto más importante del catálogo.
+
+No basta con cambiar el modelo y añadir tornillos. Cada familia debe introducir una experiencia reconocible.
+
+| Familia           | Identidad jugable                                           |
+| ----------------- | ----------------------------------------------------------- |
+| Electrodomésticos | Abrir carcasas, recuperar motores y separar materiales      |
+| Electrónica       | Precisión, piezas delicadas y alto valor                    |
+| Motores y equipos | Dependencias mecánicas y extracción de módulos              |
+| Vehículos         | Muchas tareas paralelas, transporte y piezas pesadas        |
+| Industrial        | Maquinaria, desmontaje estructural y operaciones por etapas |
+| Especiales        | Misterio, mecanismos únicos y acontecimientos narrativos    |
+
+También debe haber variación dentro de una misma familia.
+
+Por ejemplo, la aspiradora es un contrato corto de recuperación de plástico y motor; la lavadora exige liberar tambor y bomba; la heladera obliga a tratar un módulo sellado; y la secadora introduce conductos y ventilación.
+
+La complejidad crece por nuevas decisiones y operaciones, no simplemente porque cada objeto tenga más fijaciones.
+
+# 8. Especificación de implementación para Fable
+
+Para que estos 30 objetos puedan desarrollarse sin crear 30 sistemas independientes, cada uno debería construirse a partir de un esquema de datos común.
+
+```
+ScrapObjectDefinition
+ ├── ObjectId
+ ├── DisplayName
+ ├── Family
+ ├── SizeClass
+ ├── Difficulty
+ ├── RequiredChapter
+ ├── VisualPrefab
+ ├── Components[]
+ │    ├── ComponentId
+ │    ├── DisplayName
+ │    ├── VisualReference
+ │    ├── FastenerType
+ │    ├── FastenerCount
+ │    ├── RequiredTools[]
+ │    ├── Dependencies[]
+ │    ├── BaseQuality
+ │    ├── WeightClass
+ │    ├── SalvageMaterials[]
+ │    ├── CompletePartValue
+ │    ├── DamageThreshold
+ │    └── InteractionEffects
+ ├── ReceptionConditions[]
+ ├── PossibleIncidents[]
+ ├── ContractCompatibility[]
+ └── CompletionRules
+```
+
+Cada componente necesita un identificador estable y una representación visual clara. El objeto completo debe pasar por estados reconocibles: intacto, parcialmente abierto, parcialmente desmontado y procesado.
+
+### Requisitos para cada objeto
+
+Antes de considerarlo terminado, comprobaría que:
+
+- Puede inspeccionarse y desmontarse por completo.
+- Sus componentes desaparecen del ensamblaje y aparecen como piezas recuperables cuando corresponde.
+- Las dependencias funcionan.
+- Las herramientas requeridas están correctamente identificadas.
+- Las piezas se clasifican en los materiales adecuados.
+- La calidad y el valor se calculan sin duplicaciones.
+- El desmontaje se sincroniza entre clientes.
+- Puede guardarse y recuperarse a mitad de un contrato.
+- No quedan componentes inaccesibles por errores de posición.
+- Tiene al menos un detalle visual, sonoro o mecánico distintivo.
+
+## 9. Alcance definitivo de este catálogo
+
+# 30
+
+Objetos
+
+# 6
+
+Familias
+
+# 5
+
+Dificultades
+
+# 5
+
+Tamaños
+
+# 8
+
+Materiales
+
+# 4
+
+Estados de recepción
+
+Quedan definidos 30 objetos con sus componentes principales, métodos de extracción, materiales, progresión y particularidades. En los vehículos y proyectos industriales grandes hemos usado grupos de componentes: durante la implementación esos grupos deberán expandirse en piezas individuales, con posiciones, dependencias y estados concretos.
+
+Mi recomendación de producción es crear primero una biblioteca de componentes reutilizables —paneles, fijaciones, motores, cableado, ruedas, controles y módulos— y construir los objetos a partir de ella. Así, cuando Fable termine el sistema de una lavadora, buena parte de esa lógica servirá para la secadora, el lavavajillas y otros equipos.
+
+Eso permite que los 30 objetos sean una meta de contenido razonable, sin convertir cada uno en un proyecto de programación independiente.

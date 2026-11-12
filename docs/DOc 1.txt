@@ -1,0 +1,1329 @@
+# ¡ESO TODAVÍA SIRVE!
+
+Documento maestro de diseño · Versión 1.0 · Propuesta para desarrollo comercial
+
+[Save 60% on Manic Mechanics on Steam](https://images.openai.com/static-rsc-4/zvjUlXRZFqXs9wPV5XX87ODfiJqJMwgjT8DKA9Jb8I5QITGDaWS9xUwIIfQT3M9ukIRERx5WJJiJDwS9w8vVoQMsN7HWDgkxpELt8Az2nB5d-CSb8HrppB20r_ZYmp1HSShPTNrLyq5q1LcRzZNsXbgUbYFQLbf4qHSBZwHuT6E?purpose=inline)
+
+[store.steampowered.com](https://store.steampowered.com/app/2569820/Manic_Mechanics/?utm_source=chatgpt.com)
+
+Vamos a diseñarlo como un videojuego completo que podríamos desarrollar, probar y eventualmente comercializar, no como una colección de ideas sueltas.
+
+Quiero conservar tres principios de los juegos que nos inspiraron:
+
+1. Una actividad sencilla que resulte satisfactoria por sí misma: desarmar, romper, recuperar y vender.
+2. Progresión constante: cada encargo permite conseguir herramientas, máquinas, espacios y objetos nuevos.
+3. Caos cooperativo: los jugadores trabajan juntos, pero sus decisiones pueden producir situaciones inesperadas y cómicas.
+
+La diferencia con Abran la Maldita Puerta es que este juego tendría una economía persistente y una estructura de contratos que permitiría jugar muchas sesiones sin depender de una única historia.
+
+# PARTE I — Identidad del videojuego
+
+## 1. Concepto general
+
+FICHA DEL PROYECTO
+
+# ¡ESO TODAVÍA SIRVE!
+
+El simulador de chatarrería donde todo tiene valor, hasta que tus amigos lo rompen.
+
+Género
+
+Simulación cooperativa / comedia física
+
+Plataforma
+
+Windows PC
+
+Jugadores
+
+1–7
+
+Cámara
+
+Primera persona
+
+Estilo
+
+3D industrial estilizado
+
+Sesión objetivo
+
+2–3 horas, ampliable
+
+Progresión
+
+Persistente por chatarrería
+
+Modelo comercial
+
+Compra única
+
+### La historia
+
+Un familiar lejano te deja en herencia una chatarrería llamada Recuperaciones El Milagro.
+
+El terreno está lleno de basura, las máquinas están averiadas y hay una deuda pendiente. El antiguo propietario desapareció dejando una nota:
+
+> No tires nada. Especialmente lo que está en el galpón del fondo.
+
+Al principio, el objetivo es salvar el negocio. Los jugadores reciben encargos, desmantelan objetos, venden materiales y reinvierten el dinero.
+
+Pero poco a poco descubren que el antiguo dueño aceptaba trabajos bastante extraños.
+
+La historia no debe interrumpir constantemente el trabajo. Se descubre mediante contratos especiales, documentos, objetos y pequeños acontecimientos.
+
+### Objetivo principal
+
+Convertir una chatarrería casi quebrada en una planta de recuperación industrial rentable, completando un gran encargo final que permita saldar la deuda y descubrir qué ocurrió con el antiguo propietario.
+
+Después del final, la partida puede continuar en modo libre.
+
+## 2. Los pilares de diseño
+
+| Pilar                    | Qué significa en el juego                             |
+| ------------------------ | ----------------------------------------------------- |
+| Desmontaje satisfactorio | Cada objeto cambia visualmente al retirar componentes |
+| Decisiones económicas    | Desmontar cuidadosamente o destruir rápidamente       |
+| Cooperación espontánea   | Dividirse tareas sin imponer roles obligatorios       |
+| Humor emergente          | Errores, máquinas, objetos y consecuencias absurdas   |
+| Descubrimiento           | Nuevos objetos, herramientas, secretos y encargos     |
+| Progresión visible       | El taller mejora físicamente con el dinero ganado     |
+
+Una regla importante: nunca deberíamos necesitar esperar varios minutos sin hacer nada para avanzar. Siempre debe existir alguna tarea útil, aunque sea ordenar el patio, preparar materiales o explorar.
+
+# PARTE II — El ciclo de juego
+
+## 3. Cómo transcurre una jornada
+
+Una jornada representa un turno de trabajo en la chatarrería.
+
+1. Elegir contrato
+
+   Revisar el tablero, comparar recompensas y seleccionar un encargo.
+2. Recibir el objeto
+
+   Un camión deja el electrodoméstico, vehículo o maquinaria en la zona de descarga.
+3. Inspeccionar
+
+   Identificar componentes, peligros, piezas valiosas y herramientas necesarias.
+4. Desmontar o destruir
+
+   Retirar piezas, cortar uniones, romper materiales y transportar componentes.
+5. Clasificar
+
+   Separar chatarra, piezas recuperables y objetos especiales.
+6. Vender o almacenar
+
+   Obtener dinero inmediato o conservar componentes para mejores contratos.
+7. Mejorar instalaciones
+
+   Comprar maquinaria, herramientas, capacidad y nuevas áreas.
+
+### Duración
+
+- Contrato pequeño: objetivo de 5–10 minutos.
+- Contrato mediano: 10–20 minutos.
+- Contrato grande: 20–35 minutos.
+- Proyecto especial: 30–50 minutos.
+
+Son estimaciones iniciales que deben ajustarse con pruebas. Una sesión de dos o tres horas podría incluir varios contratos y mejoras, sin imponer un temporizador que expulse a los jugadores.
+
+## 4. Sistema de jornadas
+
+Cada jornada tiene tres momentos:
+
+Preparación: elegir contratos, comprar suministros y organizar el patio.
+
+Trabajo: desmontar y procesar objetos. No hay límite de tiempo general, salvo en contratos específicos.
+
+Cierre: vender materiales, pagar gastos y guardar el progreso.
+
+Los jugadores pueden cerrar la jornada voluntariamente. No hay que esperar a que todos terminen una tarea determinada.
+
+El juego guarda también durante el trabajo, para proteger el progreso ante desconexiones.
+
+# PARTE III — El sistema principal de desmontaje
+
+## 5. Arquitectura de los objetos
+
+Este es el sistema más importante del proyecto.
+
+Cada objeto grande se construye con componentes desmontables. No simulamos millones de fragmentos ni destrucción física completa.
+
+Un objeto tiene:
+
+- Una estructura principal.
+- Componentes externos.
+- Componentes internos.
+- Uniones que deben retirarse.
+- Materiales recuperables.
+- Posibles peligros.
+- Estados visuales de deterioro.
+
+Ejemplo: una lavadora
+
+[Pralka Gorenje W6EU - Opinie i ceny na Ceneo.pl](https://images.openai.com/static-rsc-4/yzw9lKexnwBnNQyaUEJ0_63y4-wjWCqw69Km1Wtfn0Vo4tD5PWVwcNX0yTCB-_r53W5D2MX3kTS6O3WSl1jgHN9VQlrvV8c_5OSEwkgCHd2mlyn0kPcbUj1y7Sb_1AR44lFap5NhpuzfPFlOQZrogWbM2ihDtnxED_zUwlAhE64?purpose=inline)
+
+[ceneo.pl](https://www.ceneo.pl/23193270?utm_source=chatgpt.com)
+
+| Panel superior | 4 tornillos        |
+| -------------- | ------------------ |
+| Panel trasero  | 6 tornillos        |
+| Tambor         | 2 fijaciones       |
+| Motor          | 4 pernos           |
+| Cableado       | Corte o extracción |
+| Carcasa        | Compactación final |
+
+### Estados de un componente
+
+Cada componente puede estar:
+
+1. Fijado: todavía unido al objeto.
+2. Accesible: se puede trabajar sobre él.
+3. Aflojado: ya se retiraron sus fijaciones.
+4. Separado: puede agarrarse y transportarse.
+5. Dañado: perdió parte de su valor.
+6. Procesado: ya se convirtió en material o dinero.
+
+No todos los componentes pasan por todos los estados. Un vidrio puede romperse directamente; un motor puede retirarse intacto.
+
+### Dependencias
+
+Algunas piezas bloquean otras.
+
+Por ejemplo:
+
+`Capó → Batería → Cableado → Motor`
+
+Para retirar el motor, primero debe abrirse el acceso y desconectarse lo necesario.
+
+Pero no queremos acertijos frustrantes. Al apuntar a una pieza bloqueada, el juego muestra qué impide retirarla.
+
+## 6. Las cinco interacciones fundamentales
+
+Todo el sistema debe apoyarse en cinco acciones reutilizables.
+
+Interactuar
+
+Abrir tapas, pulsar botones, inspeccionar y activar máquinas.
+
+Agarrar
+
+Recoger piezas, mover objetos y transportarlos.
+
+Desmontar
+
+Aflojar fijaciones, cortar uniones y separar componentes.
+
+Golpear
+
+Dañar piezas, romper materiales y liberar componentes atascados.
+
+Colocar
+
+Depositar piezas en contenedores, estaciones o máquinas.
+
+La herramienta equipada modifica lo que hace el botón de uso. No hace falta crear un control diferente para cada máquina.
+
+## 7. Dos formas de trabajar
+
+El jugador debe poder elegir entre eficiencia y velocidad.
+
+[How To Remove The Drum From a Washing Machine? - Step By Step Guide](https://images.openai.com/static-rsc-4/4FbwZ8lWMzDepeELt0jaGn9ThFJ2Eu7GR0x8eDxVrCF68muzLrZ3MVtn7TEDWZFq42VjIJLbW0rpRXWPbiXvKMOjB4mDh-qs8x_k-5FFzqTfiArFoAVD8_CxJft9Ebe5eKx2c4p-CPSStrcTTxpjK67DKQApQiNPdLIpXJKAA-I?purpose=inline)
+
+Desmontaje cuidadoso
+
+Más lento, recupera piezas completas, aumenta su valor y permite cumplir contratos especiales.
+
+[s&box](https://images.openai.com/static-rsc-4/rOTT-Cv_hZ39Yc5p2EAUwasn8cgx3JH_H4dGlL_0gklkgvsuRONvBDHhwmUYniMrLp4vJaGPlv5M60G46w8XMn75GygO04KMB_vepgf2qKir8csAmV4xUmLNZUUJ-LzpYwrqQeaGfKLuXk5jRGwBdHBaMiE28rlnlzZhkAgiqGU?purpose=inline)
+
+Destrucción rápida
+
+Más rápida, genera chatarra básica y reduce el valor de componentes delicados.
+
+La destrucción nunca debe ser una opción completamente inútil. Algunos objetos llegan tan deteriorados que conviene romperlos y recuperar el metal.
+
+### Calidad de las piezas
+
+Cada componente recuperable tiene una calidad de 0 a 100.
+
+- 90–100: excelente.
+- 70–89: buena.
+- 40–69: dañada.
+- 1–39: muy dañada.
+- 0: solo materiales básicos.
+
+El valor final se calcula a partir de un valor base y un multiplicador de calidad. Para la primera versión, propondría:
+
+\\[ V\_{\text{pieza}}=V\_{\text{base}}(0.2+0.8Q/100) \\]
+
+Esto permite que una pieza dañada siga teniendo algo de valor. Los valores son de balance inicial, no una economía ya validada.
+
+# PARTE IV — Herramientas y maquinaria
+
+## 8. Herramientas manuales
+
+[3D model Toolbox and tools - Stylized Low Poly VR / AR / low-poly | CGTrader](https://images.openai.com/static-rsc-4/RiNVais15icbkskMhkbxWKElDyj8OzTj-bIJP-Kqvrpq-9jIbdrHN_itixpLAJUDzqMdGDtoOmxIZjEXt6mjZ7o2JY-A6JoDN7x474xHIgo2gLfCoqShbSz-fv0zqljRoLYmywsULhqRg9RJstgNRxzjRJH46sDoptrL891V1sg?purpose=inline)
+
+Nivel inicial
+
+Destornillador, llave inglesa, martillo y pinza.
+
+Sirven para retirar fijaciones, romper materiales simples y extraer cableado.
+
+[Power Tools Pack - 3D Model by microcrunch](https://images.openai.com/static-rsc-4/Qvj7MvQQVPzAloHRJ-xsE5XGFa41iBw9ulVKpT1f7L4iZPyljkQmYDiqygZMK8rUeGHBfV9xz6c6telzINAIItHgojpvk8qAYJTk0ALDMenIeoA2okd-UYRjsrPIg_ntwXE7JoClAkbt0riefJ0dmykv-70hbGwB99hqqSpBF1k?purpose=inline)
+
+Herramientas eléctricas
+
+Atornillador eléctrico, amoladora y sierra.
+
+Aceleran operaciones existentes y permiten cortar nuevas uniones.
+
+[CON - Jackhammer - PBR Game Ready - Buy Royalty Free 3D model by Dekogon \[3b749bf\] - Sketchfab Store](https://images.openai.com/static-rsc-4/qcFfUMmXhgKv8JRHqfpn9TAH75WMSmKRBiwbvrWCxvX_-4CTB79wHTUSnaJHNFNnJY33q1W5wyYmfEzQr506STqJPQNlp4Xjn6du6gtkDuJELSUDHRlsXsW4DyH9RfIjYjgkjivJrd4XMce72VfGlwhTUK1H9VLQtykyfoikVNg?purpose=inline)
+
+Herramientas especializadas
+
+Cortadora hidráulica, pistola de impacto y separador de paneles.
+
+Permiten desmontar vehículos y maquinaria pesada.
+
+### Mejoras de herramientas
+
+Cada herramienta puede mejorar tres atributos, pero no todas necesitan los tres:
+
+| Atributo  | Efecto                                      |
+| --------- | ------------------------------------------- |
+| Velocidad | Reduce el tiempo de trabajo                 |
+| Precisión | Disminuye daño accidental                   |
+| Capacidad | Permite operar sobre fijaciones más grandes |
+
+No incluiría durabilidad ni reparaciones constantes de herramientas en la primera versión. Añaden mantenimiento, pero poca diversión.
+
+## 9. Maquinaria de la chatarrería
+
+[My Recycling Center - Car Scrapyard Expansion on Steam](https://images.openai.com/static-rsc-4/VlgoDhWoatwPvaXdMAUw_BVUjYPpXGPoWdtR3hJh8yMvJ8kx-JMysew_5E_sJpHDz1cfKY_zY2mLmwrUUNp2rYVbQpqdXDEHkRczI6k4702LmnEbbW6-3F8qkV_5SqLUYQ5qpqlJ-yyw5i2IUV-YwqJ51PttCDe7LV4IM-8yD_w?purpose=inline)
+
+Compactadora
+
+Convierte restos metálicos en bloques transportables. Da una recompensa visual y sonora muy satisfactoria.
+
+Tiene una zona de carga, un botón de activación y una animación de compresión.
+
+[Junkyard - Low-Poly 3D Models Pack - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/HWqYs2SbXk-vsgk0uagcDiGbFU7sBTZlZlAMHIOreaCnkTDnfLDQAXoPDYh_X9AhCc2ulwccOrQz_ixquWSMDs7z49KZy_r7d_7QoO6wvitcdXUdNUk4_U20t2_697vPts7LceYCuGa_Bof_Yc_AZ3k7JhqJsXMvlivIiq-qh6c?purpose=inline)
+
+Grúa
+
+Levanta motores, carrocerías y piezas demasiado pesadas para transportarlas manualmente.
+
+Se controla mediante botones sencillos, con posiciones de carga predefinidas.
+
+["Tipston Salvage" by solo indie developer Pontus Karlsson promises co-op junkyard antics | Hitmarker](https://images.openai.com/static-rsc-4/0Os_MIN8B2M1603E5FQuLojnpfGSbSkKewzkCh0pSr9_kqnOCxB93USqFdY5eIDJ6FOsq03DAb94NmBoI2OuoAWgN7Td-wOxfMhtaXYjpLbPYg4kPoUi9ubGXgkQ-IYDvjx3S-B7u8LeRS4w30eQ_V0KV1it-FUNqRop9Zmc2xM?purpose=inline)
+
+Cinta clasificadora
+
+Transporta piezas hacia distintas salidas.
+
+Los jugadores pueden colocar materiales y seleccionar su destino. Si se equivocan, deben recuperarlos.
+
+Las máquinas deben poder usarse en solitario. Con varios jugadores, se acelera el trabajo porque pueden preparar, cargar y retirar materiales simultáneamente.
+
+# PARTE V — Materiales, objetos y economía
+
+## 10. Materiales recuperables
+
+Empezaría con seis materiales.
+
+| Material                 | Origen                | Valor relativo |
+| ------------------------ | --------------------- | -------------- |
+| Hierro                   | Carcasas, estructuras | Bajo           |
+| Aluminio                 | Paneles, motores      | Medio          |
+| Cobre                    | Cableado, motores     | Alto           |
+| Plástico                 | Carcasas, interiores  | Bajo           |
+| Vidrio                   | Pantallas, ventanas   | Bajo           |
+| Componentes electrónicos | Placas y controles    | Alto           |
+
+Además existirían piezas completas, como motores, compresores, baterías, alternadores y placas electrónicas.
+
+Una pieza completa puede venderse por más dinero que sus materiales separados.
+
+## 11. Economía propuesta
+
+La moneda sería ficticia: $.
+
+No usaría precios reales de mercado porque complicarían innecesariamente el balance.
+
+Ejemplo económico: contrato de una lavadora
+
+| Pago por recibir el trabajo | +$80  |
+| --------------------------- | ----- |
+| Motor recuperado            | +$120 |
+| Cobre y aluminio            | +$65  |
+| Chatarra restante           | +$35  |
+| Costos de operación         | −$20  |
+| Beneficio total             | $280  |
+
+Cifras ilustrativas para prototipado; requieren pruebas de economía.
+
+### Gastos
+
+Solo incluiría tres tipos:
+
+- Gastos de operación por jornada.
+- Compra de herramientas y máquinas.
+- Ampliaciones de instalaciones.
+
+No pondría alquiler, salarios, impuestos, hambre, combustible y otras obligaciones simultáneas. No queremos un simulador administrativo.
+
+### Condición de fracaso
+
+No habría game over por quedarse sin dinero.
+
+Si la caja llega a cero, aparecen contratos de recuperación gratuitos que permiten volver a generar ingresos.
+
+La deuda principal funciona como objetivo narrativo, no como una cuenta regresiva que arruina una partida larga.
+
+# PARTE VI — Contratos y contenido
+
+## 12. Tipos de encargos
+
+Habría cuatro categorías:
+
+Recuperación: desmontar un objeto y vender materiales.
+
+Extracción: recuperar una pieza específica en buenas condiciones.
+
+Destrucción: reducir un objeto a chatarra, priorizando velocidad.
+
+Especial: encargos únicos con sorpresas, mecanismos o acontecimientos narrativos.
+
+## 13. Catálogo de objetos para el lanzamiento
+
+Televisor viejo
+
+Cristal, carcasa y electrónica
+
+Lavadora
+
+Motor, tambor y paneles
+
+Heladera
+
+Compresor, paneles y cableado
+
+Generador
+
+Bobinas, motor y estructura
+
+[Realistic Old Washing Machine - PBR Low Poly 3D Model - TurboSquid 2041133](https://images.openai.com/static-rsc-4/afFk0Cjk3lkGcioQsp6AWKG9WFq9BxOTt1kfJUi7UtlHdxyP2ZcUUv_pKwCDXArimcfPk40y-u5PN3zstHzHnpfrn5P54Ez83ekCZexccGXzZE0PC_MUoew1Q7XoJsIqaHwepsfF0tkYmTnRc4CgUHh5warmgFGFUYaxjFXf4Sc?purpose=inline)
+
+[Abandoned Refrigerator](https://images.openai.com/static-rsc-4/BlvGhBD1ni7swivKGMmmATofMcLs99BJljQ9Q25k7j1aOs5kTAHmmI3FZ3rZaAml3Ys04-6T8J3mjIeV-ePduiGaNpsTzHCDLjUQU58XJ9RlSGMfheZEoGAlHg6Sq15gXjk2N7Y9s80JFhdnmjdtILXvQ1-rfod2X3jm-1QjEqc?purpose=inline)
+
+[3D Low-poly Rusty Toyota Corolla - TurboSquid 1317488](https://images.openai.com/static-rsc-4/9EhWyIqqTYVInQlv3vO2LaJ-FKosM4ocE8lVUMDmlo9EMmNxdI3FmnXDZie6JSo-CNxvJkbqM9UN6Pe1BTT-LCFUV4ZzecGBh1SAvD-swtesKBCc-EErPDVuuKGbaOsaTvJsUEhJnDGw_KqzpK2Zjy2r6sxzaGMdWhbJ8HfBBxI?purpose=inline)
+
+10
+
+Motocicleta
+
+Ruedas, motor y chasis
+
+Auto compacto
+
+Puertas, ruedas, motor e interior
+
+Camioneta
+
+Componentes pesados y carrocería
+
+Máquina industrial
+
+Paneles, engranajes y motores
+
+Estos ocho arquetipos permitirían construir los doce contratos principales de la primera versión reutilizando piezas, materiales y herramientas.
+
+No todos los objetos deben tener el mismo número de componentes.
+
+| Tipo               | Componentes interactivos objetivo |
+| ------------------ | --------------------------------- |
+| Televisor          | 5–7                               |
+| Lavadora           | 8–12                              |
+| Heladera           | 8–12                              |
+| Generador          | 10–14                             |
+| Motocicleta        | 12–16                             |
+| Auto               | 18–25                             |
+| Camioneta          | 20–28                             |
+| Máquina industrial | 22–30                             |
+
+Para que un contrato sea distinto, no basta con cambiar el modelo. Debe introducir una combinación nueva de acceso, herramientas, transporte, recuperación o peligro.
+
+## 14. Contratos especiales
+
+Propondría cuatro encargos memorables:
+
+El televisor que no se apaga. Aunque esté desconectado, muestra mensajes dirigidos a los trabajadores. El objetivo es recuperar su placa sin romperla.
+
+El auto del dueño anterior. Tiene compartimentos ocultos, documentos y una pieza que no figura en el inventario.
+
+La máquina sin fabricante. Nadie sabe para qué sirve. Los jugadores deben desmontarla parcialmente, pero cada componente retirado activa algo diferente.
+
+El último encargo. Un enorme contenedor industrial llega sin remitente. Su contenido conecta con el misterio del antiguo propietario.
+
+El último proyecto sería el cierre de la campaña inicial, no necesariamente el fin de la chatarrería.
+
+# PARTE VII — El mundo y las instalaciones
+
+## 15. Diseño del mapa
+
+No construiría una ciudad ni permitiría conducir por un mundo abierto. Todo el juego transcurre en una chatarrería que crece físicamente.
+
+[Junkyard - Low-Poly 3D Models Pack - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/gz_j4hVX5ajmoFb22LJHPPQtrsUxs8OqtI-rnRcZ9gjonHjA39miUtX8uXKzS11-yVOWnpq6ul8vFH-8OiUXscwekF3wvNkNYD-BbC34sRo273TG6EalcicCjhGbyRh4SWNj51oDuNQKVD-jIaEuacx0112ynNgGuVjtwgO4lng?purpose=inline)
+
+[superhivemarket.com](https://superhivemarket.com/products/junkyard?utm_source=chatgpt.com)
+
+El escenario inicial tendría aproximadamente seis espacios funcionales, algunos bloqueados hasta comprar mejoras.
+
+### Distribución conceptual de la chatarrería
+
+Plano esquemático para organizar el gameplay; las dimensiones reales se definirán en Unity.
+
+### Áreas principales
+
+Oficina: tablero de contratos, compras, estadísticas, documentos y guardado.
+
+Patio central: espacio amplio donde se desmontan objetos y se organizan materiales.
+
+Almacén: estanterías y contenedores para conservar piezas recuperadas.
+
+Taller: maquinaria de procesamiento y estaciones de herramientas.
+
+Zona de venta: báscula, clasificación y despacho de materiales.
+
+Muelle de descarga: lugar donde aparecen los nuevos encargos y se retiran los objetos terminados.
+
+### Ampliaciones
+
+La chatarrería evolucionaría mediante mejoras físicas:
+
+| Mejora              | Qué desbloquea                                |
+| ------------------- | --------------------------------------------- |
+| Techo del taller    | Zona de trabajo protegida y mejor iluminación |
+| Almacén ampliado    | Más capacidad para piezas completas           |
+| Grúa instalada      | Manipulación de motores y carrocerías         |
+| Compactadora        | Procesamiento rápido de chatarra              |
+| Cinta clasificadora | Clasificación simultánea de materiales        |
+| Galpón del fondo    | Encargos especiales y parte de la historia    |
+
+El jugador debe poder ver las mejoras que compró. No quiero que toda la progresión se reduzca a números en una interfaz.
+
+# PARTE VIII — Cooperación y multijugador
+
+## 16. Cómo juegan siete personas
+
+El diseño no debe imponer clases como mecánico, operador o vendedor.
+
+Cualquier jugador puede realizar cualquier actividad, pero el equipo puede organizarse espontáneamente.
+
+[Manic Mechanics | Couch Co-Op Favorites](https://images.openai.com/static-rsc-4/kkw3B6U42MiN6gXjzSzs2QOFHczq51Gq1_vrHZ-ksjPN7MRMZIajbFYkf-x5xEgV7xePmVG2JmgcMq9EqkfMPoriuyJmYtERhura1PfKwHI29hlN1MgRMZLYl-78WKsAGxJ70gQb664XcmRX_8p0eAA8aSLpg1E_g1lBdoO3nhU?purpose=inline)
+
+[couchcoopfavorites.com](https://couchcoopfavorites.com/manic-mechanics?utm_source=chatgpt.com)
+
+Ejemplo de una partida con siete personas:
+
+- Dos desmontan un auto.
+- Uno retira y transporta piezas pesadas.
+- Otro clasifica los materiales.
+- Uno opera la grúa.
+- Otro prepara el siguiente encargo.
+- El último explora, organiza el almacén o intenta hacer funcionar algo que no debería tocar.
+
+El juego debe seguir funcionando con una sola persona. Por eso no existirán mecanismos que exijan obligatoriamente varios jugadores simultáneos.
+
+## 17. Escalado cooperativo
+
+No aumentaría simplemente la cantidad de tornillos según el número de jugadores. Eso sería artificial.
+
+Utilizaría tres mecanismos:
+
+Trabajo paralelo: más jugadores pueden procesar varias piezas o encargos a la vez.
+
+Tareas compartidas: dos personas pueden ayudar a transportar objetos grandes, pero también existe una alternativa mecánica para una sola persona.
+
+Capacidad del patio: con más jugadores, el equipo puede aceptar más de un encargo activo cuando desbloquee suficiente espacio.
+
+Para equilibrar la economía, los gastos operativos y los objetivos de progresión se ajustarían moderadamente al tamaño del grupo, sin castigar a quienes juegan solos.
+
+## 18. Interacciones físicas
+
+Los objetos pequeños se agarran directamente. Los medianos ralentizan al personaje. Los grandes requieren maquinaria o desmontaje previo.
+
+| Peso de juego | Comportamiento                    |
+| ------------- | --------------------------------- |
+| Ligero        | Transporte normal y lanzamiento   |
+| Mediano       | Movimiento reducido               |
+| Pesado        | Transporte lento o ayuda opcional |
+| Industrial    | Grúa o desmontaje obligatorio     |
+
+Estas categorías son jugables, no una simulación exacta de kilogramos.
+
+Las piezas transportadas deben tener colisiones simplificadas, con límites de velocidad y correcciones de posición para evitar que atraviesen paredes o salgan disparadas por errores de red.
+
+## 19. Humor entre jugadores
+
+Incluiría interacciones opcionales que no bloqueen el progreso:
+
+- Lanzar objetos ligeros.
+- Tocar una bocina industrial.
+- Accionar una alarma de emergencia.
+- Colocar señales de advertencia absurdas.
+- Usar un extintor para apagar humo.
+- Encontrar objetos decorativos que puedan colocarse en el taller.
+
+No añadiría daño entre jugadores ni muerte por accidentes en la primera versión. El caos debe ser gracioso, no obligar a esperar a que alguien reaparezca.
+
+# PARTE IX — Los acontecimientos cómicos
+
+## 20. Sistema de incidentes
+
+El juego necesita sorpresas, pero no un generador de eventos completamente aleatorio que interrumpa el trabajo constantemente.
+
+Propondría incidentes asociados a acciones concretas.
+
+| Situación                | Incidente posible                            |
+| ------------------------ | -------------------------------------------- |
+| Encender una lavadora    | Comienza a vibrar exageradamente             |
+| Abrir una caja           | Aparece un patito de goma                    |
+| Usar la grúa             | Se engancha un objeto inesperado             |
+| Activar la compactadora  | Reproduce una fanfarria desproporcionada     |
+| Vender una pieza valiosa | El sistema felicita al jugador equivocado    |
+| Encender el generador    | Se apagan temporalmente las luces del taller |
+| Abrir un televisor       | Aparece un mensaje extraño                   |
+| Terminar un contrato     | El cliente presenta una reclamación absurda  |
+
+### Reglas de los incidentes
+
+- No deben destruir permanentemente el progreso.
+- Deben tener intervalos de descanso para no saturar.
+- Algunos ocurren una sola vez por campaña.
+- Otros pueden repetirse con variaciones.
+- Las bromas no deben generar pérdidas económicas desproporcionadas.
+
+La mayor parte del humor debe surgir de la combinación de acciones de los jugadores, no de escenas preprogramadas.
+
+## 21. Objetos absurdos coleccionables
+
+Podrían aparecer pequeños objetos inesperados durante los contratos.
+
+Por ejemplo: un patito de goma, una taza que dice «Empleado del año 1987», un trofeo roto, una radio que solo transmite estática y una planta artificial.
+
+Estos objetos se pueden vender o conservar para decorar la oficina.
+
+No les daría estadísticas especiales. Su valor es generar descubrimientos, bromas y personalización del espacio.
+
+# PARTE X — Campaña, misterio y progresión
+
+## 22. Estructura de campaña
+
+La campaña inicial tendría cinco capítulos. Cada uno introduce una actividad o instalación nueva.
+
+[Chapter 2: Looking for Answers - Elroy and the Aliens Walkthrough - Neoseeker](https://images.openai.com/static-rsc-4/pZ9eJR_5D7x4RLPzTOt3IGdf67ddvKnWTfRjquhQS04V6uivwcLKwaC0ltllmRT-vA-oF1zIceCTHVfhoj731rEO_zANKY4aarQXOHgESx3OsG8qQNoBxZu1FHVPd54hZrg6HbuZWbB9BYIdlc1JubqffW0jaPCxp2HqzmDvda0?purpose=inline)
+
+Capítulo 1 — Herencia dudosa
+
+Aprendemos a desmontar electrodomésticos, vender materiales y limpiar el patio.
+
+Objetivo: conseguir dinero para reparar el taller.
+
+[Biker Garage: Mechanic Simulator on Steam](https://images.openai.com/static-rsc-4/IEoJoYXIud2h7ixLFLpD7sBY8kRllknoo6y7ZgI7nnfafSBz5R1Erzfuj1oFKrYR9l8KY6YmsWD-QgOR7ne7UXj1bgCrZQ8aSZirpOrwjKt6GYMqGhnahteNg9TvwP9DEmLjaA0lFRrYyhbU5hcQ04QYvIs7hWiNfmrY1gXE7kc?purpose=inline)
+
+Capítulo 2 — Negocio en marcha
+
+Aparecen motocicletas, generadores y piezas más valiosas.
+
+Objetivo: comprar herramientas eléctricas y ampliar el almacén.
+
+[Junkyard - Low-Poly 3D Models Pack - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/OzttnCaC43irlCJkhgFeqmGAE-jyBcwAJTXLzn9jpZRJUN8mFW6u1RXb0dym1NfPTFZUg3AXS_19BplaTLfQWLi2C0c3ji9Ll_LqGxuRt3j-6nNi3f1D8VJFmjE_fmldsEpn2CctvPSAOH3gFUwQlKVnLHtGEecPiNTCXyX4fN0?purpose=inline)
+
+Capítulo 3 — Trabajo pesado
+
+Llegan autos y camionetas. La grúa y la compactadora adquieren importancia.
+
+Objetivo: instalar maquinaria industrial y saldar parte de la deuda.
+
+[The Suicide of Rachel Foster | Adventure Game Hotspot](https://images.openai.com/static-rsc-4/DVEFaMjY1bBk-gfjuiGU3WaIVpCPJvP-5jwpkSISRCZsM1wbBMDLQpkOZhTR4KFd3he7SvVLykSY5fXFLv6qyeCalDsilHMufIjkU-CW597-Sv_xrm9NCV-b3MbgST2qOlNqHQPUQIbRwNITwG15Fc0NSohgDsad2ZByyAzptww?purpose=inline)
+
+Capítulo 4 — El galpón cerrado
+
+Descubrimos documentos del antiguo propietario y recibimos encargos sin remitente.
+
+Objetivo: abrir el galpón del fondo y entender qué se ocultaba allí.
+
+[GREENFIELD on Steam](https://images.openai.com/static-rsc-4/j_9NoLol9JoCKMZI3AnSwTKyX_ATTPZGhkadpwwqtlMLzvNDbODwoSpHBDvl43IxJDN7TAbS-jXSD9LIvSBRQqRYVVDfijlgB7IhpmPy7B-G5lGCAujlArsr6OCAkJKmlocbFi3MLzM3fgatTZohC_5DWP1fcoj5N2kBmR4lLpA?purpose=inline)
+
+Capítulo 5 — Eso todavía sirve
+
+El último encargo consiste en recuperar una enorme máquina que el antiguo dueño intentó desmontar.
+
+Objetivo: completar el proyecto, saldar la deuda y descubrir el secreto de la chatarrería.
+
+## 23. La historia completa
+
+El antiguo propietario, Ernesto, era un chatarrero obsesionado con recuperar absolutamente todo.
+
+Años atrás comenzó a recibir encargos de una empresa llamada Reutilizaciones Integrales S.A., que enviaba máquinas y componentes aparentemente inútiles.
+
+Ernesto descubrió que los objetos pertenecían a una misma instalación industrial. Cada pieza contenía códigos de identificación que encajaban entre sí.
+
+En lugar de venderlas, empezó a almacenarlas en el galpón del fondo.
+
+La empresa dejó de enviar encargos y Ernesto desapareció.
+
+Durante la campaña, los jugadores encuentran facturas, grabaciones, etiquetas y piezas que permiten reconstruir lo sucedido.
+
+### El desenlace
+
+El último encargo es una enorme máquina industrial enviada sin remitente.
+
+Al desmontarla, los jugadores descubren un compartimento con una grabación de Ernesto.
+
+La máquina no era peligrosa: era un prototipo diseñado para reparar y reconstruir objetos automáticamente.
+
+Ernesto había pasado años intentando hacerla funcionar.
+
+Cuando los jugadores recuperan los últimos componentes y activan la máquina, esta empieza a reconstruir todos los objetos cercanos.
+
+La chatarra se convierte nuevamente en electrodomésticos, vehículos y maquinaria.
+
+Durante unos segundos parece que han descubierto una fortuna.
+
+Entonces la máquina comienza a reconstruir también los objetos que los jugadores ya habían vendido.
+
+La pantalla muestra una notificación:
+
+«RECLAMACIÓN DE PROPIEDAD: 14.832 ARTÍCULOS».
+
+La megafonía anuncia:
+
+> Felicitaciones. Han resuelto el problema de la basura. Ahora tienen un problema de inventario.
+
+Los créditos aparecen mientras la chatarrería se llena lentamente de objetos reconstruidos.
+
+### Después de los créditos
+
+Se desbloquea el modo libre, con contratos especiales y la máquina funcionando como un elemento opcional del taller.
+
+Este final mantiene el tono absurdo y da un cierre narrativo sin impedir que los jugadores continúen su negocio.
+
+# PARTE XI — Progresión persistente y rejugabilidad
+
+## 24. Qué se guarda
+
+El progreso pertenece a la chatarrería del anfitrión, no a una cuenta global.
+
+El guardado incluye:
+
+- Dinero disponible.
+- Capítulo de campaña.
+- Contratos completados.
+- Herramientas compradas.
+- Máquinas desbloqueadas.
+- Mejoras del terreno.
+- Piezas almacenadas.
+- Objetos decorativos.
+- Estadísticas acumuladas.
+- Estado de los encargos activos.
+
+Los invitados pueden entrar y salir. Cuando vuelven a la misma chatarrería, encuentran el progreso compartido.
+
+Para evitar conflictos, solo el anfitrión puede comprar mejoras importantes y cerrar la jornada, salvo que habilite permisos a otros jugadores.
+
+## 25. Rejugabilidad
+
+Después de completar la campaña, los jugadores pueden seguir aceptando contratos.
+
+Para evitar crear cientos de objetos diferentes, cada encargo reutilizable puede variar mediante:
+
+Estado inicial: objeto limpio, oxidado, dañado o parcialmente desmontado.
+
+Componentes: algunas piezas pueden faltar, estar bloqueadas o tener mayor valor.
+
+Objetivo: recuperar, destruir, extraer o clasificar.
+
+Condición especial: recuperar una pieza sin dañarla, terminar con un presupuesto limitado o procesar varios objetos.
+
+Sorpresas: pequeñas posibilidades de encontrar objetos raros o decorativos.
+
+Estas variaciones no deben modificar arbitrariamente las reglas del desmontaje. Un mismo objeto debe comportarse de forma predecible, aunque cambie su estado inicial.
+
+# PARTE XII — Interfaz y experiencia de usuario
+
+## 26. Pantalla principal
+
+RECUPERACIONES EL MILAGRO
+
+# ¡ESO TODAVÍA SIRVE!
+
+Nada se pierde. Algunas cosas explotan.
+
+Continuar partida
+
+Crear chatarrería
+
+Unirse por código
+
+Opciones
+
+Salir
+
+Boceto conceptual de jerarquía visual, no interfaz funcional.
+
+## 27. HUD durante el juego
+
+La interfaz debe ser discreta. El escenario y los objetos son los protagonistas.
+
+Mostraría permanentemente:
+
+- Herramienta equipada.
+- Dinero de la chatarrería.
+- Objetivo activo.
+- Mira central.
+
+Al apuntar a un objeto aparecería una tarjeta contextual con nombre, acción disponible y condición necesaria.
+
+CONTRATO: LAVADORA INDUSTRIAL
+
+$1.240
+
+Motor eléctrico
+
+E · Extraer componente
+
+Requiere: retirar 2 pernos
+
+Llave inglesa
+
+Componentes: 5/12
+
+El objetivo no es llenar la pantalla de indicadores. La mayoría de la información aparece al inspeccionar o interactuar.
+
+## 28. Menús adicionales
+
+Tablero de contratos: lista de trabajos, recompensa, complejidad, requisitos y espacio necesario.
+
+Catálogo de mejoras: herramientas, maquinaria y ampliaciones, con vista previa y precio.
+
+Libro de inventario: materiales almacenados, piezas completas y valor aproximado.
+
+Estadísticas: aportes de cada jugador y registros del negocio.
+
+Opciones: audio, gráficos, controles, sensibilidad, accesibilidad y configuración multijugador.
+
+# PARTE XIII — Dirección artística y sonido
+
+## 29. Estilo visual
+
+[Junkyard - Low-Poly 3D Models Pack - Superhive (formerly Blender Market)](https://images.openai.com/static-rsc-4/OzttnCaC43irlCJkhgFeqmGAE-jyBcwAJTXLzn9jpZRJUN8mFW6u1RXb0dym1NfPTFZUg3AXS_19BplaTLfQWLi2C0c3ji9Ll_LqGxuRt3j-6nNi3f1D8VJFmjE_fmldsEpn2CctvPSAOH3gFUwQlKVnLHtGEecPiNTCXyX4fN0?purpose=inline)
+
+[Another Try 2 – Все про мультиплеер и кооператив, оценка и отзывы, сетевые режимы](https://images.openai.com/static-rsc-4/KyGhVHLgqOwjbsR5pOTg3QkMK2VAt-Pw1du4FIdxD_y3WwRw9z4FPGEh9-HB-RaSpD_9eHC2ecu49_tO-be0jjzw_attVjvGifBYFd8q-5Rbbiv4fATIFqrre2phDYkA6kNLDTkAlyn7bBW6jY-w42RTdNyGInss6WVAYRbIGtM?purpose=inline)
+
+[Steam Community :: Guide :: Deponia - Walkthrough and Achievements \[ENG\RU\]](https://images.openai.com/static-rsc-4/NUBFpJ0YawbzSMHfMNAiXeSLcvg7uaBl85avjOQ1pKbz4XT0C0sLLl7tI3-smIJoDlHDVJqHSX8WZUWlHIxzyKvQZAJ0ii3o2p9i9drx7WMCtNh5agH06iN6UPIj_Toi4xBHpUin65DbAkMreOAoMYrEfMCyqpxQvwY6zO6oPVk?purpose=inline)
+
+10
+
+Buscaría un estilo industrial estilizado con humor visual, no hiperrealista.
+
+La identidad visual combinaría:
+
+- Metales envejecidos y hormigón.
+- Amarillo industrial para elementos interactivos.
+- Verde petróleo para maquinaria.
+- Naranja oxidado y marrón para la chatarra.
+- Iluminación cálida durante el día.
+- Luces frías y sombras más profundas durante la noche.
+
+Los personajes serían trabajadores estilizados con monos de trabajo, guantes y cascos personalizables.
+
+### Principios gráficos
+
+La diferencia entre una escena de prueba y un juego comercial pequeño está en la coherencia.
+
+Necesitamos que las herramientas tengan escala correcta, que las piezas parezcan formar parte de los objetos, que los impactos tengan efectos y que la maquinaria transmita peso.
+
+No basta con juntar modelos gratuitos de estilos diferentes.
+
+## 30. Animaciones
+
+Las animaciones principales serían:
+
+- Caminar, correr y saltar.
+- Agarrar y transportar.
+- Levantar objetos pesados.
+- Atornillar y desatornillar.
+- Golpear.
+- Cortar.
+- Tirar objetos.
+- Activar máquinas.
+- Reacciones simples a impactos.
+
+Las animaciones en primera persona pueden ser diferentes de las que ven los demás jugadores, pero ambas deben representar la misma acción.
+
+## 31. Diseño sonoro
+
+El sonido es fundamental para que las tareas resulten satisfactorias.
+
+Cada material tendría sonidos diferentes: metal, plástico, vidrio y madera.
+
+Las herramientas eléctricas necesitarían arranque, funcionamiento y apagado.
+
+Las máquinas tendrían sonidos graves, vibraciones y señales de finalización.
+
+Los objetos valiosos producirían una confirmación sonora reconocible al recuperarlos.
+
+### Música
+
+Usaría música ambiental ligera en oficina y menús, y sonidos industriales como ambiente principal durante el trabajo.
+
+No pondría música constante demasiado intensa. El audio debe dejar espacio para que los amigos conversen por voz.
+
+### Voces
+
+La megafonía de la chatarrería podría anunciar:
+
+- «Se solicita al responsable del desastre que se identifique».
+- «La empresa recuerda que romper no es lo mismo que reciclar».
+- «Felicitaciones. Han encontrado cobre».
+- «El cliente solicita que le devolvamos el auto. Entero».
+- «La compactadora no es un medio de transporte».
+
+Estas frases deben ser ocasionales y no interrumpir diálogos importantes.
+
+# PARTE XIV — Diseño técnico para Unity
+
+## 32. Tecnología propuesta
+
+Aprovecharía la experiencia y el código de Abran la Maldita Puerta, pero mantendría este proyecto separado.
+
+| Sistema                | Solución propuesta                           |
+| ---------------------- | -------------------------------------------- |
+| Motor                  | Unity 6                                      |
+| Gráficos               | URP                                          |
+| Plataforma inicial     | Windows                                      |
+| Multijugador           | Netcode for GameObjects                      |
+| Conexión               | Unity Relay y códigos de sala                |
+| Capacidad              | 1–7 jugadores                                |
+| Movimiento             | CharacterController FPS                      |
+| Interacción            | Raycast y componentes interactivos           |
+| Física                 | Rigidbody simplificado para objetos sueltos  |
+| Guardado               | Archivo local versionado del anfitrión       |
+| Contenido              | Prefabs y ScriptableObjects                  |
+| Audio                  | AudioSource y AudioMixer                     |
+| Distribución comercial | Steam, tras validar requisitos y lanzamiento |
+
+La plantilla oficial FPS multijugador puede servir de punto de partida, pero habría que comprobar la compatibilidad de versiones, el comportamiento de siete jugadores y los límites de Relay antes de considerarlo resuelto.
+
+## 33. Arquitectura de sistemas
+
+### Arquitectura funcional
+
+GameSessionManager
+
+Sesión, anfitrión, jugadores y estado global
+
+ContractManager
+
+Encargos y objetivos
+
+ScrapObjectManager
+
+Objetos desmontables
+
+EconomyManager
+
+Materiales y dinero
+
+WorkshopManager
+
+Máquinas y mejoras
+
+ProgressionManager
+
+Capítulos y desbloqueos
+
+SaveManager
+
+Persistencia
+
+Network State
+
+Sincronización de estados y acciones validadas
+
+### Regla principal de red
+
+El anfitrión tiene autoridad sobre las operaciones que afectan al mundo compartido.
+
+Cuando un jugador intenta retirar una pieza:
+
+1. Su cliente solicita la interacción.
+2. El anfitrión verifica distancia, herramienta, estado y disponibilidad.
+3. El anfitrión modifica el componente.
+4. Los clientes reciben el nuevo estado.
+5. Todos muestran el resultado correspondiente.
+
+Esto evita que dos jugadores retiren simultáneamente la misma pieza o que se duplique el dinero.
+
+### Datos de un objeto desmontable
+
+Cada arquetipo debería definir:
+
+- Identificador único.
+- Prefab visual.
+- Lista de componentes.
+- Dependencias entre componentes.
+- Herramientas compatibles.
+- Valores de materiales.
+- Condiciones especiales.
+- Estados de desmontaje.
+- Puntos de interacción.
+- Efectos y sonidos.
+
+La estructura debe permitir crear un nuevo objeto principalmente mediante datos y prefabs, sin escribir un sistema nuevo para cada electrodoméstico.
+
+## 34. Física y rendimiento
+
+La destrucción completa basada en miles de fragmentos sería uno de los mayores riesgos del proyecto.
+
+Por eso:
+
+- Los componentes se separan mediante estados predefinidos.
+- Solo las piezas sueltas necesitan física dinámica.
+- Los fragmentos decorativos son efectos locales, no objetos de red persistentes.
+- Las máquinas usan animaciones y posiciones controladas.
+- Los objetos pequeños pueden agruparse para reducir carga de red.
+- Los elementos inmóviles utilizan iluminación horneada cuando convenga.
+
+El objetivo sería mantener 60 FPS en un equipo Windows de gama media definido durante las pruebas, pero no prometería ese rendimiento sin medirlo.
+
+# PARTE XV — Guardado y recuperación
+
+## 35. Sistema de persistencia
+
+El juego debe guardar automáticamente después de eventos importantes:
+
+- Completar un contrato.
+- Comprar una mejora.
+- Vender materiales.
+- Desbloquear un capítulo.
+- Cerrar una jornada.
+
+Durante los contratos también habría guardados periódicos de los estados relevantes.
+
+Para evitar archivos corruptos, el guardado debe escribirse primero en un archivo temporal y después sustituir el anterior de forma segura, conservando una copia de respaldo.
+
+### Desconexiones
+
+Si un invitado se desconecta, los objetos que estaba transportando vuelven a quedar disponibles en una ubicación válida.
+
+Si el anfitrión abandona la partida, se guarda el estado y se cierra la sesión de manera controlada.
+
+No implementaría migración automática de anfitrión en la primera versión, porque añade complejidad considerable.
+
+## 36. Integridad del progreso
+
+El juego debe impedir:
+
+- Vender dos veces el mismo componente.
+- Duplicar objetos al reconectarse.
+- Comprar mejoras sin dinero suficiente.
+- Retirar componentes ya desmontados.
+- Generar recompensas repetidas por un mismo contrato.
+- Perder piezas al cargar un guardado.
+
+El dinero y las compras deben calcularse siempre desde el estado autorizado del anfitrión.
+
+# PARTE XVI — Controles y accesibilidad
+
+## 37. Controles iniciales
+
+| Acción              | Tecla                         |
+| ------------------- | ----------------------------- |
+| Movimiento          | WASD                          |
+| Mirar               | Mouse                         |
+| Interactuar         | E                             |
+| Usar herramienta    | Clic izquierdo                |
+| Agarrar / soltar    | F                             |
+| Lanzar objeto       | Clic derecho al transportarlo |
+| Cambiar herramienta | Rueda del mouse               |
+| Correr              | Shift                         |
+| Saltar              | Espacio                       |
+| Inventario rápido   | Tab                           |
+| Pausa               | Esc                           |
+
+Son asignaciones iniciales; deben probarse para evitar conflictos entre agarrar, interactuar y utilizar herramientas.
+
+Los controles deben poder reasignarse.
+
+### Accesibilidad
+
+Incluiría desde el lanzamiento:
+
+- Subtítulos de todas las voces.
+- Ajuste de tamaño de texto.
+- Sensibilidad del mouse.
+- Campo de visión configurable.
+- Reducción de movimiento de cámara.
+- Desactivación de destellos intensos.
+- Alternativa de pulsación a mantener presionado.
+- Indicadores visuales para sonidos importantes.
+- Colores e iconos redundantes para identificar materiales.
+
+No todos los jugadores deberían necesitar distinguir colores para clasificar correctamente.
+
+# PARTE XVII — Balance y duración
+
+## 38. Objetivos de duración
+
+Quiero distinguir tres conceptos.
+
+# 5–35
+
+Minutos por contrato habitual
+
+# 2–3 h
+
+Sesión cooperativa objetivo
+
+# 6–10 h
+
+Campaña inicial estimada
+
+Metas de diseño, no duración demostrada. Se ajustarían con partidas reales.
+
+No intentaría forzar que cada jugador tarde exactamente lo mismo.
+
+Un grupo experimentado de siete jugadores probablemente avance más rápido que alguien jugando solo.
+
+El equilibrio debe mantener interesantes ambas experiencias sin introducir cantidades absurdas de tornillos o materiales.
+
+## 39. Indicadores de diversión
+
+Durante las pruebas mediría:
+
+| Indicador                | Qué queremos detectar                  |
+| ------------------------ | -------------------------------------- |
+| Tiempo sin actividad     | Jugadores esperando o aburridos        |
+| Tiempo por componente    | Acciones demasiado lentas              |
+| Uso de herramientas      | Herramientas que nadie utiliza         |
+| Contratos abandonados    | Tareas frustrantes o repetitivas       |
+| Errores de clasificación | Confusión de interfaz                  |
+| Compras realizadas       | Mejoras poco atractivas                |
+| Repetición voluntaria    | Si los jugadores quieren otro contrato |
+| Incidentes memorables    | Si surgen situaciones divertidas       |
+
+La métrica más importante no es cuánto dura una partida, sino si los jugadores quieren seguir después de terminar un encargo.
+
+# PARTE XVIII — Plan realista de desarrollo
+
+## 40. Orden de construcción
+
+No le pediría a Fable que implemente simultáneamente toda la campaña, ocho objetos, doce contratos y todas las máquinas sin validar el núcleo jugable.
+
+Sí le daría el diseño completo, pero dividiría la ejecución en hitos verificables.
+
+Hito 1
+
+Prototipo jugable
+
+Un patio, una lavadora, cuatro herramientas, componentes desmontables y venta de materiales.
+
+Prueba decisiva: ¿resulta divertido desmontar una lavadora?
+
+Hito 2
+
+Cooperativo funcional
+
+Sincronización de piezas, transporte, dinero y contratos. Pruebas de dos y más jugadores, incluyendo reconexiones.
+
+Hito 3
+
+Bucle económico completo
+
+Contratos, compras, herramientas mejoradas, almacén y guardado.
+
+Hito 4
+
+Variedad de contenido
+
+Incorporar los ocho arquetipos, la grúa, compactadora, cinta y diferentes condiciones de trabajo.
+
+Hito 5
+
+Campaña y personalidad
+
+Historia, contratos especiales, incidentes, humor, decoraciones y galpón misterioso.
+
+Hito 6
+
+Calidad comercial
+
+Arte coherente, animaciones, sonido, rendimiento, accesibilidad, estabilidad y pruebas extensas.
+
+Cada hito debe terminar con una versión ejecutable que pueda probarse. El siguiente no debería comenzar sobre una base rota.
+
+## 41. Riesgos principales
+
+| Riesgo                          | Cómo reducirlo                                          |
+| ------------------------------- | ------------------------------------------------------- |
+| Desmontar se vuelve repetitivo  | Componentes con funciones distintas y decisiones reales |
+| Física inestable en red         | Objetos simplificados y autoridad del anfitrión         |
+| Mucho contenido manual          | Sistema reutilizable de componentes y contratos         |
+| Economía demasiado lenta        | Pruebas de recompensas y costos                         |
+| Arte inconsistente              | Una dirección artística y bibliotecas compatibles       |
+| Guardados corruptos             | Versionado, respaldo y pruebas de recuperación          |
+| Siete jugadores saturan el mapa | Espacios amplios y trabajo paralelo                     |
+| Agente genera código excesivo   | Alcance por hitos y pruebas obligatorias                |
+
+# PARTE XIX — Lanzamiento comercial
+
+## 42. Posicionamiento
+
+Título de trabajo: ¡ESO TODAVÍA SIRVE!
+
+Para un lanzamiento internacional, evaluaría un nombre en inglés que conserve el chiste, como Still Good! o Don't Scrap That!, previa comprobación de disponibilidad y posibles conflictos de marca.
+
+### Público objetivo
+
+Jugadores de PC que disfrutan de:
+
+- Simuladores de tareas satisfactorias.
+- Cooperativos con amigos.
+- Progresión y mejoras.
+- Humor físico.
+- Juegos independientes fáciles de aprender.
+
+### Diferenciación
+
+La propuesta comercial no sería únicamente «destruir cosas».
+
+Sería:
+
+Un juego cooperativo donde destruir es fácil, pero recuperar lo valioso requiere trabajar juntos.
+
+Esa tensión entre rapidez y cuidado puede convertirse en la identidad del juego.
+
+## 43. Precio y distribución
+
+Propondría estudiar un precio de lanzamiento de USD 9,99–14,99, sujeto a comparar contenido, calidad y precios de juegos similares antes de fijarlo.
+
+No incorporaría micropagos, energía limitada, pases de batalla ni compras de ventajas.
+
+La personalización cosmética se desbloquearía jugando.
+
+### Estrategia de lanzamiento
+
+1. Prototipo privado con amigos.
+2. Demo pública con tres objetos y una pequeña progresión.
+3. Página de Steam y tráiler de gameplay real.
+4. Pruebas con grupos externos.
+5. Ajustes de balance, rendimiento y accesibilidad.
+6. Lanzamiento comercial.
+7. Actualizaciones con nuevos objetos y contratos.
+
+La demo debe permitir comprobar el núcleo del juego sin prometer contenido todavía inexistente.
+
+## 44. Tráiler
+
+Concepto de tráiler de 45–60 segundos
+
+0–10 segundos
+
+Una chatarrería destrozada. Un cartel dice: «Nuevo propietario». Una lavadora cae de un camión.
+
+10–25 segundos
+
+Jugadores desatornillando, recuperando motores, clasificando piezas y ganando dinero.
+
+25–40 segundos
+
+La grúa levanta un auto, alguien activa una alarma y otro arroja un objeto a la compactadora.
+
+40–55 segundos
+
+La chatarrería transformada. Aparece una máquina gigantesca en el galpón del fondo.
+
+Pantalla final: «¡ESO TODAVÍA SIRVE! — Desarmá todo. Tratá de vender algo».
+
+# PARTE XX — Criterios de aceptación
+
+## 45. Cuándo consideraríamos terminado el juego
+
+No basta con que Unity compile o que exista un ZIP.
+
+Lista de validación para lanzamiento
+
+0/14
+
+Los ocho arquetipos se pueden desmontar y procesar.
+
+Las herramientas tienen funciones y animaciones diferenciadas.
+
+La economía permite comprar mejoras y avanzar.
+
+Los contratos se completan y pagan correctamente.
+
+El progreso se guarda y recupera sin duplicaciones.
+
+Los jugadores pueden unirse mediante código.
+
+Una partida completa funciona en solitario.
+
+El multijugador ha sido probado con varios clientes.
+
+Se verifica el límite de siete jugadores en condiciones reales.
+
+La campaña y el final pueden completarse.
+
+La interfaz y los controles son utilizables.
+
+El rendimiento y la estabilidad cumplen los objetivos medidos.
+
+Los recursos de terceros tienen licencias verificadas.
+
+Una prueba externa confirma que el juego resulta entretenido.
+
+&#x20;Copiar checklist
+
+# Decisiones finales del diseño
+
+Después de desarrollar todos los sistemas, esta sería mi definición de la primera versión comercial:
+
+| Elemento          | Decisión                                              |
+| ----------------- | ----------------------------------------------------- |
+| Mundo             | Una chatarrería ampliable                             |
+| Actividad central | Desmontar, recuperar, clasificar y vender             |
+| Cooperación       | 1–7 jugadores, sin roles obligatorios                 |
+| Progresión        | Dinero, herramientas, máquinas y capítulos            |
+| Objetos           | 8 arquetipos principales                              |
+| Contratos         | 12 principales y variaciones reutilizables            |
+| Herramientas      | 6 iniciales y 3 especializadas                        |
+| Máquinas          | Compactadora, grúa y cinta                            |
+| Historia          | 5 capítulos con misterio y final                      |
+| Duración          | Sesiones de 2–3 horas; campaña objetivo de 6–10 horas |
+| Guardado          | Persistente, propiedad del anfitrión                  |
+| Estilo            | Industrial estilizado, cómico y coherente             |
+| Modelo comercial  | Compra única, sin micropagos                          |
+
+## Lo que todavía necesita validación
+
+Este documento define una propuesta de diseño completa a nivel de producto y sistemas. No significa que ya estén especificados todos los prefabs, animaciones, tablas de balance, mensajes de red o pruebas de calidad necesarios para producirlo.
+
+Los tres aspectos que determinarán si merece convertirse en un juego comercial son:
+
+Primero, el desmontaje. Debe resultar satisfactorio retirar una pieza, verla separarse, recogerla y venderla. Si eso no funciona, cien objetos diferentes no lo arreglarán.
+
+Segundo, la cooperación. Los jugadores necesitan razones reales para repartirse tareas, ayudarse y cometer errores divertidos. No basta con permitir siete conexiones.
+
+Tercero, la progresión. Cada nueva herramienta, máquina o tipo de objeto debe cambiar algo en la experiencia. Comprar una herramienta que simplemente trabaja un 10 % más rápido no puede ser toda la recompensa.
+
+Mi propuesta es que este diseño sea nuestra visión comercial de referencia, pero que Fable tenga como primer objetivo implementar y demostrar el ciclo completo con una lavadora, un vehículo sencillo, varias herramientas y un sistema básico de venta y mejoras.
+
+Si esa pequeña versión resulta divertida durante una hora con amigos, tendremos una base razonable para invertir en el contenido restante. Si no, podremos corregir el núcleo sin haber construido innecesariamente toda una campaña.
+
+La identidad que buscaría es muy clara: un simulador donde el jugador disfruta desmontando cosas, gana dinero recuperando piezas y termina riéndose de las barbaridades que hacen sus compañeros.

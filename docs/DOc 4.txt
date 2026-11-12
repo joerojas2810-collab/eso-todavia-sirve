@@ -1,0 +1,692 @@
+# ¡ESO TODAVÍA SIRVE!
+
+GDD 4.0 · Evolución tecnológica, automatización, mantenimiento y progresión industrial
+
+Propongo que la progresión del juego tenga una característica central: el jugador comienza desmontando cada objeto con sus propias manos y termina administrando una planta de reciclaje parcialmente automatizada.
+
+No se trata simplemente de conseguir herramientas que trabajen un 20 % más rápido. Cada etapa debe cambiar la manera de jugar.
+
+[Scrapping Simulator on Steam](https://images.openai.com/static-rsc-4/KJ-UNcuT9p_oQq1t9G2Hu4Z6Up5_Jxo44ggCXz4nzZY-qwOZrwALiKFReBxgvXcYj0fCI-CLAbB5S503l8uzS30HytWMDAZcOHUmXKS-lak6C5FEYReJOueHdgDKAR8ifRRFAmQF4rRrf6Sim9CZmB8CNPk9s2CKQi_HqC0Vti8?purpose=inline)
+
+Etapa inicial
+
+Trabajo manual y descubrimiento
+
+[ReStory: Chill Electronics Repairs -  Keymailer](https://images.openai.com/static-rsc-4/WhJb06u3pGJb9esDc_RgjGr5aAW6YdlYdlhVsSgLbVqB9iO7RVptkKqqaCboBCZyJWGlnI_JOgS-i61t4K60TV2JcPj55n5_1DUi5yz2j7zjbJOmE2oEQoEQaOxHUpVeOXgGguhdoLo30lcn7ov7a7qHYNPdrjB1JMB4fWqTuPU?purpose=inline)
+
+Etapa media
+
+Herramientas eléctricas y maquinaria
+
+[How Recycling Works. Recycling is one of the simplest ways… | by Shereen Sattar | Medium](https://images.openai.com/static-rsc-4/oSzHG9d8ZIv_4WorQB3fzlbVa_tAXAyt19BSUmbsVJPZQM_2oAYlJVdqKTcSN3qnnujAX068n2iVNhZRPaJ3agHvW6mCkXmt_ynpKdm-XLLwl8h-kOvy7ESx3OjEspg3Mb0V13zFwWBvHO4RkfwGqRHM5Y46K2A4eFRbE0OJw0g?purpose=inline)
+
+Etapa avanzada
+
+Robots, líneas automatizadas y mantenimiento
+
+La evolución será:
+
+Manual → Asistido → Semiautomático → Automatizado y optimizado.
+
+Aunque hablamos de tres etapas principales, dentro de la avanzada existirán mejoras para optimizar cada máquina.
+
+## 1. Las tres etapas y sus objetivos
+
+|                  | Inicial                         | Media                         | Avanzada                                |
+| ---------------- | ------------------------------- | ----------------------------- | --------------------------------------- |
+| Rol del jugador  | Operario                        | Técnico                       | Operario y gestor de planta             |
+| Objetos          | Pequeños y medianos             | Vehículos y equipos complejos | Vehículos grandes e industriales        |
+| Herramientas     | Manuales                        | Eléctricas y neumáticas       | Robots y estaciones                     |
+| Transporte       | A mano y carros                 | Polipastos y grúas            | Transportadores y montacargas           |
+| Clasificación    | Manual                          | Máquinas asistidas            | Clasificación automática                |
+| Energía          | Sin consumo operativo relevante | Electricidad y baterías       | Red eléctrica y combustible industrial  |
+| Mantenimiento    | Mínimo                          | Limpieza y consumibles        | Desgaste, averías y repuestos           |
+| Decisión central | ¿Qué pieza salvo?               | ¿Cómo trabajo más rápido?     | ¿Qué automatizo y qué hago manualmente? |
+
+La automatización no debe eliminar el gameplay. Los robots resuelven tareas repetitivas, mientras los jugadores siguen haciendo trabajos especiales, inspecciones, reparaciones, decisiones económicas y desmontajes complejos.
+
+# 2. Evolución de cada familia de herramientas
+
+## 2.1 Desatornillado
+
+[CC0 - Screwdriver free VR / AR / low-poly 3D model | CGTrader](https://images.openai.com/static-rsc-4/x6Q9y-7CVhRS12t53l3IMFX2FwYQvgZd4-aCoxR8z8YOHxwxVCdN1g9TQqdAr_lbkCVtUp9tqEPiBN9q1idezUlAn4unqZt7NvsJcwsTHOZR8O5pCHanMfY-_o2oGmy17kZOPN73xOJ5WZhQkV406DPAShMw0XeTHNHk_749Ecs?purpose=inline)
+
+Nivel 1
+
+Destornillador manual
+
+[Cordless Drill | Powertools  models | Blendkit](https://images.openai.com/static-rsc-4/_Uxim96ZBej6FPRhet2GAT76OyDyCevFVPfBmwLnSoawpqQ4edFan47numFsc1By9aoCnip48pfYwOfpzwfzdejwZ9I1jH9YEnQxSpMzZyHsQXN_s2ez0tPt7nzu2jVPVGAwnubYbVjucgJK147FO9EQcxFA4bRiV13gtQ-Fal8?purpose=inline)
+
+Nivel 2
+
+Atornillador eléctrico
+
+[AI Robot Arm Images - Royalty-Free AI Visuals & Art | IconScout](https://images.openai.com/static-rsc-4/jAIlJT6-mqc0xt1YVmXqaVNOXMMlve19GlVLrKkQp1F88zD8016So6vMXypxtt7S0XRr46oqXN9UIyRtF6vV8tYyI2IPgj7cZ0x7SfM4c09P5PNRP3f_-diSevK91dFQIpUPXVdWNZlqCw8DSQD_7EcA6AGifN5zMG6-RAa_tbU?purpose=inline)
+
+Nivel 3
+
+Robot desatornillador
+
+| Característica      | Manual             | Eléctrico           | Robot                            |
+| ------------------- | ------------------ | ------------------- | -------------------------------- |
+| Tiempo por tornillo | 3 s                | 0,8 s               | 0,45 s                           |
+| Intervención        | Cada tornillo      | Cada tornillo       | Una orden por grupo              |
+| Precisión           | Alta               | Alta                | Alta en piezas conocidas         |
+| Energía             | Ninguna            | Batería             | Electricidad                     |
+| Mantenimiento       | Ninguno            | Cambio de batería   | Desgaste de puntas y calibración |
+| Límite              | Tornillos pequeños | Pequeños y medianos | Piezas compatibles con estación  |
+
+Funcionamiento del robot: el jugador coloca un objeto o módulo en su estación, selecciona «Retirar fijaciones» y el robot desatornilla las uniones accesibles.
+
+No retira automáticamente todos los componentes del objeto. Una vez liberados los tornillos, los jugadores pueden separar paneles o enviarlos a otra estación.
+
+### Costes operativos propuestos
+
+- Electricidad: 1 unidad de energía por cada 20 tornillos.
+- Puntas: una punta soporta aproximadamente 150 tornillos.
+- Calibración: cada 10 ciclos completos de trabajo.
+- Reparación: piezas mecánicas comunes y un componente electrónico si sufre una avería.
+
+Mejora final: un sistema de reconocimiento de fijaciones que permite trabajar con varios modelos sin reconfigurar manualmente la estación.
+
+## 2.2 Aflojado de pernos
+
+| Etapa    | Equipo                      | Funcionamiento            | Limitación             |
+| -------- | --------------------------- | ------------------------- | ---------------------- |
+| Inicial  | Llave inglesa               | Afloja pernos manualmente | Lenta                  |
+| Media    | Pistola de impacto          | Retira pernos rápidamente | Consume batería        |
+| Avanzada | Brazo de impacto automático | Trabaja grupos de pernos  | Requiere objeto fijado |
+
+El brazo automático puede retirar ruedas y soportes de vehículos conocidos.
+
+Mantenimiento: cabezales de impacto, lubricación simplificada y calibración.
+
+Optimización final: procesar simultáneamente dos grupos de pernos mediante una estación doble.
+
+## 2.3 Corte
+
+| Etapa    | Equipo                           | Funcionamiento                                     |
+| -------- | -------------------------------- | -------------------------------------------------- |
+| Inicial  | Sierra manual                    | Corta plástico, tubos pequeños y soportes ligeros  |
+| Media    | Sierra eléctrica y amoladora     | Corta materiales resistentes y soldaduras          |
+| Avanzada | Cortadora industrial programable | Realiza cortes predefinidos en módulos compatibles |
+
+La cortadora avanzada no puede destruir cualquier objeto libremente. Necesita que el jugador marque o seleccione una línea de corte válida.
+
+Consumos: electricidad, discos o cuchillas y refrigerante industrial ficticio.
+
+Mantenimiento: sustitución de cuchillas y limpieza.
+
+Optimización: corte múltiple de piezas iguales y recuperación automática de residuos.
+
+## 2.4 Separación de paneles
+
+| Etapa    | Equipo                        | Funcionamiento                        |
+| -------- | ----------------------------- | ------------------------------------- |
+| Inicial  | Palanca manual                | Separa paneles liberados              |
+| Media    | Extractor hidráulico portátil | Separa piezas grandes                 |
+| Avanzada | Estación separadora           | Retira paneles de modelos compatibles |
+
+El sistema avanzado tiene una ventaja importante: puede separar varias piezas sin que un jugador mantenga pulsado un botón.
+
+Consumos: energía y fluido hidráulico simplificado.
+
+Mantenimiento: sellos, calibración y limpieza.
+
+Optimización: detección de paneles ya liberados para evitar intentos fallidos.
+
+## 2.5 Destrucción
+
+| Etapa    | Equipo                 | Funcionamiento                |
+| -------- | ---------------------- | ----------------------------- |
+| Inicial  | Martillo y mazo        | Destruye piezas pequeñas      |
+| Media    | Martillo demoledor     | Rompe carcasas rápidamente    |
+| Avanzada | Trituradora industrial | Procesa conjuntos compatibles |
+
+La trituradora produce materiales mezclados si el objeto no fue clasificado previamente.
+
+Ejemplo: introducir una lavadora completa produce menos cobre recuperable que retirar primero su motor y cableado.
+
+La automatización más rápida debe tener un coste económico cuando se utiliza sin criterio.
+
+Mantenimiento: cuchillas, motor y limpieza de residuos.
+
+Optimización: preclasificador que recupera automáticamente algunos componentes antes de triturar.
+
+## 2.6 Inspección
+
+| Etapa    | Equipo             | Funcionamiento                                        |
+| -------- | ------------------ | ----------------------------------------------------- |
+| Inicial  | Inspección visual  | Identifica piezas externas                            |
+| Media    | Escáner portátil   | Revela materiales y calidad                           |
+| Avanzada | Escáner industrial | Analiza objetos completos y genera plan de desmontaje |
+
+El escáner industrial no ejecuta el trabajo. Propone una secuencia eficiente:
+
+1. Retirar panel exterior.
+2. Recuperar placa electrónica.
+3. Extraer motor.
+4. Enviar carcasa a compactación.
+
+Consumos: electricidad y calibración.
+
+Optimización final: comparación automática entre valor de recuperación completa y valor de materiales.
+
+# 3. Evolución de las instalaciones
+
+| Sistema        | Inicial                | Media                | Avanzada                                 |
+| -------------- | ---------------------- | -------------------- | ---------------------------------------- |
+| Recepción      | Plataforma de descarga | Muelle con elevador  | Recepción y distribución automática      |
+| Transporte     | Carro manual           | Grúa de pórtico      | Montacargas guiado                       |
+| Clasificación  | Contenedores           | Cinta transportadora | Clasificador automático                  |
+| Almacenamiento | Estantes               | Almacén ampliado     | Almacén indexado                         |
+| Metales        | Venta de chatarra      | Compactadora         | Compactadora con alimentación automática |
+| Cableado       | Clasificación manual   | Separador de cable   | Separador con alimentación continua      |
+| Componentes    | Banco manual           | Banco de precisión   | Celda robotizada                         |
+| Material mixto | Separación manual      | Trituradora básica   | Trituradora con preclasificación         |
+
+Las instalaciones avanzadas deben poder conectarse mediante rutas definidas. Por ejemplo, un contenedor de material puede pasar desde la cinta al clasificador y después a la compactadora.
+
+No propondría construir libremente cientos de cintas transportadoras como en un juego tipo Factorio. Mantendría conexiones predeterminadas con algunas decisiones de configuración para que sea viable en Unity y multijugador.
+
+# 4. Distribución de los 30 objetos por etapa
+
+Los capítulos narrativos y las etapas tecnológicas no son exactamente lo mismo. Un jugador puede llegar al capítulo 3 utilizando todavía herramientas manuales, aunque será menos eficiente.
+
+La idea es que todos los objetos antiguos sigan teniendo utilidad después de desbloquear los nuevos.
+
+## Etapa inicial — Chatarrería improvisada
+
+Capítulo 1 y comienzo del 2 · Objetivo de diseño: primeras 2–3 horas de campaña
+
+[Scrapping Simulator on Steam](https://images.openai.com/static-rsc-4/Fp87gk0A4E2KYzRz2MU1rReXoOGY5VXpC3yDUbtxcXi76hVSTzNxMdwqctYng2NgwprkPuAHzQFhgWsjDPwhTtvHnQiNeqkPXstOn2NTsaY6O83cu2jdO_YL8nthuMNGo6QXVXQDdINea3lYxE5kOW0aBrTMucpsnlGrqQfNrPQ?purpose=inline)
+
+[store.steampowered.com](https://store.steampowered.com/app/1496640/Scrapping_Simulator/?utm_source=chatgpt.com)
+
+Los jugadores comienzan con una mesa, un pequeño almacén, herramientas manuales y contenedores para clasificar.
+
+| Objeto          | Trabajo principal               | Primera optimización       |
+| --------------- | ------------------------------- | -------------------------- |
+| 01. Microondas  | Abrir y separar componentes     | Atornillador eléctrico     |
+| 02. Lavadora    | Desmontar motor y tambor        | Banco de extracción        |
+| 03. Heladera    | Recuperar accesorios y módulos  | Carro de transporte        |
+| 07. Aspiradora  | Abrir carcasa y recuperar motor | Atornillador eléctrico     |
+| 08. Ventilador  | Retirar rejillas, aspas y motor | Banco rápido               |
+| 09. Televisor   | Recuperar electrónica           | Mesa de precisión          |
+| 10. Computadora | Recuperar componentes delicados | Atornillador y escáner     |
+| 11. Monitor     | Separar marco y panel           | Banco de precisión         |
+| 19. Bicicleta   | Retirar ruedas y transmisión    | Pistola de impacto pequeña |
+
+### Experiencia deseada
+
+Al principio, desmontar un ventilador requiere que el jugador haga todo. Después de varias entregas, consigue un atornillador y descubre que puede realizar la misma operación en mucho menos tiempo.
+
+Esa mejora debe sentirse inmediatamente.
+
+La primera etapa termina cuando el jugador puede completar varios encargos pequeños, comprar el taller y procesar componentes con herramientas eléctricas.
+
+## Etapa media — Taller profesional
+
+Capítulos 2 y 3 · Objetivo de diseño: horas 3–7
+
+[Manic Mechanics Screenshot Gallery - Page 1 | XboxAchievements.com](https://images.openai.com/static-rsc-4/GFkhD8HTcnbRUSHhDGVSk-lJJ9BiJtYc4CkcOKmW8wcyi0xe5Kw5gWKL5bHUCWQZ7y6YYlj5S0kv9RrTEf1_KvjwYY-zbwLpY57Z1h1ZuHdzuZcTqWVwTb_DN0D1d_8j8zKgaIqOG8O3oTpc7tec0Mimb7k0ZbkWyeu7FNlSnZE?purpose=inline)
+
+[xboxachievements.com](https://www.xboxachievements.com/game/manic-mechanics/screenshots/?utm_source=chatgpt.com)
+
+Aparecen objetos con más componentes, vehículos y maquinaria.
+
+| Objeto                   | Trabajo principal             | Optimización disponible   |
+| ------------------------ | ----------------------------- | ------------------------- |
+| 04. Secadora             | Tambor, motor y conductos     | Banco eléctrico           |
+| 05. Cocina               | Paneles y estructura metálica | Cortadora                 |
+| 06. Lavavajillas         | Bomba, motor y bandejas       | Extractor asistido        |
+| 12. Impresora            | Electrónica y piezas móviles  | Estación de precisión     |
+| 13. Equipo de sonido     | Altavoces y transformador     | Banco eléctrico           |
+| 14. Generador            | Motor y alternador            | Grúa pequeña              |
+| 15. Compresor            | Motor, bomba y depósito       | Extractor hidráulico      |
+| 16. Bomba de agua        | Motor e impulsor              | Banco de extracción       |
+| 17. Cortadora de césped  | Motor y estructura            | Pistola de impacto        |
+| 18. Motor industrial     | Rotor y estator               | Grúa y extractor          |
+| 20. Scooter              | Carrocería y motor            | Elevador                  |
+| 21. Motocicleta          | Motor, ruedas y suspensión    | Elevador y grúa           |
+| 22. Auto compacto        | Carrocería, motor e interior  | Grúa y estación de ruedas |
+| 23. Camioneta            | Motor, caja y estructura      | Grúa y cortadora          |
+| 27. Cinta transportadora | Rodillos, motor y bastidor    | Extractor y grúa          |
+
+### Experiencia deseada
+
+Los jugadores dejan de ser simples operarios y empiezan a organizar procesos.
+
+Por ejemplo, al recibir un auto:
+
+- Uno desmonta ruedas.
+- Otro trabaja en el interior.
+- Otro retira paneles.
+- Un cuarto prepara la grúa.
+- Después procesan materiales y venden piezas.
+
+Un jugador solo puede completar el mismo trabajo utilizando soportes, carros y maquinaria, aunque tardará más.
+
+La etapa media termina cuando el equipo dispone de maquinaria industrial y comienza a comprar sus primeras estaciones robotizadas.
+
+## Etapa avanzada — Planta automatizada
+
+Capítulos 4 y 5, más modo libre · Objetivo de diseño: horas 7–12 y posteriores
+
+[Advancing Carbon Reduction with an Intelligent S - Advantech](https://images.openai.com/static-rsc-4/ceDwpYW-GU51lPieXOoQQJ7k1mgk9dddmUgPhc-mQB5IOVL5ekZRN--iicO2RWSJSTldOTj8eixzeALl6ShwGG29v8vw3NDdfzI6k42gaiU3TE4bJoCEymsF_iIPAmyu2nakYKrMD5Hq0vk2Q6LMTxYh_MifpC2JmWilDarRl0w?purpose=inline)
+
+[advantech.com](https://www.advantech.com/tr-tr/resources/case-study/advancing-carbon-reduction-with-an-intelligent-scrap-steel-robotic-grading-system?utm_source=chatgpt.com)
+
+| Objeto                     | Trabajo principal            | Automatización máxima        |
+| -------------------------- | ---------------------------- | ---------------------------- |
+| 24. Autobús pequeño        | Interior, motor y carrocería | Varias estaciones y grúa     |
+| 25. Torno industrial       | Motor, transmisión y bancada | Corte y extracción asistidos |
+| 26. Prensa averiada        | Módulos y estructura pesada  | Cortadora industrial         |
+| 28. Montacargas averiado   | Mástil, motor y contrapeso   | Grúa y estación de pernos    |
+| 29. Máquina sin fabricante | Desmontaje narrativo         | Solo asistencia              |
+| 30. Reconstructora R-0     | Proyecto final               | Operación especial           |
+
+Los 24 objetos habituales de etapas anteriores también pueden llegar en grandes lotes.
+
+Un encargo avanzado podría solicitar desmontar ocho computadoras, cuatro lavadoras y dos motocicletas. El jugador no debería tener que retirar manualmente cada tornillo: puede preparar las estaciones, asignar lotes y supervisar el proceso.
+
+Sin embargo, los objetos especiales y componentes de alta calidad requieren intervención directa.
+
+# 5. Recursos para la automatización
+
+Para que los robots no sean una compra que elimina el trabajo para siempre, introduciría un sistema de recursos operativos sencillo.
+
+No utilizaría combustible para absolutamente todo. Eso sería poco creíble y podría convertir el juego en una tarea constante de recarga.
+
+[3D Sci-Fi Battery - Energy Cell 07 PBR - TurboSquid 2083969](https://images.openai.com/static-rsc-4/6ma0WEteuitU_hLBRcwSKLXRe6AsBZL76qxjsPFv84AnNEEH1LQ1i3Etv82eY6Szyg9T0Yn6RrBy7McHow148jozhyRo-Mz-BDrU6wtX8vfIJpG9D2Fc4ZLY9hKgNyyLyTMacI4jMCTS2olFXJJFFgr9fb0akghQYY9XOZvx4tY?purpose=inline)
+
+R01 · Electricidad
+
+Alimenta robots, cintas, escáneres, grúas y compactadoras.
+
+Se paga por jornada y depende del tiempo de funcionamiento. Las máquinas apagadas consumen muy poco o nada.
+
+[Battery DeWalt DCB184 Model - TurboSquid 1754294](https://images.openai.com/static-rsc-4/7VXHwbGn_mJQv15wGO-gVGprzFnKByON4JUTiwvpyRsn3b5CUFWYcxVEAo189fT-WVDGXwDLta7Tjlai935jOH4OZtc9A5TMMHyIUTP5CVAErxwS4iEtecU-DA-Qef-vuhU3oJaDn8ivpoLpqd1PTk49k91q__TdzoErqjpcbRY?purpose=inline)
+
+R02 · Baterías
+
+Alimentan herramientas portátiles.
+
+Se recargan en una estación común. No se destruyen al agotarse.
+
+[Stylized Petrol Gas Can - Low-poly 3D model - Buy Royalty Free 3D model by polysassetstore \[7dd31fd\] - Sketchfab Store](https://images.openai.com/static-rsc-4/_wAffIjEUPj9AriAtQL6c5PdQVSRfgaqqNQ43sJ_y7rcMDGNibj7h5wEGCYtM8rn9B_pAu4rQoJ2-lul4vzcuPaL_jwnjIydzidH0sbqW-6sOfBTlwUiDr-mQmxurz6JP-h41t1MIUlcBWnpjKKU-OfY6Wd4YtSJmF8TLCUb1Z0?purpose=inline)
+
+R03 · Combustible industrial
+
+Alimenta un generador auxiliar y determinados equipos móviles.
+
+Se compra por unidades o se obtiene como recompensa especial. No es necesario para robots conectados a la red eléctrica.
+
+[Compact Screwdriver Bit Case - 3D model by Nasik on Thangs](https://images.openai.com/static-rsc-4/Z_7EIKHh0P3bwCnLTK3nfNQwDvZ3X-S5f_jQDl6ccJoGh6stW_OvBabPA4qTCaVDTvs4TVHSs7Nv7kzXC4Kr-iAXyRGUkZehTU2ZMriisNgq2iRqddSnG8uHqFTinkYAD3ycg37b00qqUr3AnvhPwoMhZHe77e7ipmvuXIl-IXs?purpose=inline)
+
+R04 · Consumibles
+
+Puntas, discos, cuchillas, filtros y sellos.
+
+Se compran o fabrican a partir de materiales recuperados, mediante recetas simplificadas.
+
+[Exploded Machinery Diagram 3D Icon — Free PNG Download | Thiings](https://images.openai.com/static-rsc-4/3pVyXKI54LIb4O5wDWmKqWfQonaQHs6eE4wQipdcM1R3se0wm_iP4uNyzm0fwUPJfhD1uqV4U4gr477tID1iYsRSxM4TTJeBuOrLiF3gaKeLo1UeejGpNG522HmInLiQIKmm25iu4ekntyV_RFf7DIDHcXEpfSxy6VezXUKl6fc?purpose=inline)
+
+R05 · Repuestos
+
+Se utilizan para reparar averías importantes.
+
+Se consiguen mediante contratos, compras o recuperación de componentes de objetos desmontados.
+
+## 5.1 Electricidad y generadores
+
+La planta comienza con una conexión eléctrica pequeña que soporta herramientas básicas.
+
+Conforme crece, el jugador necesita mejorar su capacidad.
+
+| Nivel                  | Capacidad      | Instalaciones recomendadas    |
+| ---------------------- | -------------- | ----------------------------- |
+| Conexión básica        | 5 kW ficticios | Taller y cargador             |
+| Tablero ampliado       | 15 kW          | Grúa, cinta y compactadora    |
+| Subestación industrial | 35 kW          | Varias estaciones automáticas |
+| Subestación optimizada | 60 kW          | Planta avanzada completa      |
+
+Las cifras representan un modelo simplificado de potencia para el juego, no consumos reales de esas máquinas.
+
+Si la demanda supera la capacidad, el jugador debe apagar algún equipo o activar el generador auxiliar.
+
+El generador utiliza combustible y tiene un coste mayor por unidad de energía. Su función es permitir picos de producción, no sustituir permanentemente la red.
+
+## 5.2 Reparaciones
+
+Las máquinas tienen tres estados operativos:
+
+Operativa: funciona al rendimiento normal.
+
+Desgastada: trabaja más lentamente y muestra una advertencia.
+
+Averiada: requiere una reparación breve antes de volver a utilizarse.
+
+No introduciría averías aleatorias que destruyan máquinas caras. El desgaste debe ser predecible y permitir mantenimiento preventivo.
+
+# 6. Sistema completo de desgaste y mantenimiento
+
+Cada máquina tendrá un indicador de condición de 0 a 100.
+
+| Condición | Estado     | Consecuencia                   |
+| --------- | ---------- | ------------------------------ |
+| 100–61    | Óptima     | Rendimiento normal             |
+| 60–31     | Desgastada | −15 % velocidad                |
+| 30–1      | Crítica    | −30 % velocidad y advertencias |
+| 0         | Detenida   | Requiere reparación            |
+
+Cada ciclo de trabajo reduce la condición según el tipo de máquina.
+
+La reparación debe ser una interacción breve y visible: abrir panel de servicio, reemplazar pieza y cerrar. No quiero que el mantenimiento sea simplemente pulsar un botón en un menú.
+
+## 6.1 Mantenimiento de cada equipo avanzado
+
+| Máquina               | Qué se desgasta            | Recurso de reparación  | Tiempo |
+| --------------------- | -------------------------- | ---------------------- | ------ |
+| Robot desatornillador | Puntas y calibración       | Punta + kit básico     | 15 s   |
+| Brazo de impacto      | Cabezal                    | Repuesto mecánico      | 20 s   |
+| Cortadora automática  | Disco o cuchilla           | Cuchilla               | 20 s   |
+| Separador hidráulico  | Sellos                     | Kit hidráulico         | 25 s   |
+| Trituradora           | Cuchillas                  | Juego de cuchillas     | 30 s   |
+| Clasificador          | Sensores                   | Kit electrónico        | 15 s   |
+| Cinta transportadora  | Rodillos                   | Repuesto mecánico      | 20 s   |
+| Grúa                  | Motor y sistema de control | Kit mecánico           | 25 s   |
+| Compactadora          | Sistema de presión         | Kit hidráulico         | 25 s   |
+| Montacargas           | Motor y batería            | Kit mecánico o recarga | 20 s   |
+
+Estos tiempos son objetivos iniciales. Una reparación no debería interrumpir demasiado una sesión cooperativa.
+
+## 6.2 Fabricación de repuestos
+
+La chatarrería puede recuperar materiales y convertirlos en kits de mantenimiento.
+
+| Kit                           | Receta ficticia             | Utilización                              |
+| ----------------------------- | --------------------------- | ---------------------------------------- |
+| Punta reforzada               | 2 acero                     | Robot desatornillador                    |
+| Kit mecánico                  | 4 acero + 1 cobre           | Motores y transmisiones                  |
+| Kit electrónico               | 2 electrónica + 1 cobre     | Sensores y controles                     |
+| Kit hidráulico                | 3 acero + 1 plástico        | Prensas y extractores                    |
+| Cuchilla industrial           | 6 acero                     | Cortadoras y trituradoras                |
+| Kit de mantenimiento completo | 2 mecánicos + 1 electrónico | Reparación de cualquier máquina estándar |
+
+Las recetas son abstraídas para gameplay, no procesos reales de fabricación.
+
+### ¿Por qué conviene fabricar repuestos?
+
+Porque crea una decisión económica interesante.
+
+El jugador puede vender todo el cobre recuperado y ganar dinero inmediatamente, o reservar una parte para mantener funcionando sus máquinas y obtener mayores beneficios después.
+
+Así los materiales tienen un propósito más allá de venderse.
+
+# 7. Optimización de las máquinas: cuatro niveles
+
+Una vez comprada una máquina, no debería quedar inmediatamente obsoleta ni alcanzar su máximo potencial.
+
+Propongo cuatro niveles de desarrollo por máquina:
+
+| Nivel | Estado      | Beneficio                                        |
+| ----- | ----------- | ------------------------------------------------ |
+| 1     | Básica      | Automatiza una operación                         |
+| 2     | Mejorada    | Trabaja un 25 % más rápido                       |
+| 3     | Inteligente | Reconoce variantes y reduce errores              |
+| 4     | Industrial  | Procesa lotes o trabaja junto con otras máquinas |
+
+La optimización no se obtiene solo pagando dinero. También exige utilizar la máquina y completar objetivos de producción.
+
+## 7.1 Ejemplo completo: robot desatornillador
+
+[The critical role of AI and robotics in the shift toward urban mining](https://images.openai.com/static-rsc-4/F9WuPCdOmHK7R355rN-82qEICwBOklBtrQ1Qwe4nHAEneMbahuwO6CPolVJL-WTTslZ6VU9036wjXLiBuiTpPClDV5c8OW5yxeClKjDBSalvh9xLmUMAY33tgUsQakqzAxibXgcoat3ypS5V-xOFB6Qw6wrAZGpS2ybWMpJcJFU?purpose=inline)
+
+[recyclingproductnews.com](https://www.recyclingproductnews.com/article/40644/the-critical-role-of-ai-and-robotics-in-the-shift-toward-urban-mining?utm_source=chatgpt.com)
+
+## Evolución del robot
+
+### 01
+
+Robot básico
+
+Retira tornillos de un solo módulo por ciclo. El jugador debe colocarlo y seleccionar el trabajo.
+
+Consumo: Electricidad + puntas
+
+### 02
+
+Robot rápido
+
+Reduce el tiempo de trabajo un 25 % y mejora la duración de las puntas.
+
+Consumo: Electricidad + puntas
+
+### 03
+
+Robot inteligente
+
+Reconoce distintos módulos compatibles y selecciona automáticamente el patrón de tornillos.
+
+Consumo: Electricidad + calibración
+
+### 04
+
+Celda robotizada
+
+Incorpora alimentación automática de módulos y una bandeja de salida. Procesa pequeños lotes sin supervisión constante.
+
+Consumo: Electricidad + puntas + mantenimiento
+
+### Lo que no puede hacer
+
+El robot no debe poder desmontar automáticamente todos los objetos del juego.
+
+Por ejemplo, una computadora puede colocarse en una estación de precisión, pero sus componentes delicados siguen requiriendo extracción manual o un módulo especializado.
+
+La máquina sin fabricante y la reconstructora R-0 no pueden procesarse automáticamente.
+
+# 8. Ejemplo práctico: evolución de un mismo objeto
+
+Tomemos la lavadora, uno de los primeros objetos del catálogo.
+
+['Aperture Desk Job' Cast Features Familiar Voice From 'Portal' Series](https://images.openai.com/static-rsc-4/aX_nQyE4lDm2NJ2F0f6Wc5g6YLBE89PkPDJnpythPkBYPJPUcBbjW2TSC4p7Ezgr1zxmruCGDAUm24XVqIx7tBY1vzdnAdkUONG_8Qd9OINdCKqMVD7wmyhcCN2Jl0Cp8LiRE1D804Tz-uX7M0UivtaJO2TK2e43RABNfcofAIM?purpose=inline)
+
+Inicial — 12 minutos
+
+El jugador retira tornillos manualmente, abre paneles, desconecta cables, extrae motor y tambor y transporta las piezas hasta sus contenedores.
+
+[Aperture Desk Job official promotional image - MobyGames](https://images.openai.com/static-rsc-4/KThMKmLi8FNj0yCNXIhAX9dXa-Jzt6LUk7uvpdM617usdS1tYTLzIqrfL72TLCuoh0jR3F8EUbpXXdtYw7pH8Pe2BApscttV2D_gQCMbKeKpk_vdqd5Z7hqsfcnLFWzlQIBfoO7-3H6wDld9zQMPJy_TPGL7cfYickWDSEWzlUc?purpose=inline)
+
+Media — 6 minutos
+
+El atornillador acelera las fijaciones. El banco de extracción ayuda con el motor y una cinta transporta los materiales hasta clasificación.
+
+[【即時新聞】光聯受惠歐洲家電拉貨帶動2025年營收重返20億元大關 | CMoney投資網誌](https://images.openai.com/static-rsc-4/_TgO3z-46KYTGOizDooKP0lnBTVRktpXVOeLd51iI-KhheucUFMKpuo-2splQZvju9RoUEDfDmwnUhZQ3twkz1K8w_QTc9uuUhP7PK19H3-JEI536pXNIGXHjASxw0kNcuxVPffaRr9cPwo-uUkrvglvN5sBSNV22C9k3q8l5dA?purpose=inline)
+
+Avanzada — 2 minutos de proceso
+
+El jugador carga la lavadora en una estación, el robot retira fijaciones accesibles, un mecanismo separa los paneles compatibles y la cinta transporta materiales. Los componentes de valor siguen requiriendo extracción o validación.
+
+Tiempo estimado de procesamiento de una lavadora
+
+Objetivos de balance, no mediciones reales.
+
+0 min4 min8 min12 min16 minManualAsistidoAutomatizado
+
+Importante: los dos minutos de la etapa avanzada son tiempo de procesamiento de la estación, no necesariamente dos minutos de trabajo activo del jugador. Mientras la máquina trabaja, puede preparar otros objetos.
+
+# 9. Rentabilidad: automatizar no siempre significa ganar más
+
+La economía debe ofrecer tres estrategias válidas.
+
+| Estrategia                | Velocidad | Recuperación de valor | Gastos |
+| ------------------------- | --------- | --------------------- | ------ |
+| Manual y cuidadosa        | Baja      | Muy alta              | Bajos  |
+| Herramientas asistidas    | Media     | Alta                  | Medios |
+| Automatización industrial | Muy alta  | Media–alta            | Altos  |
+
+Un robot bien configurado puede alcanzar una calidad excelente en operaciones repetitivas. Sin embargo, automatizar un objeto desconocido o delicado puede requerir intervención humana.
+
+## Simulador de rentabilidad
+
+Lavadoras a procesar
+
+## 10
+
+Método
+
+Manual
+
+Herramientas asistidas
+
+Automatización
+
+Tiempo de trabajo/proceso
+
+# 60 min
+
+Beneficio operativo estimado
+
+# $1.690
+
+Ingresos por recuperación
+
+$1.840
+
+Costes operativos
+
+−$150
+
+Resultado\
+$1.690
+
+Modelo ilustrativo con valor potencial de $200 por lavadora. No incluye inversión inicial, transporte, salarios ficticios ni trabajos simultáneos.
+
+La automatización no necesariamente genera el mayor beneficio por objeto. Su ventaja es procesar muchos más objetos por hora, liberando tiempo para contratos especiales y operaciones de mayor valor.
+
+# 10. Automatización y cooperación
+
+Este sistema tiene que funcionar tanto para una persona como para siete.
+
+| Jugadores | Cómo aprovechan la automatización                                                            |
+| --------- | -------------------------------------------------------------------------------------------- |
+| 1         | Los robots realizan operaciones repetitivas mientras el jugador atiende trabajos especiales. |
+| 2         | Uno prepara estaciones y otro desmonta o clasifica.                                          |
+| 3–4       | Se distribuyen recepción, desmontaje, maquinaria y procesamiento.                            |
+| 5–7       | Pueden operar varias líneas, realizar mantenimiento y aceptar contratos simultáneos.         |
+
+No aumentaría el desgaste por cantidad de jugadores. El desgaste depende del trabajo realmente ejecutado.
+
+Tampoco permitiría que siete jugadores reparen una misma máquina siete veces más rápido. Dos personas pueden colaborar en algunas reparaciones, con una bonificación limitada.
+
+# 11. Evitar que el mantenimiento se vuelva molesto
+
+Este punto es especialmente importante.
+
+El jugador no debería pasar diez minutos reparando máquinas para poder disfrutar cinco minutos de desmontaje.
+
+Definiría estas reglas:
+
+- Las máquinas funcionan durante varios contratos antes de necesitar mantenimiento.
+- Las advertencias aparecen con suficiente anticipación.
+- Las averías nunca destruyen materiales almacenados.
+- Una máquina detenida conserva su trabajo pendiente.
+- Se puede reparar utilizando repuestos recuperados o comprados.
+- El mantenimiento preventivo restaura más condición que una reparación de emergencia por el mismo coste.
+- La automatización avanzada incluye mejoras para reducir desgaste y gestionar mantenimiento.
+
+## 11.1 Optimización final: taller de mantenimiento automático
+
+Esta sería una de las últimas ampliaciones del juego.
+
+[store.steampowered.com](https://store.steampowered.com/news/posts/?appids=544550\&enddate=1683627338\&feed=steam_community_announcements\&utm_source=chatgpt.com)
+
+Nombre: Centro de mantenimiento industrial.
+
+Función: realizar mantenimiento preventivo automático sobre máquinas conectadas.
+
+Requisitos: reputación nivel 5, subestación industrial y almacén de repuestos.
+
+Operación: el jugador deposita kits de reparación en un almacén central. Cuando una máquina baja de cierta condición, el centro programa una intervención durante un período de inactividad.
+
+Limitaciones: no repara averías especiales, no crea repuestos gratuitamente y no trabaja sobre máquinas que están ejecutando un ciclo crítico.
+
+Esto completa una progresión satisfactoria:
+
+Primero el jugador hace todo manualmente. Después utiliza máquinas, luego aprende a mantenerlas y finalmente automatiza parte del mantenimiento.
+
+# 12. Objetivo de optimización final
+
+La planta completamente desarrollada debería alcanzar estos objetivos de diseño.
+
+## Planta industrial optimizada
+
+# 70–85 %
+
+Operaciones repetitivas automatizables
+
+# 3–5×
+
+Rendimiento objetivo frente al taller inicial
+
+# 85–95 %
+
+Calidad recuperable en procesos compatibles
+
+# 1–7
+
+Jugadores con tareas útiles
+
+Metas de balance sujetas a pruebas. La automatización se mide por operaciones, no por porcentaje de objetos totalmente autónomos.
+
+La planta avanzada debería poder:
+
+1. Recibir varios encargos y asignarlos a estaciones.
+2. Inspeccionar automáticamente objetos conocidos.
+3. Retirar fijaciones y separar módulos compatibles.
+4. Transportar materiales mediante cintas y montacargas.
+5. Clasificar y compactar materiales.
+6. Recuperar piezas valiosas mediante intervención manual.
+7. Fabricar y distribuir repuestos.
+8. Realizar mantenimiento preventivo.
+9. Mantener varias líneas funcionando simultáneamente.
+10. Permitir que los jugadores sigan desmontando objetos especiales o difíciles.
+
+## 13. Qué desbloquea cada gran avance
+
+1. Herramientas manuales: permiten operar la chatarrería.
+2. Herramientas eléctricas: reducen el tiempo por interacción.
+3. Bancos y maquinaria: permiten desmontar objetos grandes.
+4. Grúas y transportadores: eliminan cuellos de botella de transporte.
+5. Robots especializados: automatizan tareas repetitivas.
+6. Clasificación inteligente: automatiza parte del procesamiento.
+7. Gestión energética: permite operar varias máquinas simultáneamente.
+8. Fabricación de repuestos: reduce costes operativos.
+9. Mantenimiento automático: reduce las interrupciones.
+10. Planta optimizada: permite grandes contratos y producción paralela.
+
+## 14. Una decisión adicional que recomiendo para el juego
+
+Haría que la automatización no se compre únicamente con dinero: parte de ella debe construirse recuperando componentes de los propios objetos.
+
+Por ejemplo, para construir el primer robot desatornillador:
+
+| Recurso         | Cantidad | Procedencia               |
+| --------------- | -------- | ------------------------- |
+| Motor eléctrico | 2        | Lavadoras, generadores    |
+| Electrónica     | 8        | Computadoras, televisores |
+| Acero           | 20       | Carcasas, vehículos       |
+| Cobre           | 10       | Cableado, motores         |
+| Dinero          | $2.500   | Contratos y ventas        |
+
+Una vez construido, requiere electricidad y mantenimiento.
+
+Esto crea un ciclo de progresión más interesante: desmontás objetos para recuperar piezas, utilizás esas piezas para construir máquinas y esas máquinas te permiten desmontar objetos cada vez más complejos.
+
+Además, permite introducir una nueva decisión en el catálogo: cuando recibís un motor, ¿lo vendés por dinero, lo descomponés para obtener cobre o lo reservás para construir un robot?
+
+Esa sería una de las principales fortalezas de ¡ESO TODAVÍA SIRVE!: que el jugador vea cómo su propio trabajo transforma progresivamente la chatarrería.
+
+La siguiente definición clave será el árbol tecnológico completo, donde cada herramienta, máquina y robot tenga su receta, coste, requisito de desbloqueo, consumo, rendimiento, mantenimiento y relación con los 30 objetos. Así tendremos una progresión industrial conectada, en lugar de una lista de mejoras independientes.
